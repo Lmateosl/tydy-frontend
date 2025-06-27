@@ -24,7 +24,7 @@ export default function Layout({ children }) {
         </div>
 
         {/* Contenido */}
-        <main className="flex-1 p-4 !overflow-auto bg-white max-w-full max-h-[87vh] md:max-h-fit md:mt-1 mt-[6vh] mb-[7vh] md:mb-1">
+        <main className="flex-1 p-4 !overflow-auto bg-white max-w-full max-h-[84vh] md:max-h-fit md:mt-1 mt-[6vh] mb-[10vh] md:mb-1">
           {children}
         </main>
 
