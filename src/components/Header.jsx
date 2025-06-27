@@ -17,7 +17,7 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
   };
 
   return (
-    <header className="flex items-center justify-between bg-[#0A2A47] p-4 text-white shadow">
+    <header className="fixed top-0 left-0 w-full h-[6vh] flex items-center justify-between bg-[#0A2A47] p-4 text-white shadow z-50">
       
       {/* Botón de abrir sidebar solo en móvil */}
       {usuarioLogueado?.rol !== "empleado" ?

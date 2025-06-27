@@ -13,7 +13,7 @@ export default function Footer() {
     }`;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex bg-[#0A2A47] shadow z-50 w-full">
+    <div className="fixed bottom-0 left-0 right-0 flex bg-[#0A2A47] shadow z-50 w-full h-[7vh]">
       <button className={getButtonClass("/lugar")} onClick={() => navigate("/lugar")}>
         <MapPin size={24} />
       </button>
