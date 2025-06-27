@@ -14,7 +14,7 @@ export default function Main() {
 
   return (
     <Layout>
-      <div className="bg-white p-4 flex flex-col justify-center items-center mb-15">
+      <div className="bg-white p-4 flex flex-col justify-center items-center">
         {(!listaActiva || !historialId) && !dentroArea && <Geo setDentroArea={setDentroArea} />}
         {(!listaActiva || !historialId) && dentroArea && <Codigos />}
         {listaActiva && historialId && <ListaCheck />}

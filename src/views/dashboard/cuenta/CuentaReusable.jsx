@@ -35,7 +35,7 @@ function CuentaReusable() {
   };
 
   return (
-    <div className="p-4 w-full max-w-[100%] md:max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-[100%] md:max-w-2xl mx-auto space-y-6">
       <div className="border-1 border-[#0A2A47] p-6 rounded-2xl">
         <h2 className="text-2xl font-bold text-[#0A2A47] mb-4">Mi Información</h2>
         <div className="flex justify-center mb-4">

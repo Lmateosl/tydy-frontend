@@ -16,7 +16,7 @@ function Lugar() {
 
   return (
     <Layout>
-      <div className="p-4 max-w-xl mx-auto space-y-6 mb-15">
+      <div className="p-4 max-w-xl mx-auto space-y-6">
         <h2 className="text-2xl font-bold text-[#0A2A47] mb-4 text-center">Lugar de Trabajo</h2>
 
         <div className="border-1 border-[#0A2A47] p-6 rounded-2xl text-center space-y-4">
