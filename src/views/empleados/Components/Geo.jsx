@@ -39,7 +39,7 @@ const Geo = ({ setDentroArea }) => {
           parseFloat(data.locacion.longitud)
         );
 
-        if (distancia <= 100) {
+        if (distancia <= 1000) {
           setDentroArea(true);
           setMensajeError(false);
           console.log('Dentro Area');
