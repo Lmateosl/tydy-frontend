@@ -148,7 +148,19 @@ function ListaCheck() {
       {listaActiva.imagen && (
         <div className="mb-4">
           <label className="block mb-1 font-bold text-[#0A2A47]">Adjuntar Imagen *</label>
-          <input type="file" accept="image/*" onChange={(e) => setImagen(e.target.files[0])} />
+          <input
+            id="imagen-upload"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImagen(e.target.files[0])}
+            className="hidden"
+          />
+          <label
+            htmlFor="imagen-upload"
+            className="cursor-pointer flex items-center justify-center border-2 border-dashed border-[#0A2A47] p-4 rounded text-[#0A2A47] hover:bg-gray-100"
+          >
+            Haz clic aquí para subir imagen
+          </label>
         </div>
       )}
 

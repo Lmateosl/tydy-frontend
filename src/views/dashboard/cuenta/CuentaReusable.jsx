@@ -101,9 +101,16 @@ function CuentaReusable() {
       </div>
 
       <div className="border-1 border-[#0A2A47] p-6 rounded-2xl">
-      <h2 className="text-2xl font-bold text-[#0A2A47] mb-4">Miembro De</h2>
+        <h2 className="text-2xl font-bold text-[#0A2A47] mb-4 text-center">Miembro De</h2>
         {compania ? (
           <div className="space-y-2">
+            {compania?.logo && (
+              <img
+                src={compania.logo}
+                alt="Logo de la empresa"
+                className="w-[90%] md:w-[40%] object-contain mb-4 mx-auto"
+              />
+            )}
             <div className="flex justify-between">
               <label className="text-[#0A2A47] font-semibold">Empresa:</label>
               <p>{compania?.nombre || "No disponible"}</p>
