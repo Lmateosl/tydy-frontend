@@ -15,6 +15,7 @@ function ListaCheck() {
   const [actividadesFinalizadas, setActividadesFinalizadas] = useState([]);
   const [imagen, setImagen] = useState(null);
   const [mostrarScanner, setMostrarScanner] = useState(false);
+  const [subiendo, setSubiendo] = useState(false);
   const scannerRef = useRef(null);
 
   const [finalizarActividad] = useFinalizarActividadUsuarioMutation();
@@ -77,7 +78,7 @@ function ListaCheck() {
     }
   }, [mostrarScanner]);
 
-  const finalizarProceso = () => {
+  const finalizarProceso = async () => {
     if (actividadesFinalizadas.length !== listaActiva.actividades.length) {
       toast.error("Debes marcar todas las actividades como finalizadas.");
       return;
@@ -86,24 +87,25 @@ function ListaCheck() {
     const formData = new FormData();
     if (comentario) formData.append("comentario", comentario);
     if (listaActiva.imagen && !imagen) {
-        toast.error("No puedes finalizar esta actividad sin subir una imagen de prueba.");
-        return;
+      toast.error("No puedes finalizar esta actividad sin subir una imagen de prueba.");
+      return;
     }
     if (imagen) formData.append("imagen", imagen);
 
-    finalizarActividad({ actividad_id: historialId, datos: formData })
-      .unwrap()
-      .then(() => {
-        toast.success("Lista finalizada correctamente.");
-        dispatch(borrarListaActiva());
-        dispatch(borrarHistorialId());
-      })
-      .catch((error) => {
-        toast.error(error?.data?.detail || "Error al finalizar la actividad.");
-      });
+    try {
+      setSubiendo(true);
+      await finalizarActividad({ actividad_id: historialId, datos: formData }).unwrap();
+      toast.success("Lista finalizada correctamente.");
+      dispatch(borrarListaActiva());
+      dispatch(borrarHistorialId());
+    } catch (error) {
+      toast.error(error?.data?.detail || "Error al finalizar la actividad.");
+    } finally {
+      setSubiendo(false);
+    }
   };
 
-  const handleFinalizarManual = () => {
+  const handleFinalizarManual = async () => {
     if (actividadesFinalizadas.length !== listaActiva.actividades.length) {
       toast.error("Debes marcar todas las actividades como finalizadas.");
       return;
@@ -111,12 +113,12 @@ function ListaCheck() {
 
     if (listaActiva.codeout) {
       if (codigoIngresado === listaActiva.codeout) {
-        finalizarProceso();
+        await finalizarProceso();
       } else {
         toast.error("El código ingresado es incorrecto.");
       }
     } else {
-      finalizarProceso();
+      await finalizarProceso();
     }
   };
 
@@ -178,9 +180,10 @@ function ListaCheck() {
         <>
           <button
             onClick={handleEscanearQR}
-            className="flex items-center justify-center gap-2 w-full bg-[#3BAE3D] text-white py-2 rounded mb-4"
+            disabled={subiendo}
+            className={`flex items-center justify-center gap-2 w-full bg-[#3BAE3D] text-white py-2 rounded mb-4 ${subiendo ? "opacity-60 cursor-not-allowed" : ""}`}
           >
-            <QrCode /> Escanear QR
+            <QrCode /> {subiendo ? "Procesando..." : "Escanear QR"}
           </button>
           {mostrarScanner && (
             <video
@@ -210,9 +213,10 @@ function ListaCheck() {
           />
           <button
             onClick={handleFinalizarManual}
-            className="w-full bg-[#3BAE3D] text-white py-2 rounded"
+            disabled={subiendo}
+            className={`w-full bg-[#3BAE3D] text-white py-2 rounded ${subiendo ? "opacity-60 cursor-not-allowed" : ""}`}
           >
-            Finalizar
+            {subiendo ? "Subiendo..." : "Finalizar"}
           </button>
         </>
       )}
@@ -220,9 +224,10 @@ function ListaCheck() {
       {!listaActiva.qrout && !listaActiva.codeout && (
         <button
           onClick={handleFinalizarManual}
-          className="w-full bg-[#3BAE3D] text-white py-2 rounded"
+          disabled={subiendo}
+          className={`w-full bg-[#3BAE3D] text-white py-2 rounded ${subiendo ? "opacity-60 cursor-not-allowed" : ""}`}
         >
-          Finalizar
+          {subiendo ? "Subiendo..." : "Finalizar"}
         </button>
       )}
     </div>
