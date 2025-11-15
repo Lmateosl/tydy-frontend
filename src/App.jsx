@@ -10,6 +10,9 @@ import Main from "./views/empleados/Main";
 import CeuntaEmp from "./views/empleados/CuentaEmp";
 import Lugar from "./views/empleados/Lugar";
 import Reportes from "./views/dashboard/reportes/Reportes";
+import FeedbackQR from "./views/dashboard/listas/FeedbackQR";
+import Feedback from "./views/empleados/Feedback";
+import ReporteFeedback from "./views/dashboard/reportes/Reporte-feedback";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
@@ -23,6 +26,7 @@ function App() {
       <Routes>
         {/* Ruta de Login siempre accesible */}
         <Route path="/login" element={token ? <Navigate to={usuario?.rol === "empleado" ? "/main" : "/"} /> : <Login />} />
+        <Route path="/feedback/:empresa/:direccion/:company_id" element={<Feedback />} />
 
         {/* Rutas solo para admin y supervisor */}
         {token && usuario?.rol !== "empleado" && (
@@ -38,6 +42,8 @@ function App() {
               <>
                 <Route path="/actividades" element={<Actividades />} />
                 <Route path="/listas" element={<Listas />} />
+                <Route path="/feedback-qr" element={<FeedbackQR />} />
+                <Route path="/feedback-reporte" element={<ReporteFeedback />} />
               </>
             )}
             <Route path="/reportes" element={<Reportes />} />

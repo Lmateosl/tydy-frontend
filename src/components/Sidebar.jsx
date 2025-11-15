@@ -1,5 +1,5 @@
 import logo from '../assets/imgs/Logo_fondo_azul.png';
-import { X, Home, Users, Building2, List as ListIcon, ClipboardList, FileBarChart2, LogOut, Menu, User2Icon } from "lucide-react";
+import { X, Home, Users, Building2, List as ListIcon, ClipboardList, FileBarChart2, LogOut, Menu, User2Icon, QrCodeIcon, CheckCheckIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,6 +29,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     { label: "Empresas", icon: <Building2 size={22} />, path: "/empresas" },
     { label: "Actividades", icon: <ListIcon size={22} />, path: "/actividades" },
     { label: "Listas", icon: <ClipboardList size={22} />, path: "/listas" },
+    { label: "Feedback QR", icon: <QrCodeIcon size={22} />, path: "/feedback-qr" },
+    { label: "Feedback", icon: <CheckCheckIcon size={22} />, path: "/feedback-reporte" },
     { label: "Reportes", icon: <FileBarChart2 size={22} />, path: "/reportes" },
   ];
 
