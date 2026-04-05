@@ -2,6 +2,12 @@
 
 Frontend application for a QR-based task management and supervision platform.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-tydy.pro-0A2A47?style=for-the-badge)](https://tydy.pro)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![PWA](https://img.shields.io/badge/PWA-Enabled-0F766E?style=for-the-badge)](#-architecture)
+
 ## 🌐 Demo
 
 Live Demo: [https://tydy.pro](https://tydy.pro)
