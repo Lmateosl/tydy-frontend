@@ -6,6 +6,8 @@ Frontend application for a QR-based task management and supervision platform.
 
 Live Demo: [https://tydy.pro](https://tydy.pro)
 
+Back-End Repository: [https://github.com/Lmateosl/tydy-backend](https://github.com/Lmateosl/tydy-backend)
+
 ## 🔐 Demo Access
 
 The application is currently deployed but requires authentication.
