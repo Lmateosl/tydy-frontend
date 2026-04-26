@@ -14,6 +14,7 @@ export default function Usuarios() {
   const [filtro, setFiltro] = useState("");
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [modoCrear, setModoCrear] = useState(false);
+  const [modalFormularioAbierto, setModalFormularioAbierto] = useState(false);
 
   const usuariosFiltrados = useMemo(() => {
     return usuarios.filter(
@@ -24,6 +25,23 @@ export default function Usuarios() {
     );
   }, [filtro, usuarios]);
 
+  const abrirCrearUsuario = () => {
+    setUsuarioSeleccionado(null);
+    setModoCrear(true);
+    setModalFormularioAbierto(true);
+  };
+
+  const abrirEditarUsuario = (usuario) => {
+    setUsuarioSeleccionado(usuario);
+    setModoCrear(false);
+    setModalFormularioAbierto(true);
+  };
+
+  const cerrarFormularioUsuario = () => {
+    setModoCrear(false);
+    setModalFormularioAbierto(false);
+    setUsuarioSeleccionado(null);
+  };
 
   const exportarCSV = () => {
     const headers = ["Nombre", "Email", "Rol", "Número", "Dirección", "Identificación"];
@@ -143,41 +161,54 @@ export default function Usuarios() {
       <div className="p-4">
         <h1 className="text-3xl font-extrabold text-[#0A2A47] mb-4">Usuarios</h1>
 
-        <div className="hidden md:flex text-white text-[18px] shadow rounded-xl p-4 mb-4 flex-wrap justify-center items-center bg-[#0A2A47] gap-7">
-          <div className="flex flex-col items-center mb-2 md:mb-0">
-            <div className="flex items-center gap-2">
-              <Users size={18} className="text-[#3BAE3D]"/>
-              <span className="font-bold">Total</span>
+        {/* Tarjetas de resumen */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
+            <span className="text-sm opacity-80">Total usuarios</span>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-3xl font-bold">{usuarios.length}</span>
+              <Users className="text-[#3BAE3D]" />
             </div>
-            <span className="text-lg font-bold">{usuarios.length}</span>
           </div>
-          <div className="flex flex-col items-center mb-2 md:mb-0">
-            <div className="flex items-center gap-2">
-              <Shield size={18} className="text-[#3BAE3D]"/>
-              <span className="font-bold">Administradores</span>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-gray-500">Administradores</p>
+              <Shield size={16} className="text-[#0A2A47]" />
             </div>
-            <span className="text-lg font-bold">{usuarios.filter(u => u.rol === 'admin').length}</span>
+            <p className="text-2xl font-bold text-[#0A2A47]">
+              {usuarios.filter(u => u.rol === 'admin').length}
+            </p>
           </div>
-          <div className="flex flex-col items-center mb-2 md:mb-0">
-            <div className="flex items-center gap-2">
-              <UserCheck size={18} className="text-[#3BAE3D]"/>
-              <span className="font-bold">Supervisores</span>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-gray-500">Supervisores</p>
+              <UserCheck size={16} className="text-[#0A2A47]" />
             </div>
-            <span className="text-lg font-bold">{usuarios.filter(u => u.rol === 'supervisor').length}</span>
+            <p className="text-2xl font-bold text-[#0A2A47]">
+              {usuarios.filter(u => u.rol === 'supervisor').length}
+            </p>
           </div>
-          <div className="flex flex-col items-center mb-2 md:mb-0">
-            <div className="flex items-center gap-2">
-              <User size={18} className="text-[#3BAE3D]"/>
-              <span className="font-bold">Empleados</span>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-gray-500">Empleados</p>
+              <User size={16} className="text-[#0A2A47]" />
             </div>
-            <span className="text-lg font-bold">{usuarios.filter(u => u.rol === 'empleado').length}</span>
+            <p className="text-2xl font-bold text-[#0A2A47]">
+              {usuarios.filter(u => u.rol === 'empleado').length}
+            </p>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2">
-              <UserCircle size={18} className="text-[#3BAE3D]"/>
-              <span className="font-bold">Clientes</span>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-gray-500">Clientes</p>
+              <UserCircle size={16} className="text-[#0A2A47]" />
             </div>
-            <span className="text-lg font-bold">{usuarios.filter(u => u.rol === 'cliente').length}</span>
+            <p className="text-2xl font-bold text-[#0A2A47]">
+              {usuarios.filter(u => u.rol === 'cliente').length}
+            </p>
           </div>
         </div>
 
@@ -205,10 +236,7 @@ export default function Usuarios() {
               Exportar CSV
             </button>
             <button
-              onClick={() => {
-                setUsuarioSeleccionado(null);
-                setModoCrear(true);
-              }}
+              onClick={abrirCrearUsuario}
               className="flex items-center gap-1 bg-[#3BAE3D] text-white px-3 py-1 rounded hover:border-[#3BAE3D] hover:bg-white hover:text-[#3BAE3D] hover:border-1"
             >
               <Plus size={16} />
@@ -224,12 +252,28 @@ export default function Usuarios() {
               isLoading={isLoading}
               isError={isError}
               usuarioSeleccionado={usuarioSeleccionado}
-              setUsuarioSeleccionado={setUsuarioSeleccionado}
+              setUsuarioSeleccionado={abrirEditarUsuario}
               setModoCrear={setModoCrear}
             />
           </div>
+        </div>
+      </div>
+      {modalFormularioAbierto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-[#0A2A47]">
+                {modoCrear ? "Añadir Usuario" : "Editar Usuario"}
+              </h2>
+              <button
+                type="button"
+                onClick={cerrarFormularioUsuario}
+                className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
+              >
+                ×
+              </button>
+            </div>
 
-          <div className="w-full">
             <FormularioUsuario
               usuario={usuarioSeleccionado}
               modoCrear={modoCrear}
@@ -239,7 +283,7 @@ export default function Usuarios() {
             />
           </div>
         </div>
-      </div>
+      )}
     </Layout>
   );
 }

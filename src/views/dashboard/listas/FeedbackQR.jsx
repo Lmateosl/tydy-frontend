@@ -110,30 +110,30 @@ const FeedbackQR = () => {
           QR de Feedback
         </h1>
 
-        {/* Resumen */}
-        <div className="hidden md:flex justify-center bg-[#0A2A47] text-white p-4 rounded-xl gap-7 mb-8 !text-[18px]">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2">
-              <List size={18} className="text-[#3BAE3D]" />
-              <span className="font-bold">QR Feedbacks</span>
+        {/* Tarjeta de resumen */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm md:col-span-1">
+            <span className="text-sm opacity-80">QR Feedbacks</span>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-3xl font-bold">
+                {isLoading || isFetching ? "..." : totalFeedbacks}
+              </span>
+              <List className="text-[#3BAE3D]" />
             </div>
-            <span className="text-lg font-bold">
-              {isLoading || isFetching ? "..." : totalFeedbacks}
-            </span>
           </div>
         </div>
 
         {/* Filtro + botón crear */}
         <div className="flex mb-4 gap-2 flex-col md:flex-row">
           <input
-            className="border px-2 py-1 flex-1 rounded-md w-full md:w-3/5"
+            className="border border-[#0A2A47] px-3 py-2 flex-1 rounded-md w-full md:w-3/5 text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
             placeholder="Buscar por empresa"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
           />
           <button
             onClick={handleCrearClick}
-            className="bg-[#3BAE3D] text-white px-2 py-1 rounded flex items-center gap-1 w-full md:w-1/5 justify-center hover:bg-[#a0dea1]"
+            className="bg-[#0A2A47] text-white px-3 py-2 rounded flex items-center gap-1 w-full md:w-1/5 justify-center font-semibold shadow-sm hover:bg-[#123b63]"
           >
             <Plus size={16} />
             Crear QR Feedback
@@ -141,27 +141,27 @@ const FeedbackQR = () => {
         </div>
 
         {/* Tabla */}
-        <div className="max-h-[55vh] overflow-auto">
-          <table className="w-full text-center border rounded-xl overflow-hidden">
+        <div className="max-h-[55vh] overflow-auto rounded-xl border border-[#e6f0f8] shadow-sm">
+          <table className="w-full text-center text-[#0A2A47]">
             <thead className="sticky top-0 left-0">
-              <tr className="bg-[#0A2A47] text-white sticky top-0 left-0">
-                <th className="p-2">QR</th>
-                <th className="p-2">Empresa</th>
-                <th className="p-2">Dirección</th>
-                <th className="p-2">Acciones</th>
+              <tr className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 left-0">
+                <th className="py-2 px-3">QR</th>
+                <th className="py-2 px-3">Empresa</th>
+                <th className="py-2 px-3">Dirección</th>
+                <th className="py-2 px-3">Acciones</th>
               </tr>
             </thead>
-            <tbody className="text-[#333333]">
+            <tbody className="text-[#0A2A47]">
               {feedbacksFiltrados.map((f) => (
                 <tr
                   key={f.id}
-                  className="hover:bg-gray-100 border-b-1 border-gray-200"
+                  className="transition-colors hover:bg-[#e6f0f8] border-b border-[#e6f0f8]"
                 >
-                  <td className="p-2">
+                  <td className="py-2 px-3">
                     {f.url ? (
                       <button
                         onClick={() => setQrZoomUrl(f.url)}
-                        className="flex flex-col items-center justify-center text-[#3BAE3D] hover:text-[#2c8c30]"
+                        className="flex flex-col items-center justify-center text-[#0A2A47] hover:text-[#123b63]"
                       >
                         <img
                           src={f.url}
@@ -177,20 +177,20 @@ const FeedbackQR = () => {
                       "-"
                     )}
                   </td>
-                  <td className="p-2">{f.nombre || "-"}</td>
-                  <td className="p-2">{f.direccion || "-"}</td>
-                  <td className="p-2">
+                  <td className="py-2 px-3">{f.nombre || "-"}</td>
+                  <td className="py-2 px-3">{f.direccion || "-"}</td>
+                  <td className="py-2 px-3">
                     <div className="flex items-center justify-center gap-3">
                       <button
                         onClick={() => handleEditarClick(f)}
-                        className="text-green-600 hover:text-green-800"
+                        className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5]"
                         title="Editar"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         onClick={() => setFeedbackAEliminar(f)}
-                        className="text-red-500 hover:text-red-700"
+                        className="rounded-full p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
                         title="Eliminar"
                       >
                         <Trash2 size={16} />

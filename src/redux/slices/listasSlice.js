@@ -1,11 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const storedLista = localStorage.getItem('listaActiva');
-const storedHistorialId = localStorage.getItem('historialId');
+if (typeof window !== 'undefined') {
+  window.localStorage.removeItem('listaActiva');
+  window.localStorage.removeItem('historialId');
+}
 
 const initialState = {
-  listaActiva: storedLista ? JSON.parse(storedLista) : null,
-  historialId: storedHistorialId || null,
+  listaActiva: null,
+  historialId: null,
 };
 
 const listasSlice = createSlice({
@@ -14,19 +16,15 @@ const listasSlice = createSlice({
   reducers: {
     setListaActiva: (state, action) => {
       state.listaActiva = action.payload;
-      localStorage.setItem('listaActiva', JSON.stringify(action.payload));
     },
     borrarListaActiva: (state) => {
       state.listaActiva = null;
-      localStorage.removeItem('listaActiva');
     },
     setHistorialId: (state, action) => {
       state.historialId = action.payload;
-      localStorage.setItem('historialId', action.payload);
     },
     borrarHistorialId: (state) => {
       state.historialId = null;
-      localStorage.removeItem('historialId');
     },
   },
 });

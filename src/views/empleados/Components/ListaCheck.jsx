@@ -4,7 +4,35 @@ import { useFinalizarActividadUsuarioMutation } from "../../../redux/api/histori
 import { toast } from "react-toastify";
 import { useState, useRef, useEffect } from "react";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { Camera, CameraIcon, CheckCircle, QrCode } from "lucide-react";
+import { QrCode, Camera, CheckCircle2, X } from "lucide-react";
+
+const calcularDistancia = (lat1, lon1, lat2, lon2) => {
+  const toRad = (valor) => (valor * Math.PI) / 180;
+  const R = 6371e3;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+const obtenerUbicacionActual = () =>
+  new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Geolocalización no disponible."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+    });
+  });
 
 function ListaCheck() {
   const dispatch = useDispatch();
@@ -17,6 +45,7 @@ function ListaCheck() {
   const [mostrarScanner, setMostrarScanner] = useState(false);
   const [subiendo, setSubiendo] = useState(false);
   const scannerRef = useRef(null);
+  const imagenPreviewUrl = imagen ? URL.createObjectURL(imagen) : null;
 
   const [finalizarActividad] = useFinalizarActividadUsuarioMutation();
 
@@ -54,7 +83,7 @@ function ListaCheck() {
             if (qrData.lista_id === listaActiva.id && qrData.finalizada) {
                 controls.stop();
                 setMostrarScanner(false);
-                finalizarProceso();
+                finalizarProceso("qr");
             } else {
                 controls.stop();
                 setMostrarScanner(false);
@@ -78,18 +107,53 @@ function ListaCheck() {
     }
   }, [mostrarScanner]);
 
-  const finalizarProceso = async () => {
+  useEffect(() => {
+    return () => {
+      if (imagenPreviewUrl) {
+        URL.revokeObjectURL(imagenPreviewUrl);
+      }
+    };
+  }, [imagenPreviewUrl]);
+
+  const finalizarProceso = async (metodoFin = "manual") => {
     if (actividadesFinalizadas.length !== listaActiva.actividades.length) {
       toast.error("Debes marcar todas las actividades como finalizadas.");
       return;
     }
 
-    const formData = new FormData();
-    if (comentario) formData.append("comentario", comentario);
     if (listaActiva.imagen && !imagen) {
       toast.error("No puedes finalizar esta actividad sin subir una imagen de prueba.");
       return;
     }
+
+    const formData = new FormData();
+    if (comentario) formData.append("comentario", comentario);
+    formData.append("metodo_fin", metodoFin);
+
+    try {
+      const posicion = await obtenerUbicacionActual();
+      const latitudFin = posicion.coords.latitude;
+      const longitudFin = posicion.coords.longitude;
+      formData.append("latitud_fin", latitudFin);
+      formData.append("longitud_fin", longitudFin);
+      formData.append("precision_fin", posicion.coords.accuracy);
+
+      if (listaActiva.latitud && listaActiva.longitud) {
+        formData.append(
+          "distancia_fin",
+          calcularDistancia(
+            latitudFin,
+            longitudFin,
+            Number(listaActiva.latitud),
+            Number(listaActiva.longitud)
+          )
+        );
+      }
+    } catch {
+      toast.error("Debes permitir el acceso a la ubicación para verificar el cierre.");
+      return;
+    }
+
     if (imagen) formData.append("imagen", imagen);
 
     try {
@@ -113,12 +177,12 @@ function ListaCheck() {
 
     if (listaActiva.codeout) {
       if (codigoIngresado === listaActiva.codeout) {
-        await finalizarProceso();
+        await finalizarProceso("codigo");
       } else {
         toast.error("El código ingresado es incorrecto.");
       }
     } else {
-      await finalizarProceso();
+      await finalizarProceso("manual");
     }
   };
 
@@ -149,20 +213,56 @@ function ListaCheck() {
 
       {listaActiva.imagen && (
         <div className="mb-4">
-          <label className="block mb-1 font-bold text-[#0A2A47]">Adjuntar Imagen *</label>
+          <label className="block mb-2 font-bold text-[#0A2A47]">Adjuntar Imagen *</label>
           <input
             id="imagen-upload"
             type="file"
             accept="image/*"
-            onChange={(e) => setImagen(e.target.files[0])}
+            onChange={(e) => setImagen(e.target.files?.[0] || null)}
             className="hidden"
           />
-          <label
-            htmlFor="imagen-upload"
-            className="cursor-pointer flex items-center justify-center border-2 border-dashed border-[#0A2A47] p-4 rounded text-[#0A2A47] hover:bg-gray-100"
-          >
-            Haz clic aquí para subir imagen
-          </label>
+
+          {!imagen ? (
+            <label
+              htmlFor="imagen-upload"
+              className="cursor-pointer flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#0A2A47] p-5 rounded-xl text-[#0A2A47] hover:bg-[#e6f0f8] transition-colors"
+            >
+              <Camera size={28} />
+              <span className="font-semibold">Haz clic aquí para subir imagen</span>
+              <span className="text-xs opacity-80">La imagen es obligatoria para finalizar esta lista</span>
+            </label>
+          ) : (
+            <div className="rounded-xl border border-[#e6f0f8] bg-white shadow-sm overflow-hidden">
+              <img
+                src={imagenPreviewUrl}
+                alt="Vista previa de evidencia"
+                className="h-44 w-full object-cover"
+              />
+              <div className="flex items-center justify-between gap-3 p-3">
+                <div className="flex items-center gap-2 text-[#0A2A47] min-w-0">
+                  <CheckCircle2 size={18} className="text-[#3BAE3D] flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">Imagen cargada correctamente</p>
+                    <p className="text-xs text-gray-500 truncate">{imagen.name}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setImagen(null)}
+                  className="flex items-center gap-1 rounded-md border border-red-500 px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
+                >
+                  <X size={14} />
+                  Quitar
+                </button>
+              </div>
+              <label
+                htmlFor="imagen-upload"
+                className="block cursor-pointer border-t border-[#e6f0f8] px-3 py-2 text-center text-sm font-semibold text-[#0A2A47] hover:bg-[#e6f0f8]"
+              >
+                Cambiar imagen
+              </label>
+            </div>
+          )}
         </div>
       )}
 

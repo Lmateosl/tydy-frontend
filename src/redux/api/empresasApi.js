@@ -97,6 +97,10 @@ export const empresasApi = apiSlice.injectEndpoints({
     buscarCoordenadas: builder.query({
       query: (direccion) => `/locaciones/coordenadas/?direccion=${encodeURIComponent(direccion)}`,
     }),
+    buscarDireccionPorCoordenadas: builder.query({
+      query: ({ latitud, longitud }) =>
+        `/locaciones/reverse/?latitud=${encodeURIComponent(latitud)}&longitud=${encodeURIComponent(longitud)}`,
+    }),
   }),
 });
 
@@ -120,5 +124,8 @@ export const {
   useEditarAreaMutation,
   useEliminarAreaMutation,
   useObtenerUsuariosAreaQuery,
+  useLazyObtenerUsuariosAreaQuery,
   useBuscarCoordenadasQuery,
+  useLazyBuscarCoordenadasQuery,
+  useLazyBuscarDireccionPorCoordenadasQuery,
 } = empresasApi;

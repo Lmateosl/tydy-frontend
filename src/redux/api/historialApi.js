@@ -18,10 +18,28 @@ export const actividadesUsuarioApi = apiSlice.injectEndpoints({
         const query = [];
         if (params.usuario_id) query.push(`usuario_id=${encodeURIComponent(params.usuario_id)}`);
         if (params.finalizada !== undefined) query.push(`finalizada=${encodeURIComponent(params.finalizada)}`);
+        if (params.empresa) query.push(`empresa=${encodeURIComponent(params.empresa)}`);
+        if (params.estado_verificacion) query.push(`estado_verificacion=${encodeURIComponent(params.estado_verificacion)}`);
         if (params.desde) query.push(`desde=${encodeURIComponent(params.desde)}`);
         if (params.hasta) query.push(`hasta=${encodeURIComponent(params.hasta)}`);
         const qs = query.length ? `?${query.join("&")}` : "";
         return `/actividades-usuario/${qs}`;
+      },
+    }),
+
+    // Resumen operativo dashboard
+    obtenerResumenOperativo: builder.query({
+      query: () => "/dashboard/operativo/resumen",
+    }),
+
+    // Riesgos operativos dashboard
+    obtenerRiesgosOperativos: builder.query({
+      query: (params = {}) => {
+        const query = [];
+        if (params.desde) query.push(`desde=${encodeURIComponent(params.desde)}`);
+        if (params.hasta) query.push(`hasta=${encodeURIComponent(params.hasta)}`);
+        const qs = query.length ? `?${query.join("&")}` : "";
+        return `/dashboard/operativo/riesgos${qs}`;
       },
     }),
 
@@ -31,6 +49,8 @@ export const actividadesUsuarioApi = apiSlice.injectEndpoints({
         const query = [];
         if (params.usuario_id) query.push(`usuario_id=${encodeURIComponent(params.usuario_id)}`);
         if (params.finalizada !== undefined) query.push(`finalizada=${encodeURIComponent(params.finalizada)}`);
+        if (params.empresa) query.push(`empresa=${encodeURIComponent(params.empresa)}`);
+        if (params.estado_verificacion) query.push(`estado_verificacion=${encodeURIComponent(params.estado_verificacion)}`);
         if (params.desde) query.push(`desde=${encodeURIComponent(params.desde)}`);
         if (params.hasta) query.push(`hasta=${encodeURIComponent(params.hasta)}`);
         if (params.formato) query.push(`formato=${encodeURIComponent(params.formato)}`);
@@ -68,6 +88,8 @@ export const actividadesUsuarioApi = apiSlice.injectEndpoints({
 export const {
   useCrearActividadUsuarioMutation,
   useObtenerActividadesUsuarioQuery,
+  useObtenerResumenOperativoQuery,
+  useObtenerRiesgosOperativosQuery,
   useExportarActividadesUsuarioQuery,
   useLazyExportarActividadesUsuarioQuery,
   useObtenerActividadUsuarioQuery,

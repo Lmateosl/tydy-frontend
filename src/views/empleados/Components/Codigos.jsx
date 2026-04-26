@@ -6,7 +6,7 @@ import { useDispatch } from "react-redux";
 import { setListaActiva, setHistorialId } from "../../../redux/slices/listasSlice";
 import { toast } from "react-toastify";
 
-export default function Codigos() {
+export default function Codigos({ validacionUbicacion }) {
   const [mostrarQR, setMostrarQR] = useState(false);
   const [mostrarCodigo, setMostrarCodigo] = useState(false);
   const [codigo, setCodigo] = useState("");
@@ -43,7 +43,12 @@ export default function Codigos() {
             const lista = await dispararObtenerLista(datos.lista_id).unwrap();
             dispatch(setListaActiva(lista));
 
-            const { data: actividad } = await crearActividadUsuario({ lista_id: lista.id, finalizada: false });
+            const { data: actividad } = await crearActividadUsuario({
+              lista_id: lista.id,
+              finalizada: false,
+              metodo_inicio: "qr",
+              ...validacionUbicacion,
+            });
             dispatch(setHistorialId(actividad.id));
             toast.success("Actividad iniciada correctamente");
 
@@ -74,7 +79,11 @@ export default function Codigos() {
       const lista = await dispararObtenerListaCodigo(codigo).unwrap();
       dispatch(setListaActiva(lista));
 
-      const { data: actividad } = await crearActividadUsuario({ lista_id: lista.id });
+      const { data: actividad } = await crearActividadUsuario({
+        lista_id: lista.id,
+        metodo_inicio: "codigo",
+        ...validacionUbicacion,
+      });
       dispatch(setHistorialId(actividad.id));
       toast.success("Actividad iniciada correctamente");
     } catch (error) {

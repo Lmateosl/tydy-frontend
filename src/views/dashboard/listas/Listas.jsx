@@ -70,32 +70,39 @@ export default function ListasActividades() {
     <Layout>
         <div className="p-4">
             <h1 className="text-3xl font-extrabold text-[#0A2A47] mb-4">Lista de actividades</h1>
-            <div className="hidden md:flex justify-center bg-[#0A2A47] text-white p-4 rounded-xl gap-7 mb-8 !text-[18px]">
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-2">
-                    <List size={18} className="text-[#3BAE3D]" />
-                    <span className="font-bold">Listas</span>
-                  </div>
-                  <span className="text-lg font-bold">{listas.length}</span>
+            {/* Tarjetas de resumen */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+              <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
+                <span className="text-sm opacity-80">Listas</span>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-3xl font-bold">{listas.length}</span>
+                  <List className="text-[#3BAE3D]" />
                 </div>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-2">
-                    <ScanLine size={18} className="text-[#3BAE3D]" />
-                    <span className="font-bold">QR Generados</span>
-                  </div>
-                  <span className="text-lg font-bold">{totalQR}</span>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-gray-500">QR generados</p>
+                  <ScanLine size={16} className="text-[#0A2A47]" />
                 </div>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-2">
-                    <ScanBarcode size={18} className="text-[#3BAE3D]" />
-                    <span className="font-bold">Códigos Generados</span>
-                  </div>
-                  <span className="text-lg font-bold">{totalCodigos}</span>
+                <p className="text-2xl font-bold text-[#0A2A47]">
+                  {totalQR}
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-gray-500">Códigos generados</p>
+                  <ScanBarcode size={16} className="text-[#0A2A47]" />
                 </div>
+                <p className="text-2xl font-bold text-[#0A2A47]">
+                  {totalCodigos}
+                </p>
+              </div>
             </div>
 
             <div className="flex mb-4 gap-2 flex-col md:flex-row">
-                <input className="border px-2 py-1 flex-1 rounded-md w-full md:w-3/5" placeholder="Buscar lista" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+                <input className="border border-[#0A2A47] px-3 py-2 flex-1 rounded-md w-full md:w-3/5 text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]" placeholder="Buscar lista" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
                 <button 
                     onClick={() => { 
                         setModalOpen(true); 
@@ -104,43 +111,57 @@ export default function ListasActividades() {
                         setModalStep(1);
                         setActividadFiltro("");
                     }} 
-                    className="bg-[#3BAE3D] text-white px-2 py-1 rounded flex items-center gap-1 w-full md:w-1/5 justify-center hover:bg-[#a0dea1]"><Plus size={16} 
-                /> 
+                    className="bg-[#0A2A47] text-white px-3 py-2 rounded flex items-center gap-1 w-full md:w-1/5 justify-center font-semibold shadow-sm hover:bg-[#123b63]">
+                    <Plus size={16} /> 
                     Crear Lista
                 </button>
             </div>
 
-            <div className="max-h-[55vh] overflow-auto">        
-                <table className="w-full text-center border rounded-xl overflow-hidden">
+            <div className="max-h-[55vh] overflow-auto rounded-xl border border-[#e6f0f8] shadow-sm">        
+                <table className="w-full text-center text-[#0A2A47]">
                     <thead className="sticky top-0 left-0">
-                        <tr className="bg-[#0A2A47] text-white sticky top-0 left-0">
-                            <th onClick={() => setOrdenAsc(!ordenAsc)} className="cursor-pointer p-2">Nombre</th>
-                            <th>QR Inicio</th>
-                            <th>QR Finalizar</th>
-                            <th>Código Inicio</th>
-                            <th>Código Finalizar</th>
-                            <th>Actividades</th>
-                            <th>Imagen</th>
-                            <th>Acciones</th>
+                        <tr className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 left-0">
+                            <th onClick={() => setOrdenAsc(!ordenAsc)} className="cursor-pointer py-2 px-3">Nombre</th>
+                            <th className="py-2 px-3">QR Inicio</th>
+                            <th className="py-2 px-3">QR Finalizar</th>
+                            <th className="py-2 px-3">Código Inicio</th>
+                            <th className="py-2 px-3">Código Finalizar</th>
+                            <th className="py-2 px-3">Actividades</th>
+                            <th className="py-2 px-3">Imagen</th>
+                            <th className="py-2 px-3">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody className="text-[#333333]">
+                    <tbody className="text-[#0A2A47]">
                     {listasFiltradas.map((l) => (
-                        <tr key={l.id} className="hover:bg-gray-100 border-b-1 border-gray-200">
-                            <td className="p-4">{l.nombre}</td>
-                            <td>{l.qrin ? (<div><img src={l.qrin} alt="QR" className="h-8 mx-auto" /><button className="text-green-500" onClick={() => window.open(l.qrin)}><Search size={16} /></button></div>) : "-"}</td>
-                            <td>{l.qrout ? (<div><img src={l.qrout} alt="QR" className="h-8 mx-auto" /><button className="text-green-500" onClick={() => window.open(l.qrout)}><Search size={16} /></button></div>) : "-"}</td>
-                            <td>{l.code || "-"}</td>
-                            <td>{l.codeout || "-"}</td>
-                            <td className="text-sm py-1">
-                            <ul className="list-disc list-inside text-left">
-                                {l.actividades.map(a => (
-                                <li key={a.id}>{a.nombre}</li>
-                                ))}
-                            </ul>
+                        <tr key={l.id} className="transition-colors hover:bg-[#e6f0f8] border-b border-[#e6f0f8]">
+                            <td className="py-2 px-3 font-medium">{l.nombre}</td>
+                            <td className="py-2 px-3">
+                              {l.qrin ? (
+                                <div>
+                                  <img src={l.qrin} alt="QR" className="h-8 mx-auto" />
+                                  <button className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5] inline-flex" onClick={() => window.open(l.qrin)}><Search size={16} /></button>
+                                </div>
+                              ) : "-"}
                             </td>
-                            <td>{l.imagen ? "Sí" : "No"}</td>
-                            <td>
+                            <td className="py-2 px-3">
+                              {l.qrout ? (
+                                <div>
+                                  <img src={l.qrout} alt="QR" className="h-8 mx-auto" />
+                                  <button className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5] inline-flex" onClick={() => window.open(l.qrout)}><Search size={16} /></button>
+                                </div>
+                              ) : "-"}
+                            </td>
+                            <td className="py-2 px-3">{l.code || "-"}</td>
+                            <td className="py-2 px-3">{l.codeout || "-"}</td>
+                            <td className="text-sm py-2 px-3">
+                              <ul className="list-disc list-inside text-left space-y-1">
+                                {l.actividades.map(a => (
+                                  <li key={a.id}>{a.nombre}</li>
+                                ))}
+                              </ul>
+                            </td>
+                            <td className="py-2 px-3">{l.imagen ? "Sí" : "No"}</td>
+                            <td className="py-2 px-3">
                                 {/*<button onClick={() => {
                                 setListaSeleccionada(l);
                                 setForm({
@@ -158,7 +179,7 @@ export default function ListasActividades() {
                                 setModalStep(1);
                                 setActividadFiltro("");
                                 }} className="text-green-500 mr-2"><Pencil size={16} /></button>*/}
-                                <button onClick={() => setListaAEliminar(l)} className="text-red-500"><Trash2 size={16} /></button>
+                                <button onClick={() => setListaAEliminar(l)} className="rounded-full p-1 text-red-500 hover:bg-red-50 hover:text-red-700"><Trash2 size={16} /></button>
                             </td>
                         </tr>
                     ))}
@@ -167,13 +188,13 @@ export default function ListasActividades() {
             </div>
 
             {modalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-[#0A2A47]">
-                    <div className="bg-white p-8 rounded-xl w-full max-w-md">
-                        <h3 className="font-bold mb-4 text-2xl text-[#0A2A47]">{modoEditar ? "Editar Lista" : "Crear Lista"}</h3>
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 text-[#0A2A47] px-4">
+                    <div className="bg-white p-5 rounded-xl w-full max-w-md border border-[#0A2A47] shadow-xl">
+                        <h3 className="font-bold mb-4 text-xl text-[#0A2A47]">{modoEditar ? "Editar Lista" : "Crear Lista"}</h3>
                         {modalStep === 1 ? (
                           <>
                             <label className="block mb-1 text-[#0A2A47]">Nombre <span className="text-red-500">*</span></label>
-                            <input className="border w-full px-2 py-1 mb-2 rounded border-[#0A2A47]" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+                            <input className="border border-[#0A2A47] w-full px-3 py-2 mb-3 rounded-md text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
 
                             <label className="block mb-1 text-[#0A2A47]">¿Cómo se debe iniciar esta Lista? <span className="text-red-500">*</span></label>
                             <div className="flex gap-2 mb-2">
@@ -197,7 +218,7 @@ export default function ListasActividades() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => setModalStep(2)}
-                                className="bg-[#3BAE3D] text-white flex-1 py-1 rounded hover:bg-[#a0dea1]"
+                                className="bg-[#0A2A47] text-white flex-1 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
                               >
                                 Continuar
                               </button>
@@ -207,7 +228,7 @@ export default function ListasActividades() {
                                   setModalStep(1);
                                   setActividadFiltro("");
                                 }}
-                                className="border flex-1 py-1 rounded hover:bg-[#a0dea1]"
+                                className="border border-[#0A2A47] text-[#0A2A47] flex-1 py-2 rounded font-semibold hover:bg-[#e6f0f8]"
                               >
                                 Cerrar
                               </button>
@@ -217,7 +238,7 @@ export default function ListasActividades() {
                           <>
                             <label className="block mb-1 text-[#0A2A47]">Filtrar por categoría</label>
                             <select
-                              className="border w-full px-2 py-1 mb-2 rounded border-[#0A2A47]"
+                              className="border border-[#0A2A47] w-full px-3 py-2 mb-3 rounded-md text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
                               value={actividadFiltroCategoria}
                               onChange={e => setActividadFiltroCategoria(e.target.value)}
                             >
@@ -228,14 +249,14 @@ export default function ListasActividades() {
                             </select>
                             <label className="block mb-1 text-[#0A2A47]">Buscar actividad</label>
                             <input
-                              className="border w-full px-2 py-1 mb-2 rounded border-[#0A2A47]"
+                              className="border border-[#0A2A47] w-full px-3 py-2 mb-3 rounded-md text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
                               placeholder="Buscar por nombre"
                               value={actividadFiltro}
                               onChange={e => setActividadFiltro(e.target.value)}
                             />
-                            <div className="overflow-auto max-h-52 mb-2 text-center rounded-md">
+                            <div className="overflow-auto max-h-52 mb-3 text-center rounded-xl border border-[#e6f0f8] shadow-sm">
                               <table className="w-full text-sm">
-                                <thead className="bg-[#0A2A47] text-white sticky top-0 left-0">
+                                <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 left-0">
                                   <tr>
                                     <th className="font-normal">Seleccionar</th>
                                     <th className="p-1 font-normal">Nombre</th>
@@ -248,7 +269,7 @@ export default function ListasActividades() {
                                       (actividadFiltroCategoria === "" || a.categoria_id === actividadFiltroCategoria)
                                     )
                                     .map(a => (
-                                      <tr key={a.id}>
+                                      <tr key={a.id} className="transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8]">
                                         <td className="flex justify-center p-1">
                                           <input
                                             type="checkbox"
@@ -277,13 +298,13 @@ export default function ListasActividades() {
                             <div className="flex gap-2 flex-col">
                               <button
                                 onClick={handleSubmit}
-                                className="bg-[#3BAE3D] text-white flex-1 py-1 w-full rounded hover:bg-[#a0dea1]"
+                                className="bg-[#0A2A47] text-white flex-1 py-2 w-full rounded font-semibold shadow-sm hover:bg-[#123b63]"
                               >
                                 {modoEditar ? "Actualizar" : "Crear Lista"}
                               </button>
                               <button
                                 onClick={() => setModalStep(1)}
-                                className="border flex-1 py-1 rounded hover:bg-[#a0dea1] w-full"
+                                className="border border-[#0A2A47] text-[#0A2A47] flex-1 py-2 rounded font-semibold hover:bg-[#e6f0f8] w-full"
                               >
                                 Volver
                               </button>
@@ -293,7 +314,7 @@ export default function ListasActividades() {
                                   setModalStep(1);
                                   setActividadFiltro("");
                                 }}
-                                className="border flex-1 py-1 rounded hover:bg-[#a0dea1] w-full"
+                                className="border border-[#0A2A47] text-[#0A2A47] flex-1 py-2 rounded font-semibold hover:bg-[#e6f0f8] w-full"
                               >
                                 Cerrar
                               </button>
@@ -304,8 +325,8 @@ export default function ListasActividades() {
                 </div>
             )}
             {listaAEliminar && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-[#0A2A47]">
-                <div className="bg-white p-8 rounded-xl w-full max-w-md text-center">
+              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 text-[#0A2A47] px-4">
+                <div className="bg-white p-5 rounded-xl w-full max-w-md text-center border border-[#0A2A47] shadow-xl">
                   <h3 className="font-bold mb-4 text-2xl text-[#0A2A47]">Eliminar Lista</h3>
                   <p className="mb-4">Eliminar esta lista eliminará todos los reportes relacionados. ¿Desea continuar?</p>
                   <div className="flex gap-2">
@@ -317,7 +338,7 @@ export default function ListasActividades() {
                     </button>
                     <button
                       onClick={() => setListaAEliminar(null)}
-                      className="border flex-1 py-1 rounded hover:bg-[#a0dea1]"
+                      className="border border-[#0A2A47] text-[#0A2A47] flex-1 py-2 rounded font-semibold hover:bg-[#e6f0f8]"
                     >
                       Cerrar
                     </button>

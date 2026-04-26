@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import Layout from "../../../components/Layout";
-import { Users, Layers3, ListTodo, Edit2, Trash2, Plus } from "lucide-react";
+import { Layers3, ListTodo, Edit2 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   useObtenerCategoriasQuery,
@@ -142,21 +142,24 @@ export default function Actividades() {
       <div className="bg-white p-4">
         <h1 className="text-3xl font-extrabold text-[#0A2A47] mb-4">Actividades</h1>
 
-        {/* Barra de totales */}
-        <div className="hidden md:flex text-white text-[18px] shadow rounded-xl p-4 mb-4 flex-wrap justify-center items-center bg-[#0A2A47] gap-7">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2">
-              <Layers3 size={18} className="text-[#3BAE3D]" />
-              <span className="font-bold">Categorías</span>
+        {/* Tarjetas de resumen */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
+            <span className="text-sm opacity-80">Categorías</span>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-3xl font-bold">{totalCategorias}</span>
+              <Layers3 className="text-[#3BAE3D]" />
             </div>
-            <span className="text-lg font-bold">{totalCategorias}</span>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2">
-              <ListTodo size={18} className="text-[#3BAE3D]" />
-              <span className="font-bold">Actividades</span>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-gray-500">Actividades</p>
+              <ListTodo size={16} className="text-[#0A2A47]" />
             </div>
-            <span className="text-lg font-bold">{totalActividades}</span>
+            <p className="text-2xl font-bold text-[#0A2A47]">
+              {totalActividades}
+            </p>
           </div>
         </div>
 
@@ -167,32 +170,38 @@ export default function Actividades() {
             value={nombreCategoria}
             onChange={(e) => setNombreCategoria(e.target.value)}
             placeholder="Nombre categoría"
-            className="border border-[#0A2A47] px-2 py-1 rounded w-full md:w-auto"
+            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-auto text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
           />
-          <button onClick={handleCrearCategoria} className="bg-[#3BAE3D] text-white px-3 py-1 rounded hover:bg-[#0A2A47] w-full md:w-auto">Crear Categoría</button>
+          <button onClick={handleCrearCategoria} className="bg-[#0A2A47] text-white px-3 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] w-full md:w-auto">Crear Categoría</button>
           <input
             value={filtroCategoria}
             onChange={(e) => setFiltroCategoria(e.target.value)}
             placeholder="Buscar"
-            className="border border-[#0A2A47] px-2 py-1 rounded ml-auto w-full md:w-auto"
+            className="border border-[#0A2A47] px-3 py-2 rounded-md ml-auto w-full md:w-auto text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
           />
         </div>
 
         {/* Tabla categorías */}
-        <div className="rounded-lg overflow-auto mb-6 border border-[#0A2A47] max-h-[20vh]">
-          <table className="w-full text-center">
-            <thead className="bg-[#0A2A47] text-white sticky">
+        <div className="rounded-xl overflow-auto mb-6 border border-[#e6f0f8] shadow-sm max-h-[20vh]">
+          <table className="w-full text-center text-[#0A2A47]">
+            <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0">
               <tr>
-                <th className="py-1 cursor-pointer" onClick={() => setOrdenAscCat(!ordenAscCat)}>Nombre</th>
-                <th className="py-1">Acciones</th>
+                <th className="py-2 px-3 cursor-pointer" onClick={() => setOrdenAscCat(!ordenAscCat)}>Nombre</th>
+                <th className="py-2 px-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {categoriasFiltradas.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-100">
-                  <td className="py-1">{c.nombre}</td>
-                  <td>
-                    <button onClick={() => { setEditarCat(c); setNombreEditarCat(c.nombre); }} className="text-[#3BAE3D] hover:underline">Editar</button>
+                <tr key={c.id} className="transition-colors hover:bg-[#e6f0f8] border-b border-[#e6f0f8]">
+                  <td className="py-2 px-3 font-medium">{c.nombre}</td>
+                  <td className="py-2 px-3">
+                    <button
+                      onClick={() => { setEditarCat(c); setNombreEditarCat(c.nombre); }}
+                      className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5] inline-flex"
+                      title="Editar categoría"
+                    >
+                      <Edit2 size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -202,18 +211,18 @@ export default function Actividades() {
 
         {/* Modal editar categoría */}
         {editarCat && (
-          <div className="fixed inset-0 flex z-5 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)'}}>
-            <div className="bg-white p-4 rounded shadow w-72 flex flex-col gap-2">
-              <h3 className="text-lg font-bold mb-2">Editar Categoría</h3>
+          <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40 px-4">
+            <div className="bg-white p-5 rounded-xl w-full max-w-md flex flex-col gap-3 border border-[#0A2A47] shadow-xl">
+              <h3 className="text-xl font-bold text-[#0A2A47]">Editar Categoría</h3>
               <input
                 value={nombreEditarCat}
                 onChange={(e) => setNombreEditarCat(e.target.value)}
                 placeholder="Nombre"
-                className="border border-[#0A2A47] px-2 py-1 rounded"
+                className="border border-[#0A2A47] px-3 py-2 rounded-md text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
               />
-              <button onClick={handleActualizarCategoria} className="bg-[#3BAE3D] text-white px-3 py-1 rounded hover:bg-[#0A2A47]">Actualizar</button>
-              <button onClick={handleEliminarCategoria} className="border border-[#0A2A47] text-[#0A2A47] px-3 py-1 rounded hover:bg-gray-100">Eliminar</button>
-              <button onClick={() => setEditarCat(null)} className="text-gray-500">Cerrar</button>
+              <button onClick={handleActualizarCategoria} className="bg-[#0A2A47] text-white px-3 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]">Actualizar</button>
+              <button onClick={handleEliminarCategoria} className="border border-red-500 text-red-500 px-3 py-2 rounded font-semibold hover:bg-red-50">Eliminar</button>
+              <button onClick={() => setEditarCat(null)} className="border border-[#0A2A47] text-[#0A2A47] px-3 py-2 rounded font-semibold hover:bg-[#e6f0f8]">Cerrar</button>
             </div>
           </div>
         )}
@@ -225,29 +234,29 @@ export default function Actividades() {
             value={nombreActividad}
             onChange={(e) => setNombreActividad(e.target.value)}
             placeholder="Nombre actividad"
-            className="border border-[#0A2A47] px-2 py-1 rounded w-full md:w-auto"
+            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-auto text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
           />
           <select
             value={categoriaSeleccionada}
             onChange={(e) => setCategoriaSeleccionada(e.target.value)}
-            className="border border-[#0A2A47] px-2 py-1 rounded w-full md:w-auto"
+            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
           >
             <option value="">Sin categoría</option>
             {categorias.map((c) => (
               <option key={c.id} value={c.id}>{c.nombre}</option>
             ))}
           </select>
-          <button onClick={handleCrearActividad} className="bg-[#3BAE3D] text-white px-3 py-1 rounded hover:bg-[#0A2A47] w-full md:w-auto">Crear Actividad</button>
+          <button onClick={handleCrearActividad} className="bg-[#0A2A47] text-white px-3 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] w-full md:w-auto">Crear Actividad</button>
           <input
             value={filtroActividad}
             onChange={(e) => setFiltroActividad(e.target.value)}
             placeholder="Buscar actividad"
-            className="border border-[#0A2A47] px-2 py-1 rounded ml-auto w-full md:w-auto"
+            className="border border-[#0A2A47] px-3 py-2 rounded-md ml-auto w-full md:w-auto text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
           />
           <select
             value={filtroCatActividad}
             onChange={(e) => setFiltroCatActividad(e.target.value)}
-            className="border border-[#0A2A47] px-2 py-1 rounded w-full md:w-auto"
+            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
           >
             <option value="">Todas las categorías</option>
             {categorias.map((c) => (
@@ -257,24 +266,30 @@ export default function Actividades() {
         </div>
 
         {/* Tabla actividades */}
-        <div className="rounded-lg overflow-auto mb-6 border border-[#0A2A47] max-h-[20vh]">
-          <table className="w-full text-center">
-            <thead className="bg-[#0A2A47] text-white sticky z-1">
+        <div className="rounded-xl overflow-auto mb-6 border border-[#e6f0f8] shadow-sm max-h-[20vh]">
+          <table className="w-full text-center text-[#0A2A47]">
+            <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
               <tr>
-                <th className="py-1 cursor-pointer" onClick={() => setOrdenAscAct(!ordenAscAct)}>Nombre</th>
-                <th className="py-1">Categoría</th>
-                <th className="py-1">Acciones</th>
+                <th className="py-2 px-3 cursor-pointer" onClick={() => setOrdenAscAct(!ordenAscAct)}>Nombre</th>
+                <th className="py-2 px-3">Categoría</th>
+                <th className="py-2 px-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {actividadesFiltradas.map((a) => (
-                <tr key={a.id} className="hover:bg-gray-100">
-                  <td className="py-1">{a.nombre}</td>
-                  <td className="py-1">
+                <tr key={a.id} className="transition-colors hover:bg-[#e6f0f8] border-b border-[#e6f0f8]">
+                  <td className="py-2 px-3 font-medium">{a.nombre}</td>
+                  <td className="py-2 px-3">
                     {categorias.find((c) => c.id === a.categoria_id)?.nombre || "Sin categoría"}
                   </td>
-                  <td>
-                    <button onClick={() => { setEditarAct(a); setNombreEditarAct(a.nombre); setCatEditarAct(a.categoria_id || ""); }} className="text-[#3BAE3D] hover:underline">Editar</button>
+                  <td className="py-2 px-3">
+                    <button
+                      onClick={() => { setEditarAct(a); setNombreEditarAct(a.nombre); setCatEditarAct(a.categoria_id || ""); }}
+                      className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5] inline-flex"
+                      title="Editar actividad"
+                    >
+                      <Edit2 size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -284,28 +299,28 @@ export default function Actividades() {
 
         {/* Modal editar actividad */}
         {editarAct && (
-          <div className="fixed inset-0 z-5 flex justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)'}}>
-            <div className="bg-white p-4 rounded shadow w-72 flex flex-col gap-2">
-              <h3 className="text-lg font-bold mb-2">Editar Actividad</h3>
+          <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40 px-4">
+            <div className="bg-white p-5 rounded-xl w-full max-w-md flex flex-col gap-3 border border-[#0A2A47] shadow-xl">
+              <h3 className="text-xl font-bold text-[#0A2A47]">Editar Actividad</h3>
               <input
                 value={nombreEditarAct}
                 onChange={(e) => setNombreEditarAct(e.target.value)}
                 placeholder="Nombre"
-                className="border border-[#0A2A47] px-2 py-1 rounded"
+                className="border border-[#0A2A47] px-3 py-2 rounded-md text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
               />
               <select
                 value={catEditarAct}
                 onChange={(e) => setCatEditarAct(e.target.value)}
-                className="border border-[#0A2A47] px-2 py-1 rounded"
+                className="border border-[#0A2A47] px-3 py-2 rounded-md text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
               >
                 <option value="">Sin categoría</option>
                 {categorias.map((c) => (
                   <option key={c.id} value={c.id}>{c.nombre}</option>
                 ))}
               </select>
-              <button onClick={handleActualizarActividad} className="bg-[#3BAE3D] text-white px-3 py-1 rounded hover:bg-[#0A2A47]">Actualizar</button>
-              <button onClick={handleEliminarActividad} className="border border-[#0A2A47] text-[#0A2A47] px-3 py-1 rounded hover:bg-gray-100">Eliminar</button>
-              <button onClick={() => setEditarAct(null)} className="text-gray-500">Cerrar</button>
+              <button onClick={handleActualizarActividad} className="bg-[#0A2A47] text-white px-3 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]">Actualizar</button>
+              <button onClick={handleEliminarActividad} className="border border-red-500 text-red-500 px-3 py-2 rounded font-semibold hover:bg-red-50">Eliminar</button>
+              <button onClick={() => setEditarAct(null)} className="border border-[#0A2A47] text-[#0A2A47] px-3 py-2 rounded font-semibold hover:bg-[#e6f0f8]">Cerrar</button>
             </div>
           </div>
         )}

@@ -89,7 +89,7 @@ const ReporteFeedback = () => {
           </h1>
           <button
             onClick={() => refetch()}
-            className="text-sm px-3 py-1 border rounded-md text-[#0A2A47] hover:bg-gray-100 flex items-center gap-1"
+            className="text-sm px-3 py-2 border border-[#0A2A47] rounded-md text-[#0A2A47] hover:bg-[#e6f0f8] flex items-center gap-1 font-semibold"
           >
             <Calendar size={16} />
             Actualizar
@@ -98,7 +98,7 @@ const ReporteFeedback = () => {
 
         {/* Tarjetas de resumen */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
-          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between">
+          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
             <span className="text-sm opacity-80">Total feedbacks</span>
             <div className="flex items-center justify-between mt-2">
               <span className="text-3xl font-bold">
@@ -108,28 +108,28 @@ const ReporteFeedback = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
             <p className="text-xs text-gray-500 mb-1">Muy sucio (1)</p>
             <p className="text-2xl font-bold text-[#0A2A47]">
               {stats.counts[1] || 0}
             </p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
             <p className="text-xs text-gray-500 mb-1">Sucio (2)</p>
             <p className="text-2xl font-bold text-[#0A2A47]">
               {stats.counts[2] || 0}
             </p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
             <p className="text-xs text-gray-500 mb-1">Aceptable (3)</p>
             <p className="text-2xl font-bold text-[#0A2A47]">
               {stats.counts[3] || 0}
             </p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col gap-1">
+          <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col gap-1 shadow-sm">
             <div className="flex justify-between">
               <span className="text-xs text-gray-500">Limpio (4)</span>
               <span className="text-xs text-gray-500">Muy limpio (5)</span>
@@ -146,35 +146,35 @@ const ReporteFeedback = () => {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4 flex flex-col md:flex-row gap-3 items-center">
+        <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 mb-4 flex flex-col md:flex-row gap-3 items-center shadow-sm">
           <div className="flex items-center gap-2 w-full md:w-1/3">
             <Search className="text-gray-500" size={18} />
             <input
               type="text"
-              className="border px-2 py-1 rounded-md w-full"
+              className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
               placeholder="Filtrar por nombre de empresa"
               value={filtroEmpresa}
               onChange={(e) => setFiltroEmpresa(e.target.value)}
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-1/3">
-            <span className="text-sm text-gray-600 whitespace-nowrap">
+            <span className="text-sm text-[#0A2A47] font-semibold whitespace-nowrap">
               Desde:
             </span>
             <input
               type="date"
-              className="border px-2 py-1 rounded-md w-full"
+              className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
               value={fechaDesde}
               onChange={(e) => setFechaDesde(e.target.value)}
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-1/3">
-            <span className="text-sm text-gray-600 whitespace-nowrap">
+            <span className="text-sm text-[#0A2A47] font-semibold whitespace-nowrap">
               Hasta:
             </span>
             <input
               type="date"
-              className="border px-2 py-1 rounded-md w-full"
+              className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
               value={fechaHasta}
               onChange={(e) => setFechaHasta(e.target.value)}
             />
@@ -182,36 +182,36 @@ const ReporteFeedback = () => {
         </div>
 
         {/* Tabla de resultados */}
-        <div className="max-h-[60vh] overflow-auto border rounded-xl bg-white">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-[#0A2A47] text-white text-sm">
-                <th className="p-2">Fecha</th>
-                <th className="p-2">Nombre</th>
-                <th className="p-2">Empresa</th>
-                <th className="p-2">Dirección</th>
-                <th className="p-2 text-center">Calificación</th>
-                <th className="p-2">Comentario</th>
-                <th className="p-2 text-center">Foto</th>
+        <div className="max-h-[60vh] overflow-auto rounded-xl border border-[#e6f0f8] bg-white shadow-sm">
+          <table className="w-full text-left text-[#0A2A47]">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] text-sm">
+                <th className="py-2 px-3">Fecha</th>
+                <th className="py-2 px-3">Nombre</th>
+                <th className="py-2 px-3">Empresa</th>
+                <th className="py-2 px-3">Dirección</th>
+                <th className="py-2 px-3 text-center">Calificación</th>
+                <th className="py-2 px-3">Comentario</th>
+                <th className="py-2 px-3 text-center">Foto</th>
               </tr>
             </thead>
-            <tbody className="text-sm text-[#333333]">
+            <tbody className="text-sm text-[#0A2A47]">
               {feedbacksFiltrados.map((f) => (
                 <tr
                   key={f.id}
-                  className="border-t border-gray-200 hover:bg-gray-50"
+                  className="transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8]"
                 >
-                  <td className="p-2 align-top">
+                  <td className="py-2 px-3 align-top">
                     {formatearFecha(f.creado_en)}
                   </td>
-                  <td className="p-2 align-top">
+                  <td className="py-2 px-3 align-top">
                     {f.nombre && f.nombre.trim()
                       ? f.nombre
                       : "Anónimo"}
                   </td>
-                  <td className="p-2 align-top">{f.empresa}</td>
-                  <td className="p-2 align-top">{f.direccion}</td>
-                  <td className="p-2 align-top text-center">
+                  <td className="py-2 px-3 align-top">{f.empresa}</td>
+                  <td className="py-2 px-3 align-top">{f.direccion}</td>
+                  <td className="py-2 px-3 align-top text-center">
                     <div className="flex flex-col items-center">
                       <span className="font-semibold">
                         {Number(f.calificacion).toFixed(1)}
@@ -221,22 +221,22 @@ const ReporteFeedback = () => {
                       </span>
                     </div>
                   </td>
-                  <td className="p-2 align-top max-w-xs">
+                  <td className="py-2 px-3 align-top max-w-xs">
                     <p className="line-clamp-3 break-words">
                       {f.comentario || "-"}
                     </p>
                   </td>
-                  <td className="p-2 align-top text-center">
+                  <td className="py-2 px-3 align-top text-center">
                     {f.foto ? (
                       <button
                         type="button"
                         onClick={() => setZoomUrl(f.foto)}
-                        className="inline-flex flex-col items-center text-xs text-[#3BAE3D] hover:text-[#2c8c30]"
+                        className="inline-flex flex-col items-center text-xs text-[#0A2A47] hover:text-[#123b63]"
                       >
                         <img
                           src={f.foto}
                           alt="Foto de feedback"
-                          className="h-12 w-12 object-cover rounded-md border mb-1"
+                          className="h-12 w-12 object-cover rounded-md border border-[#e6f0f8] mb-1 shadow-sm"
                         />
                         <span className="flex items-center gap-1">
                           <ImageIcon size={12} />
@@ -278,11 +278,11 @@ const ReporteFeedback = () => {
         {/* Modal de zoom de foto */}
         {zoomUrl && (
           <div
-            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
             onClick={() => setZoomUrl(null)}
           >
             <div
-              className="bg-white p-4 rounded-xl max-w-md w-[90%]"
+              className="bg-white p-5 rounded-xl max-w-md w-full border border-[#0A2A47] shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
               <img
@@ -292,7 +292,7 @@ const ReporteFeedback = () => {
               />
               <button
                 onClick={() => setZoomUrl(null)}
-                className="w-full border py-1 rounded-md hover:bg-gray-100 text-sm"
+                className="w-full border border-[#0A2A47] text-[#0A2A47] py-2 rounded-md hover:bg-[#e6f0f8] text-sm font-semibold"
               >
                 Cerrar
               </button>

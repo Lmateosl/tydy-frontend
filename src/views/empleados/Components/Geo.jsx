@@ -5,10 +5,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
 
-const Geo = ({ setDentroArea }) => {
+const Geo = ({ setDentroArea, setValidacionUbicacion }) => {
   const usuario = useSelector((state) => state.usuarios.usuarioLogueado);
   const { data, isLoading, isError } = useObtenerEstructuraUsuarioQuery(usuario.id);
-  const [mensajeError, setMensajeError] = useState(false);
+  const [estadoUbicacion, setEstadoUbicacion] = useState("idle");
   const navigate = useNavigate();
 
   const calcularDistancia = (lat1, lon1, lat2, lon2) => {
@@ -28,29 +28,47 @@ const Geo = ({ setDentroArea }) => {
   };
 
   const verificarUbicacion = () => {
-    if (!data?.locacion?.latitud || !data?.locacion?.longitud) return;
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const distancia = calcularDistancia(
-          position.coords.latitude,
-          position.coords.longitude,
-          parseFloat(data.locacion.latitud),
-          parseFloat(data.locacion.longitud)
-        );
+        let distancia = null;
+        let radioPermitido = Number(data?.locacion?.radio_verificacion_metros || 1000);
 
-        if (distancia <= 1000) {
-          setDentroArea(true);
-          setMensajeError(false);
-          console.log('Dentro Area');
+        if (data?.locacion?.latitud && data?.locacion?.longitud) {
+          distancia = calcularDistancia(
+            position.coords.latitude,
+            position.coords.longitude,
+            parseFloat(data.locacion.latitud),
+            parseFloat(data.locacion.longitud)
+          );
+        }
+
+        setDentroArea(true);
+        setValidacionUbicacion?.({
+          latitud_inicio: position.coords.latitude,
+          longitud_inicio: position.coords.longitude,
+          precision_inicio: position.coords.accuracy,
+          distancia_validacion: distancia,
+        });
+
+        if (distancia === null) {
+          setEstadoUbicacion("sin_referencia");
+          toast.warning(
+            "Esta locación todavía no tiene un punto GPS de referencia. La actividad quedará registrada para revisión."
+          );
+        } else if (distancia <= radioPermitido) {
+          setEstadoUbicacion("dentro");
         } else {
-          setDentroArea(false);
-          setMensajeError(true);
+          setEstadoUbicacion("fuera");
+          toast.warning(
+            "Estás fuera del radio configurado. Puedes continuar, pero la verificación quedará marcada para revisión."
+          );
         }
       },
       (error) => {
         console.error("Error al obtener ubicación:", error);
-        setMensajeError(true);
+        setDentroArea(false);
+        setValidacionUbicacion?.(null);
+        setEstadoUbicacion("sin_gps");
         toast.error("Debes permitir el acceso a la ubicación para verificar el área de trabajo.");
       }
     );
@@ -74,15 +92,33 @@ const Geo = ({ setDentroArea }) => {
         Empezar
       </button>
 
-      {mensajeError && (
-        <div className="mt-4 text-center text-red-600 flex flex-col items-center gap-2">
-          <p>Parece que no estás cerca de tu lugar de trabajo.</p>
+      {estadoUbicacion === "fuera" && (
+        <div className="mt-4 text-center text-amber-700 flex flex-col items-center gap-2">
+          <p>
+            Estás fuera del radio permitido para este lugar de trabajo. Puedes continuar, pero esta
+            actividad quedará marcada para revisión.
+          </p>
           <button
             onClick={() => navigate("/lugar")}
-            className="border border-[#3BAE3D] text-[#3BAE3D] font-bold px-4 py-1 rounded hover:bg-[#3BAE3D] hover:text-white transition"
+            className="border border-amber-500 text-amber-700 font-bold px-4 py-1 rounded hover:bg-amber-500 hover:text-white transition"
           >
             Ver lugar de trabajo
           </button>
+        </div>
+      )}
+
+      {estadoUbicacion === "sin_referencia" && (
+        <div className="mt-4 text-center text-amber-700">
+          <p>
+            Esta locación todavía no tiene un punto GPS de referencia. Podrás continuar, pero la
+            verificación quedará marcada para revisión.
+          </p>
+        </div>
+      )}
+
+      {estadoUbicacion === "sin_gps" && (
+        <div className="mt-4 text-center text-red-600 flex flex-col items-center gap-2">
+          <p>Necesitamos tu ubicación para poder iniciar tus actividades.</p>
         </div>
       )}
     </div>

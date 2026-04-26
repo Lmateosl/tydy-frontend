@@ -1,8 +1,10 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { logout } from '../slices/authSlice';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tydy.pro/';
+
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: 'https://api.tydy.pro/',
+  baseUrl: API_BASE_URL,
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token;
     if (token) {

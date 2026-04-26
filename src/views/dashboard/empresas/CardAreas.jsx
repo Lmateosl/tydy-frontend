@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Plus, Trash, Edit, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Edit, ArrowUp, ArrowDown } from "lucide-react";
 import { 
   useCrearAreaMutation,
   useEditarAreaMutation,
   useEliminarAreaMutation,
-  useObtenerUsuariosAreaQuery
+  useLazyObtenerUsuariosAreaQuery
 } from "../../../redux/api/empresasApi";
 import { useLazyObtenerUsuariosQuery } from "../../../redux/api/userApi";
 import { useEditarUsuarioMutation } from "../../../redux/api/userApi";
@@ -26,11 +26,13 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
   const [areaSeleccionada, setAreaSeleccionada] = useState(null);
   const [form, setForm] = useState({ nombre: "" });
   const [modoCrear, setModoCrear] = useState(false);
+  const [modalFormularioAbierto, setModalFormularioAbierto] = useState(false);
   const [ordenAsc, setOrdenAsc] = useState(true);
 
   const [mostrarModalUsuarios, setMostrarModalUsuarios] = useState(false);
   const [usuariosArea, setUsuariosArea] = useState([]);
   const [loadingUsuariosArea, setLoadingUsuariosArea] = useState(false);
+  const [obtenerUsuariosArea] = useLazyObtenerUsuariosAreaQuery();
 
   useEffect(() => {
     if (locacionSeleccionada) {
@@ -40,6 +42,30 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const resetForm = () => {
+    setForm({ nombre: "" });
+  };
+
+  const abrirCrear = () => {
+    resetForm();
+    setAreaSeleccionada(null);
+    setModoCrear(true);
+    setModalFormularioAbierto(true);
+  };
+
+  const abrirEditar = (area) => {
+    setAreaSeleccionada(area);
+    setForm({ nombre: area.nombre });
+    setModoCrear(false);
+    setModalFormularioAbierto(true);
+  };
+
+  const cerrarFormulario = () => {
+    setModoCrear(false);
+    setModalFormularioAbierto(false);
+    resetForm();
   };
 
   const handleSubmit = async () => {
@@ -58,10 +84,8 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
         toast.success("Área editada correctamente");
         refetch();
       }
-      setForm({ nombre: "" });
-      setAreaSeleccionada(null);
-      setModoCrear(false);
-    } catch (error) {
+      cerrarFormulario();
+    } catch {
       toast.error("Ocurrió un error");
     }
   };
@@ -72,10 +96,9 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
       toast.success("Área eliminada correctamente");
       refetch();
       refreshTotales();
-      setForm({ nombre: "" });
       setAreaSeleccionada(null);
-      setModoCrear(false);
-    } catch (error) {
+      cerrarFormulario();
+    } catch {
       toast.error("Ocurrió un error");
     }
   };
@@ -92,10 +115,10 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
       if (mostrarModalUsuarios && locacionSeleccionada && areaSeleccionada) {
         try {
           setLoadingUsuariosArea(true);
-          const res = await fetch(`https://api.tydy.pro/areas/${locacionSeleccionada.id}/${areaSeleccionada.id}/usuarios/`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-          });
-          const data = await res.json();
+          const data = await obtenerUsuariosArea({
+            locacion_id: locacionSeleccionada.id,
+            area_id: areaSeleccionada.id,
+          }).unwrap();
           setUsuariosArea(data);
         } catch {
           toast.error("Error al obtener usuarios del área");
@@ -105,20 +128,16 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
       }
     };
     fetchUsuariosArea();
-  }, [mostrarModalUsuarios, locacionSeleccionada, areaSeleccionada]);
+  }, [mostrarModalUsuarios, locacionSeleccionada, areaSeleccionada, obtenerUsuariosArea]);
 
   return (
-    <div className="bg-[#0A2A47] p-4 rounded-xl flex flex-col h-full">
-      <h2 className="text-xl font-bold text-white mb-4 text-center">Áreas</h2>
+    <div className="bg-white border border-[#0A2A47] p-4 rounded-xl flex flex-col h-full">
+      <h2 className="text-xl font-bold text-[#0A2A47] mb-4 text-center">Áreas</h2>
 
       <div className="flex flex-col gap-0">
         <button
-          onClick={() => {
-            setForm({ nombre: "" });
-            setAreaSeleccionada(null);
-            setModoCrear(true);
-          }}
-          className="bg-[#3BAE3D] text-white w-full py-1 mb-2 rounded hover:bg-[#a0dea1]"
+          onClick={abrirCrear}
+          className="bg-[#0A2A47] text-white w-full py-1 mb-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
         >
           <Plus size={16} className="inline" /> Crear Área
         </button>
@@ -128,16 +147,16 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
           placeholder="Buscar área"
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          className="border border-white bg-white rounded px-2 py-1 mb-4 w-full text-[#333333] placeholder:text-[#333333]"
+          className="border border-[#0A2A47] bg-white rounded px-2 py-1 mb-4 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
         />
       </div>
 
-      <div className="flex-1 overflow-auto rounded-xl">
-        <table className="w-full text-center text-white rounded-xl">
-          <thead className="sticky top-0 bg-white text-[#0A2A47] rounded-2xl">
+      <div className="flex-1 overflow-auto rounded-xl border border-[#e6f0f8] shadow-sm">
+        <table className="w-full text-center text-[#0A2A47]">
+          <thead className="sticky top-0 bg-white text-[#0A2A47] border-b border-[#e6f0f8]">
             <tr>
               <th
-                className="p-2 cursor-pointer flex items-center justify-center"
+                className="py-2 px-3 cursor-pointer flex items-center justify-center"
                 onClick={() => setOrdenAsc(!ordenAsc)}
               >
                 Nombre {ordenAsc ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
@@ -148,57 +167,82 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
             {areasFiltradas.map((area) => (
               <tr
                 key={area.id}
-                className={`cursor-pointer hover:bg-[#a0dea1] ${areaSeleccionada?.id === area.id ? "bg-[#3BAE3D]" : ""}`}
+                className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${areaSeleccionada?.id === area.id ? "bg-[#d6e6f5] border-l-4 border-[#0A2A47]" : ""}`}
                 onClick={() => {
                   setAreaSeleccionada(area);
-                  setForm({ nombre: area.nombre });
                   setModoCrear(false);
+                  setModalFormularioAbierto(false);
                 }}
               >
-                <td className="py-2">{area.nombre}</td>
+                <td className="py-2 px-3">
+                  <div className="flex items-center justify-center gap-2">
+                    <span>{area.nombre}</span>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        abrirEditar(area);
+                      }}
+                      className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5]"
+                      title="Editar área"
+                    >
+                      <Edit size={14} />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
             {areasFiltradas.length === 0 && (
               <tr>
-                <td className="py-2" colSpan="2">No hay áreas</td>
+                <td className="py-2 px-3 text-[#0A2A47]" colSpan="2">No hay áreas</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {(modoCrear || areaSeleccionada) && (
-        <div className="pt-2">
-          <h3 className="font-bold mb-4 text-[18px] text-white">{modoCrear ? "Crear Área" : "Editar Área"}</h3>
+      {modalFormularioAbierto && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-[18px] text-[#0A2A47]">{modoCrear ? "Crear Área" : "Editar Área"}</h3>
+              <button
+                type="button"
+                onClick={cerrarFormulario}
+                className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
+              >
+                ×
+              </button>
+            </div>
           <input
             name="nombre"
             placeholder="Nombre"
             value={form.nombre}
             onChange={handleChange}
-            className="border border-white bg-white rounded-md px-2 py-1 mb-2 w-full text-[#333333] placeholder:text-[#333333]"
+            className="border border-[#0A2A47] bg-white rounded-md px-2 py-2 mb-4 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
           />
 
           <div className="flex flex-col gap-2">
-            <button onClick={handleSubmit} className="bg-[#3BAE3D] text-white w-full py-1 rounded hover:bg-[#a0dea1]">
+            <button onClick={handleSubmit} className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]">
               {modoCrear ? "Crear" : "Actualizar"}
             </button>
 
             {!modoCrear && (
               <>
-                <button onClick={handleEliminar} className="border border-white text-white w-full py-1 rounded hover:bg-[#a0dea1]">
+                <button onClick={handleEliminar} className="border border-[#0A2A47] text-[#0A2A47] w-full py-2 rounded font-semibold hover:bg-[#e6f0f8]">
                   Eliminar
                 </button>
                 {areaSeleccionada && (
                   <div className="pt-4">
                     <button
                       onClick={() => setMostrarModal(true)}
-                      className="bg-[#3BAE3D] text-white w-full py-1 rounded hover:bg-[#a0dea1]"
+                      className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
                     >
                       Añadir Empleado
                     </button>
                     <button
                       onClick={() => setMostrarModalUsuarios(true)}
-                      className="bg-[#3BAE3D] text-white w-full py-1 rounded hover:bg-[#a0dea1] mt-2"
+                      className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] mt-2"
                     >
                       Ver Empleados
                     </button>
@@ -207,10 +251,11 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
               </>
             )}
           </div>
+          </div>
         </div>
       )}
       {mostrarModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}>
           <div className="bg-white p-4 rounded-xl w-full max-w-md">
             <h3 className="text-xl font-bold mb-2 text-[#0A2A47]">Seleccionar Empleado</h3>
             
@@ -220,11 +265,11 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
                 placeholder="Buscar por nombre o identificación"
                 value={buscarEmpleado}
                 onChange={(e) => setBuscarEmpleado(e.target.value)}
-                className="border border-gray-300 px-2 py-1 flex-1"
+                className="border border-[#0A2A47] rounded-md px-2 py-1 flex-1 text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
               />
               <button
                 onClick={() => triggerBuscarUsuarios()}
-                className="bg-[#3BAE3D] text-white px-2 py-1 rounded hover:bg-[#a0dea1]"
+                className="bg-[#0A2A47] text-white px-3 py-1 rounded font-semibold shadow-sm hover:bg-[#123b63]"
               >
                 Buscar
               </button>
@@ -247,7 +292,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
                     .map(u => (
                       <tr
                         key={u.id}
-                        className={`cursor-pointer hover:bg-[#a0dea1] ${usuarioSeleccionado?.id === u.id ? "bg-[#3BAE3D] text-white" : ""}`}
+                        className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${usuarioSeleccionado?.id === u.id ? "bg-[#d6e6f5] text-[#0A2A47]" : ""}`}
                         onClick={() => setUsuarioSeleccionado(u)}
                       >
                         <td className="py-1">{u.nombre}</td>
@@ -280,7 +325,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
                       toast.error("Error al añadir usuario");
                     }
                   }}
-                  className="bg-[#3BAE3D] text-white px-4 w-full py-1 rounded hover:bg-[#a0dea1] mb-2"
+                  className="bg-[#0A2A47] text-white px-4 w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] mb-2"
                 >
                   Confirmar
                 </button>
@@ -288,7 +333,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
             )}
             <button
                 onClick={() => setMostrarModal(false)}
-                className="border border-[#0A2A47] text-[#0A2A47] px-2 py-1 w-full rounded hover:bg-[#a0dea1]"
+                className="border border-[#0A2A47] text-[#0A2A47] px-2 py-1 w-full rounded font-semibold hover:bg-[#e6f0f8]"
               >
                 Cerrar
             </button>
@@ -296,7 +341,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
         </div>
       )}
       {mostrarModalUsuarios && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}>
           <div className="bg-white p-4 rounded-xl w-full max-w-md">
             <h3 className="text-xl font-bold mb-2 text-[#0A2A47]">
               Empleados en el área {areaSeleccionada?.nombre}
@@ -317,7 +362,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
                   </thead>
                   <tbody className="text-center">
                     {usuariosArea.map((u) => (
-                      <tr key={u.id} className="hover:bg-[#a0dea1]">
+                      <tr key={u.id} className="transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8]">
                         <td className="py-1">{u.nombre}</td>
                         <td className="py-1">{u.identificacion}</td>
                       </tr>
@@ -329,7 +374,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
 
             <button
               onClick={() => setMostrarModalUsuarios(false)}
-              className="border border-[#0A2A47] text-[#0A2A47] px-2 py-1 w-full rounded hover:bg-[#a0dea1]"
+              className="border border-[#0A2A47] text-[#0A2A47] px-2 py-1 w-full rounded font-semibold hover:bg-[#e6f0f8]"
             >
               Cerrar
             </button>

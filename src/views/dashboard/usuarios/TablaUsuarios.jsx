@@ -31,13 +31,13 @@ export default function TablaUsuarios({
   if (!usuarios.length) return <p className="text-center">No hay usuarios para mostrar</p>;
 
   return (
-    <div className="bg-white rounded-xl max-h-[20vh] xl:max-h-[40vh] w-full overflow-auto">
-      <table className="w-full text-[#333333]">
-        <thead className="bg-[#0A2A47] text-white sticky top-0 z-10">
+    <div className="bg-white rounded-xl max-h-[20vh] xl:max-h-[40vh] w-full overflow-auto border border-[#e6f0f8] shadow-sm">
+      <table className="w-full text-[#0A2A47]">
+        <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
           <tr>
-            <th className="p-2">Foto</th>
+            <th className="py-2 px-3">Foto</th>
             {['nombre', 'email', 'rol', 'numero', 'direccion', 'identificacion'].map((campo) => (
-              <th key={campo} className="p-2 cursor-pointer" onClick={() => ordenarPor(campo)}>
+              <th key={campo} className="py-2 px-3 cursor-pointer" onClick={() => ordenarPor(campo)}>
                 <div className="flex items-center gap-1 justify-center">
                   {campo.charAt(0).toUpperCase() + campo.slice(1)}
                   <ArrowUpDown size={14} />
@@ -50,25 +50,25 @@ export default function TablaUsuarios({
           {usuariosOrdenados.map((u) => (
             <tr
               key={u.id}
-              className={`hover:bg-gray-100 cursor-pointer ${usuarioSeleccionado?.id === u.id ? 'bg-gray-200' : 'bg-white'}`}
+              className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${usuarioSeleccionado?.id === u.id ? 'bg-[#d6e6f5] border-l-4 border-[#0A2A47]' : ''}`}
               onClick={() => {
                 setUsuarioSeleccionado(u);
                 setModoCrear(false);
               }}
             >
-              <td className="p-2">
+              <td className="py-2 px-3">
                 <img
                   src={u.foto ? u.foto : defaultFoto}
                   alt="foto"
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover border border-[#e6f0f8]"
                 />
               </td>
-              <td className="p-2">{u.nombre}</td>
-              <td className="p-2">{u.email}</td>
-              <td className="p-2 capitalize">{u.rol}</td>
-              <td className="p-2">{u.numero || "-"}</td>
-              <td className="p-2">{u.direccion || "-"}</td>
-              <td className="p-2">{u.identificacion || "-"}</td>
+              <td className="py-2 px-3 font-medium">{u.nombre}</td>
+              <td className="py-2 px-3">{u.email}</td>
+              <td className="py-2 px-3 capitalize">{u.rol}</td>
+              <td className="py-2 px-3">{u.numero || "-"}</td>
+              <td className="py-2 px-3">{u.direccion || "-"}</td>
+              <td className="py-2 px-3">{u.identificacion || "-"}</td>
             </tr>
           ))}
         </tbody>

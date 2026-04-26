@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCrearUsuarioMutation, useEditarUsuarioMutation, useEliminarUsuarioMutation } from "../../../redux/api/userApi";
 import { toast } from "react-toastify";
 import { Camera } from "lucide-react";
@@ -17,6 +17,7 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
   });
 
   const [previewOpen, setPreviewOpen] = useState(false);
+  const fileInputRef = useRef(null);
 
   const [crearUsuario, { isLoading: creando }] = useCrearUsuarioMutation();
   const [editarUsuario, { isLoading: editando }] = useEditarUsuarioMutation();
@@ -130,120 +131,137 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
   }
 
   return (
-    <div className="border-1 border-[#0A2A47] p-2 rounded-2xl">
-      <h2 className="text-2xl font-bold text-[#0A2A47] mt-4 mb-5">
-        {modoCrear ? "Crear Usuario" : "Editar Usuario"}
-      </h2>
-      <form className="flex flex-col gap-4 mt-4" onSubmit={handleSubmit}>
-        <div className="flex flex-col md:grid md:grid-cols-3 gap-4">
+    <div className="w-full">
+      <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Columna 1: Solo Foto */}
-          <div className="flex flex-col items-center gap-2 w-full">
-            {form.foto ? (
-              <img
-                src={URL.createObjectURL(form.foto)}
-                alt="Foto"
-                className="h-24 w-24 rounded-full object-cover cursor-pointer"
-                onClick={() => setPreviewOpen(true)}
-              />
-            ) : usuario?.foto ? (
-              <img
-                src={usuario.foto}
-                alt="Foto"
-                className="h-24 w-24 rounded-full object-cover cursor-pointer"
-                onClick={() => setPreviewOpen(true)}
-              />
-            ) : (
-              <div className="h-24 w-24 rounded-full border flex items-center justify-center">
-                <Camera className="text-gray-400 h-8 w-8" />
+          <div className="flex flex-col items-center gap-3 w-full">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="group relative h-28 w-28 rounded-full border border-[#e6f0f8] overflow-hidden flex items-center justify-center hover:border-[#0A2A47] focus:outline-none focus:ring-2 focus:ring-[#0A2A47]"
+              title="Seleccionar imagen"
+            >
+              {form.foto ? (
+                <img src={URL.createObjectURL(form.foto)} alt="Foto" className="h-full w-full object-cover" />
+              ) : usuario?.foto ? (
+                <img src={usuario.foto} alt="Foto" className="h-full w-full object-cover" />
+              ) : (
+                <Camera className="text-gray-400 h-10 w-10" />
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                Cambiar
               </div>
-            )}
-            <input name="foto" type="file" onChange={handleChange} className="text-sm" />
+            </button>
+            <input
+              ref={fileInputRef}
+              name="foto"
+              type="file"
+              accept="image/*"
+              onChange={handleChange}
+              className="hidden"
+            />
+            <span className="text-xs text-[#0A2A47]">Haz click en la imagen</span>
           </div>
-
           {/* Columna 2 */}
           <div className="flex flex-col gap-4 w-full">
-            <input
-              name="nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              placeholder="Nombre"
-              className="border-b-2 border-[#0A2A47] rounded px-2 py-1 focus:outline-none"
-              required
-            />
-            <input
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="border-b-2 border-[#0A2A47] rounded px-2 py-1 focus:outline-none"
-              required
-            />
-            <input
-              name="contrasena"
-              type="password"
-              value={form.contrasena}
-              onChange={handleChange}
-              placeholder="Contraseña"
-              className="border-b-2 border-[#0A2A47] rounded px-2 py-1 focus:outline-none"
-            />
-            <select
-              name="rol"
-              value={form.rol}
-              onChange={handleChange}
-              className="border-b-2 border-[#0A2A47] rounded px-2 py-1 focus:outline-none"
-            >
-              <option value="empleado">Empleado</option>
-              <option value="supervisor">Supervisor</option>
-              <option value="cliente">Cliente</option>
-            </select>
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Nombre</label>
+              <input
+                name="nombre"
+                value={form.nombre}
+                onChange={handleChange}
+                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Email</label>
+              <input
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Contraseña</label>
+              <input
+                name="contrasena"
+                type="password"
+                value={form.contrasena}
+                onChange={handleChange}
+                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Rol</label>
+              <select
+                name="rol"
+                value={form.rol}
+                onChange={handleChange}
+                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              >
+                <option value="empleado">Empleado</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="cliente">Cliente</option>
+              </select>
+            </div>
           </div>
-
           {/* Columna 3 */}
           <div className="flex flex-col gap-4 w-full">
-            <input
-              name="numero"
-              value={form.numero}
-              onChange={handleChange}
-              placeholder="Número"
-              className="border-b-2 border-[#0A2A47] rounded px-2 py-1 focus:outline-none"
-            />
-            <input
-              name="direccion"
-              value={form.direccion}
-              onChange={handleChange}
-              placeholder="Dirección"
-              className="border-b-2 border-[#0A2A47] rounded px-2 py-1 focus:outline-none"
-            />
-            <input
-              name="identificacion"
-              value={form.identificacion}
-              onChange={handleChange}
-              placeholder="Identificación"
-              className="border-b-2 border-[#0A2A47] rounded px-2 py-1 focus:outline-none"
-            />
-            <input
-              name="area_nombre"
-              value={form.area_nombre}
-              readOnly
-              placeholder="Área"
-              className="border-b-2 border-[#0A2A47] bg-gray-100 rounded px-2 py-1 focus:outline-none"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Número</label>
+              <input
+                name="numero"
+                value={form.numero}
+                onChange={handleChange}
+                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Dirección</label>
+              <input
+                name="direccion"
+                value={form.direccion}
+                onChange={handleChange}
+                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Identificación</label>
+              <input
+                name="identificacion"
+                value={form.identificacion}
+                onChange={handleChange}
+                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Área</label>
+              <input
+                name="area_nombre"
+                value={form.area_nombre}
+                readOnly
+                className="w-full border border-[#e6f0f8] bg-[#f5f9fc] rounded-md px-3 py-2 text-[#0A2A47]"
+              />
+            </div>
           </div>
         </div>
-
         {/* Botones */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-col md:flex-row gap-3 mt-4">
           <button
             type="submit"
             disabled={creando || editando || (usuario?.rol === "admin" && !modoCrear)}
-            className="flex-1 bg-[#0A2A47] text-white py-1 rounded hover:bg-[#3BAE3D]"
+            className="flex-1 bg-[#0A2A47] text-white py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
           >
             {modoCrear ? "Crear Usuario" : "Guardar Cambios"}
           </button>
           <button
             type="button"
             onClick={handleEliminar}
-            className="flex-1 border border-[#0A2A47] text-[#0A2A47] py-1 rounded hover:bg-gray-100"
+            className="flex-1 border border-[#0A2A47] text-[#0A2A47] py-2 rounded font-semibold hover:bg-[#e6f0f8]"
             disabled={modoCrear || usuario?.rol === "admin"}
           >
             Eliminar
@@ -252,7 +270,7 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
       </form>
       {previewOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
           onClick={() => setPreviewOpen(false)}
         >
           <img

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import { logoutUsuario } from '../redux/slices/usuariosSlice';
+import { borrarHistorialId, borrarListaActiva } from '../redux/slices/listasSlice';
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -19,6 +20,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
+    dispatch(borrarListaActiva());
+    dispatch(borrarHistorialId());
     dispatch(logoutUsuario());
     dispatch(logout());
   };

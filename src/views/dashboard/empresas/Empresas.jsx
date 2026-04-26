@@ -36,27 +36,36 @@ export default function Empresas() {
     <Layout>
       <div className="p-4">
         <h1 className="text-3xl font-extrabold text-[#0A2A47] mb-4">Empresas, locaciones y áreas</h1>
-        <div className="hidden md:flex text-white text-[18px] shadow rounded-xl p-4 mb-4 flex-wrap justify-center items-center bg-[#0A2A47] gap-7">
-          <div className="flex flex-col items-center mb-2 md:mb-0">
-            <div className="flex items-center gap-2">
-              <Building2 size={18} className="text-[#3BAE3D]" />
-              <span className="font-bold">Empresas</span>
+        {/* Tarjetas de resumen */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
+            <span className="text-sm opacity-80">Empresas</span>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-3xl font-bold">
+                {resumen.total_empresas || 0}
+              </span>
+              <Building2 className="text-[#3BAE3D]" />
             </div>
-            <span className="text-lg font-bold">{resumen.total_empresas || 0}</span>
           </div>
-          <div className="flex flex-col items-center mb-2 md:mb-0">
-            <div className="flex items-center gap-2">
-              <MapPin size={18} className="text-[#3BAE3D]" />
-              <span className="font-bold">Locaciones</span>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-gray-500">Locaciones</p>
+              <MapPin size={16} className="text-[#0A2A47]" />
             </div>
-            <span className="text-lg font-bold">{resumen.total_locaciones || 0}</span>
+            <p className="text-2xl font-bold text-[#0A2A47]">
+              {resumen.total_locaciones || 0}
+            </p>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2">
-              <Grid2X2 size={18} className="text-[#3BAE3D]" />
-              <span className="font-bold">Áreas</span>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-gray-500">Áreas</p>
+              <Grid2X2 size={16} className="text-[#0A2A47]" />
             </div>
-            <span className="text-lg font-bold">{resumen.total_areas || 0}</span>
+            <p className="text-2xl font-bold text-[#0A2A47]">
+              {resumen.total_areas || 0}
+            </p>
           </div>
         </div>
         <div className="p-4 flex flex-col md:flex-row gap-4 md:h-[calc(100vh-4rem)] overflow-auto">

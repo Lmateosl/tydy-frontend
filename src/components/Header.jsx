@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState } from "react";
 import { logoutUsuario } from "../redux/slices/usuariosSlice";
 import { logout } from "../redux/slices/authSlice";
+import { borrarHistorialId, borrarListaActiva } from "../redux/slices/listasSlice";
 
 export default function Header({ setSidebarOpen, sidebarOpen }) {
   const usuarioLogueado = useSelector((state) => state.usuarios.usuarioLogueado);
@@ -12,6 +13,8 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
 
   const handleLogout = () => {
       setShowLogoutConfirm(false);
+      dispatch(borrarListaActiva());
+      dispatch(borrarHistorialId());
       dispatch(logoutUsuario());
       dispatch(logout());
   };
