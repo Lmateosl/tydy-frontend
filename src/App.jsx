@@ -14,6 +14,7 @@ import Reportes from "./views/dashboard/reportes/Reportes";
 import FeedbackQR from "./views/dashboard/listas/FeedbackQR";
 import Feedback from "./views/empleados/Feedback";
 import ReporteFeedback from "./views/dashboard/reportes/Reporte-feedback";
+import Incidentes from "./views/dashboard/incidentes/Incidentes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
@@ -44,8 +45,10 @@ function App() {
               <>
                 <Route path="/actividades" element={<Actividades />} />
                 <Route path="/listas" element={<Listas />} />
+                <Route path="/incidentes" element={<Incidentes />} />
                 <Route path="/feedback-qr" element={<FeedbackQR />} />
                 <Route path="/feedback-reporte" element={<ReporteFeedback />} />
+                <Route path="/reportes-feedback" element={<ReporteFeedback />} />
               </>
             )}
             <Route path="/reportes" element={<Reportes />} />

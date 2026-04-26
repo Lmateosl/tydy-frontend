@@ -17,7 +17,6 @@ import {
   ClipboardList,
   Clock3,
   MapPin,
-  MessageSquareWarning,
   Star,
   Users,
 } from "lucide-react";
@@ -130,11 +129,16 @@ export default function Dashboard() {
 
   const cargando = isLoading || isFetching;
   const valor = (campo) => (cargando ? "..." : resumen?.[campo] ?? 0);
+  const valorHoras = (campo) => {
+    if (cargando) return "...";
+    const numero = Number(resumen?.[campo] ?? 0);
+    return `${numero.toFixed(1)} h`;
+  };
   const riesgosOperativos = {
     locacionesConProblemas: riesgosData?.locaciones_con_problemas ?? [],
     empleadosConTareasPendientes: riesgosData?.empleados_con_pendientes ?? [],
-    comentariosRecientes: riesgosData?.comentarios_recientes ?? [],
-    feedbackNegativoReciente: riesgosData?.feedback_negativo_reciente ?? [],
+    incidentesRecientes: riesgosData?.incidentes_recientes ?? [],
+    locacionesConMasIncidentes: riesgosData?.locaciones_con_mas_incidentes ?? [],
   };
 
   const renderEmptyState = (mensaje) => (
@@ -154,6 +158,13 @@ export default function Dashboard() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatearTipoIncidente = (tipo) => {
+    if (!tipo) return "Sin tipo";
+    return tipo
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (letra) => letra.toUpperCase());
   };
 
   const colores = {
@@ -335,24 +346,24 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <TarjetaResumen
-            titulo="Actividades vencidas"
-            valor={valor("actividades_vencidas")}
+            titulo="Incidentes abiertos"
+            valor={valor("incidentes_abiertos")}
             icono={<AlertTriangle size={16} />}
           />
           <TarjetaResumen
-            titulo="Empleados activos hoy"
-            valor={valor("empleados_activos_hoy")}
-            icono={<Users size={16} />}
+            titulo="Incidentes resueltos"
+            valor={valor("incidentes_resueltos")}
+            icono={<CheckCircle2 size={16} />}
           />
           <TarjetaResumen
-            titulo="Locaciones con actividad"
-            valor={valor("locaciones_con_actividad_hoy")}
-            icono={<MapPin size={16} />}
+            titulo="Incidentes críticos"
+            valor={valor("incidentes_criticos")}
+            icono={<AlertCircle size={16} />}
           />
           <TarjetaResumen
-            titulo="Incidentes abiertos"
-            valor={valor("incidentes_abiertos")}
-            icono={<Building2 size={16} />}
+            titulo="Tiempo prom. resolución"
+            valor={valorHoras("tiempo_promedio_resolucion_horas")}
+            icono={<Clock3 size={16} />}
           />
         </div>
 
@@ -461,37 +472,45 @@ export default function Dashboard() {
             <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
-                  Comentarios recientes
+                  Incidentes recientes
                 </h3>
-                <MessageSquareWarning size={18} className="text-[#0A2A47]" />
+                <Building2 size={18} className="text-[#0A2A47]" />
               </div>
               {isLoadingRiesgos || isFetchingRiesgos ? (
                 renderEmptyState("Cargando datos...")
-              ) : riesgosOperativos.comentariosRecientes.length === 0 ? (
-                renderEmptyState("Sin datos disponibles por ahora.")
+              ) : riesgosOperativos.incidentesRecientes.length === 0 ? (
+                renderEmptyState("No hay incidentes recientes en este período.")
               ) : (
                 <div className="space-y-3">
-                  {riesgosOperativos.comentariosRecientes.map((comentario) => (
+                  {riesgosOperativos.incidentesRecientes.map((incidente) => (
                     <div
-                      key={comentario.actividad_id}
+                      key={incidente.id}
                       className="rounded-lg border border-gray-100 px-3 py-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-[#0A2A47]">
-                            {comentario.usuario_nombre || "Sin usuario"}
+                            {incidente.locacion_nombre || "Sin locación"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {comentario.locacion_nombre || "Sin locación"}{comentario.empresa_nombre ? ` · ${comentario.empresa_nombre}` : ""}
+                            {incidente.area_nombre || "Sin área"}{incidente.empresa_nombre ? ` · ${incidente.empresa_nombre}` : ""}
                           </p>
                         </div>
                         <span className="text-xs text-gray-500 whitespace-nowrap">
-                          {formatearFecha(comentario.hora_fin || comentario.hora_inicio)}
+                          {formatearFecha(incidente.creado_en)}
                         </span>
                       </div>
-                      <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">
-                        {comentario.comentario}
-                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
+                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                          {formatearTipoIncidente(incidente.tipo)}
+                        </span>
+                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                          {incidente.estado}
+                        </span>
+                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                          Prioridad: {incidente.prioridad}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -501,40 +520,39 @@ export default function Dashboard() {
             <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
-                  Feedback negativo reciente
+                  Locaciones con más incidentes
                 </h3>
-                <MessageSquareWarning size={18} className="text-[#0A2A47]" />
+                <MapPin size={18} className="text-[#0A2A47]" />
               </div>
               {isLoadingRiesgos || isFetchingRiesgos ? (
                 renderEmptyState("Cargando datos...")
-              ) : riesgosOperativos.feedbackNegativoReciente.length === 0 ? (
-                renderEmptyState("Sin datos disponibles por ahora.")
+              ) : riesgosOperativos.locacionesConMasIncidentes.length === 0 ? (
+                renderEmptyState("No hay locaciones con incidentes en este período.")
               ) : (
                 <div className="space-y-3">
-                  {riesgosOperativos.feedbackNegativoReciente.map((feedback) => (
+                  {riesgosOperativos.locacionesConMasIncidentes.map((locacion) => (
                     <div
-                      key={feedback.feedback_id}
+                      key={locacion.locacion_id || `${locacion.locacion_nombre}-${locacion.empresa_nombre || "sin-empresa"}`}
                       className="rounded-lg border border-gray-100 px-3 py-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-[#0A2A47]">
-                            {feedback.nombre || "Anónimo"}
+                            {locacion.locacion_nombre || "Sin locación"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {feedback.empresa} · {feedback.direccion}
+                            {locacion.empresa_nombre || "Sin empresa"}
                           </p>
                         </div>
                         <span className="text-sm font-bold text-[#D64545]">
-                          {Number(feedback.calificacion).toFixed(1)}
+                          {locacion.total_incidentes}
                         </span>
                       </div>
-                      <p className="mt-2 text-sm text-gray-700">
-                        {feedback.comentario || "Sin comentario"}
-                      </p>
-                      <p className="mt-2 text-xs text-gray-500">
-                        {formatearFecha(feedback.creado_en)}
-                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
+                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                          Abiertos: {locacion.incidentes_abiertos}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>

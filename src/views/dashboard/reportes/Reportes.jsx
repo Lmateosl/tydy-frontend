@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useObtenerUsuariosQuery } from "../../../redux/api/userApi";
 import Layout from "../../../components/Layout";
 import { useObtenerActividadesUsuarioQuery } from "../../../redux/api/historialApi";
+import { useObtenerIncidentesQuery } from "../../../redux/api/incidentesApi";
 import { format } from "date-fns";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
@@ -18,6 +20,7 @@ import {
   ScanSearch,
   ShieldCheck,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 const formatFecha = (valor) => {
   if (!valor) return "-";
@@ -177,6 +180,8 @@ function DetallePrecision({ label, value }) {
 }
 
 export default function Reportes() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [usuarioId, setUsuarioId] = useState("");
   const [finalizada, setFinalizada] = useState("");
   const [desde, setDesde] = useState("");
@@ -185,11 +190,17 @@ export default function Reportes() {
   const [estadoFiltro, setEstadoFiltro] = useState("");
   const [imagenSeleccionada, setImagenSeleccionada] = useState(null);
   const [actividadVerificacion, setActividadVerificacion] = useState(null);
+  const [highlightedActividadId, setHighlightedActividadId] = useState(null);
+  const actividadRowRefs = useRef({});
+  const deepLinkHandledRef = useRef(null);
+  const deepLinkMissingRef = useRef(null);
+  const highlightTimeoutRef = useRef(null);
 
   const { data: usuarios = [] } = useObtenerUsuariosQuery();
   const { data: compania } = useObtenerMiCompaniaQuery();
+  const { data: incidentes = [] } = useObtenerIncidentesQuery();
 
-  const { data = [] } = useObtenerActividadesUsuarioQuery({
+  const { data = [], isLoading: isLoadingActividades } = useObtenerActividadesUsuarioQuery({
     usuario_id: usuarioId || undefined,
     finalizada: finalizada === "" ? undefined : finalizada === "true",
     empresa: empresaFiltro || undefined,
@@ -208,6 +219,58 @@ export default function Reportes() {
   const empresas = Array.from(new Set(data.map(a => a.usuario?.area?.locacion?.empresa?.nombre).filter(Boolean)));
 
   const dataFiltrada = useMemo(() => data, [data]);
+  const actividadDeepLinkId = searchParams.get("actividad");
+  const incidentesPorActividadId = useMemo(() => {
+    return incidentes.reduce((acc, incidente) => {
+      if (!incidente.actividad_usuario_id || acc[incidente.actividad_usuario_id]) return acc;
+      acc[incidente.actividad_usuario_id] = incidente;
+      return acc;
+    }, {});
+  }, [incidentes]);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!actividadDeepLinkId || isLoadingActividades) return;
+
+    const actividadObjetivo = dataFiltrada.find((actividad) => actividad.id === actividadDeepLinkId);
+
+    if (actividadObjetivo) {
+      if (deepLinkHandledRef.current === actividadDeepLinkId) return;
+      deepLinkHandledRef.current = actividadDeepLinkId;
+      deepLinkMissingRef.current = null;
+
+      setHighlightedActividadId(actividadDeepLinkId);
+      setActividadVerificacion(actividadObjetivo);
+
+      requestAnimationFrame(() => {
+        actividadRowRefs.current[actividadDeepLinkId]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+      highlightTimeoutRef.current = setTimeout(() => {
+        setHighlightedActividadId((current) => (current === actividadDeepLinkId ? null : current));
+      }, 4000);
+
+      return;
+    }
+
+    if (dataFiltrada.length > 0 && deepLinkMissingRef.current !== actividadDeepLinkId) {
+      deepLinkMissingRef.current = actividadDeepLinkId;
+      toast.info("La actividad enlazada no está visible con los registros cargados.");
+    }
+  }, [actividadDeepLinkId, dataFiltrada, isLoadingActividades]);
 
   const resumen = useMemo(() => {
     const total = dataFiltrada.length;
@@ -771,11 +834,26 @@ export default function Reportes() {
                 <th className="py-2 px-3">Área</th>
                 <th className="py-2 px-3">Imagen</th>
                 <th className="py-2 px-3">Verificación</th>
+                <th className="py-2 px-3">Incidente</th>
               </tr>
             </thead>
             <tbody>
               {dataFiltrada.map(a => (
-                <tr key={a.id} className="transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8]">
+                (() => {
+                  const incidenteAsociado = incidentesPorActividadId[a.id];
+
+                  return (
+                <tr
+                  key={a.id}
+                  ref={(node) => {
+                    if (node) {
+                      actividadRowRefs.current[a.id] = node;
+                    }
+                  }}
+                  className={`transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${
+                    highlightedActividadId === a.id ? "bg-[#eef6ff] border-l-4 border-l-[#0A2A47]" : ""
+                  }`}
+                >
                   <td className="py-2 px-3 align-top">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${obtenerEstiloEstado(a.estado_verificacion)}`}
@@ -821,7 +899,23 @@ export default function Reportes() {
                       Ver
                     </button>
                   </td>
+                  <td className="py-2 px-3 align-top">
+                    {incidenteAsociado ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/incidentes?actividad=${a.id}`)}
+                        className="inline-flex items-center gap-1 rounded-md border border-[#0A2A47] px-2 py-1 text-xs font-semibold text-[#0A2A47] hover:bg-[#e6f0f8]"
+                      >
+                        <AlertTriangle size={14} />
+                        Ver incidente
+                      </button>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
                 </tr>
+                  );
+                })()
               ))}
             </tbody>
           </table>

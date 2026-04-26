@@ -13,7 +13,6 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
-  Activity,
   Camera,
   CalendarClock,
   CheckCircle2,
@@ -22,7 +21,6 @@ import {
   ImageIcon,
   Info,
   MapPin,
-  MessageSquareText,
   ScanSearch,
   ShieldCheck,
   Star,
@@ -86,6 +84,12 @@ function formatearFecha(valorFecha) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatearHoras(valor) {
+  const numero = Number(valor ?? 0);
+  if (!Number.isFinite(numero)) return "0.0 h";
+  return `${numero.toFixed(1)} h`;
 }
 
 function formatDuracion(segundos) {
@@ -297,18 +301,12 @@ export default function PortalCliente() {
   const cargandoTarjetas = cargandoResumen || actualizandoResumen;
   const totalActividades = resumen?.actividades_hoy ?? 0;
   const actividadesRealizadas = resumen?.actividades_completadas_hoy ?? 0;
-  const cumplimiento = totalActividades > 0
-    ? Math.round((actividadesRealizadas / totalActividades) * 100)
-    : 0;
-  const evidenciasRegistradas = Math.max(
-    actividadesRealizadas - (resumen?.evidencias_faltantes ?? 0),
-    0
-  );
-  const feedbackEnRevision = resumen?.feedbacks_negativos ?? 0;
+  const seguimientosAbiertos = resumen?.seguimientos_abiertos ?? 0;
+  const seguimientosResueltos = resumen?.seguimientos_resueltos ?? 0;
+  const tiempoRespuestaHoras = resumen?.tiempo_promedio_respuesta_horas ?? 0;
 
-  const areasConSeguimiento = observaciones?.locaciones_con_problemas ?? [];
-  const observacionesRecientes = observaciones?.comentarios_recientes ?? [];
-  const feedbackRevision = observaciones?.feedback_negativo_reciente ?? [];
+  const areasConSeguimientoCliente = observaciones?.areas_con_seguimiento ?? [];
+  const seguimientosRecientes = observaciones?.seguimientos_recientes ?? [];
 
   const exportarReporteGeneralPDF = ({
     resumenReporte,
@@ -696,22 +694,22 @@ export default function PortalCliente() {
             principal
           />
           <TarjetaResumen
-            titulo="Cumplimiento"
-            valor={cargandoTarjetas ? "..." : `${cumplimiento}%`}
-            detalle="Relación entre actividades completadas y actividades registradas."
+            titulo="Seguimientos abiertos"
+            valor={cargandoTarjetas ? "..." : seguimientosAbiertos}
+            detalle="Casos del servicio que siguen pendientes de atención."
             icono={<ShieldCheck size={22} />}
           />
           <TarjetaResumen
-            titulo="Evidencias registradas"
-            valor={cargandoTarjetas ? "..." : evidenciasRegistradas}
-            detalle="Actividades cerradas con respaldo visual o evidencia entregada."
+            titulo="Seguimientos resueltos"
+            valor={cargandoTarjetas ? "..." : seguimientosResueltos}
+            detalle="Casos del servicio que ya fueron atendidos."
             icono={<Camera size={22} />}
           />
           <TarjetaResumen
-            titulo="Feedback en revisión"
-            valor={cargandoTarjetas ? "..." : feedbackEnRevision}
-            detalle="Respuestas que requieren seguimiento dentro del período."
-            icono={<Star size={22} />}
+            titulo="Tiempo de respuesta"
+            valor={cargandoTarjetas ? "..." : formatearHoras(tiempoRespuestaHoras)}
+            detalle="Promedio de tiempo para resolver seguimientos visibles."
+            icono={<CalendarClock size={22} />}
           />
         </div>
 
@@ -785,36 +783,36 @@ export default function PortalCliente() {
           )}
         </Seccion>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <Seccion
             titulo="Áreas con seguimiento"
-            subtitulo="Locaciones que merecen una revisión más cercana del servicio."
+            subtitulo="Áreas y locaciones donde el servicio requirió atención adicional."
           >
             {cargandoObservaciones ? (
-              <EmptyState mensaje="Cargando información del servicio..." />
-            ) : areasConSeguimiento.length === 0 ? (
+              <EmptyState mensaje="Cargando seguimiento del servicio..." />
+            ) : areasConSeguimientoCliente.length === 0 ? (
               <EmptyState mensaje="No hay áreas con seguimiento para este período." />
             ) : (
               <div className="flex flex-col gap-3">
-                {areasConSeguimiento.map((item, index) => (
-                  <div key={`${item.locacion_id || item.locacion_nombre}-${index}`} className="rounded-lg border border-[#e6f0f8] p-3 bg-[#f8fbfe]">
+                {areasConSeguimientoCliente.map((item, index) => (
+                  <div key={`${item.area_id || item.locacion_id || item.locacion_nombre}-${index}`} className="rounded-lg border border-[#e6f0f8] p-3 bg-[#f8fbfe]">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-[#0A2A47]">
-                          {item.locacion_nombre}
+                          {item.area_nombre || item.locacion_nombre || "Ubicación no disponible"}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {item.empresa_nombre || "Servicio asignado"}
+                          {item.locacion_nombre && item.area_nombre ? item.locacion_nombre : "Servicio asignado"}
                         </p>
                       </div>
                       <MapPin size={16} className="text-[#0A2A47]" />
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs">
                       <span className="px-2 py-1 rounded-full bg-white border border-[#d7e5f0] text-[#0A2A47]">
-                        Seguimientos: {item.total_problemas}
+                        Seguimientos: {item.total_seguimientos}
                       </span>
                       <span className="px-2 py-1 rounded-full bg-white border border-[#d7e5f0] text-[#0A2A47]">
-                        Evidencias faltantes: {item.evidencias_faltantes}
+                        Abiertos: {item.seguimientos_abiertos}
                       </span>
                     </div>
                   </div>
@@ -824,66 +822,64 @@ export default function PortalCliente() {
           </Seccion>
 
           <Seccion
-            titulo="Observaciones recientes"
-            subtitulo="Comentarios registrados durante la prestación del servicio."
+            titulo="Seguimientos recientes"
+            subtitulo="Casos visibles del servicio con su estado y respuesta registrada."
           >
             {cargandoObservaciones ? (
-              <EmptyState mensaje="Cargando observaciones..." />
-            ) : observacionesRecientes.length === 0 ? (
-              <EmptyState mensaje="No hay observaciones recientes para este período." />
+              <EmptyState mensaje="Cargando seguimientos..." />
+            ) : seguimientosRecientes.length === 0 ? (
+              <EmptyState mensaje="No hay seguimientos recientes para este período." />
             ) : (
               <div className="flex flex-col gap-3">
-                {observacionesRecientes.map((item) => (
-                  <div key={item.actividad_id} className="rounded-lg border border-[#e6f0f8] p-3 bg-white">
+                {seguimientosRecientes.map((item) => (
+                  <div key={item.id} className="rounded-lg border border-[#e6f0f8] p-3 bg-white">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-[#0A2A47]">
                           {item.locacion_nombre || "Locación no disponible"}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatearFecha(item.hora_fin || item.hora_inicio)}
+                          {item.area_nombre || "Área no disponible"}
                         </p>
                       </div>
-                      <MessageSquareText size={16} className="text-[#0A2A47]" />
+                      <span className="rounded-full bg-[#f8fbfe] px-2 py-1 text-xs font-semibold text-[#0A2A47]">
+                        {item.estado}
+                      </span>
                     </div>
-                    <p className="text-sm text-[#0A2A47] mt-3">
-                      {item.comentario}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Seccion>
-
-          <Seccion
-            titulo="Feedback en revisión"
-            subtitulo="Valoraciones del cliente que están siendo seguidas dentro del servicio."
-          >
-            {cargandoObservaciones ? (
-              <EmptyState mensaje="Cargando feedback en revisión..." />
-            ) : feedbackRevision.length === 0 ? (
-              <EmptyState mensaje="No hay feedback en revisión para este período." />
-            ) : (
-              <div className="flex flex-col gap-3">
-                {feedbackRevision.map((item) => (
-                  <div key={item.feedback_id} className="rounded-lg border border-[#e6f0f8] p-3 bg-white">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-[#0A2A47]">
-                          {item.empresa}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Lugar evaluado: {item.contexto || item.direccion || "-"}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {formatearFecha(item.creado_en)}
-                        </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                      <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                        {item.tipo_publico}
+                      </span>
+                      <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                        Abierto: {formatearFecha(item.creado_en)}
+                      </span>
+                      {item.resuelto_en ? (
+                        <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                          Resuelto: {formatearFecha(item.resuelto_en)}
+                        </span>
+                      ) : null}
+                      <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                        Tiempo de respuesta: {item.tiempo_respuesta_horas != null ? formatearHoras(item.tiempo_respuesta_horas) : "Pendiente"}
+                      </span>
+                    </div>
+                    {(item.evidencia_resolucion || item.foto_resolucion) ? (
+                      <div className="mt-3 space-y-2">
+                        {item.evidencia_resolucion ? (
+                          <p className="text-sm text-[#0A2A47]">
+                            {item.evidencia_resolucion}
+                          </p>
+                        ) : null}
+                        {item.foto_resolucion ? (
+                          <a href={item.foto_resolucion} target="_blank" rel="noreferrer" className="inline-flex">
+                            <img
+                              src={item.foto_resolucion}
+                              alt="Evidencia de resolución"
+                              className="h-16 w-16 object-cover rounded-md border border-[#e6f0f8] shadow-sm hover:opacity-85"
+                            />
+                          </a>
+                        ) : null}
                       </div>
-                      <Star size={16} className="text-[#3BAE3D]" />
-                    </div>
-                    <p className="text-sm text-[#0A2A47] mt-3">
-                      {item.comentario?.trim() || "Sin comentario adicional"}
-                    </p>
+                    ) : null}
                   </div>
                 ))}
               </div>

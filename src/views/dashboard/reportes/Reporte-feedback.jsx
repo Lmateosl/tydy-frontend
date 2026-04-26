@@ -1,20 +1,34 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "../../../components/Layout";
 import { useObtenerFeedbackUserQuery } from "../../../redux/api/listasApi";
+import { useObtenerIncidentesQuery } from "../../../redux/api/incidentesApi";
 import { Search, Calendar, Star, Image as ImageIcon } from "lucide-react";
+import { toast } from "react-toastify";
 
 const ReporteFeedback = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const {
     data: feedbacks = [],
     isLoading,
     isFetching,
     refetch,
   } = useObtenerFeedbackUserQuery();
+  const { data: incidentesFeedback = [] } = useObtenerIncidentesQuery({
+    tipo: "feedback_negativo",
+  });
 
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
   const [zoomUrl, setZoomUrl] = useState(null);
+  const [highlightedFeedbackId, setHighlightedFeedbackId] = useState(null);
+  const feedbackRowRefs = useRef({});
+  const deepLinkHandledRef = useRef(null);
+  const deepLinkMissingRef = useRef(null);
+  const highlightTimeoutRef = useRef(null);
+  const feedbackDeepLinkId = searchParams.get("feedback");
 
   const stats = useMemo(() => {
     const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -54,6 +68,58 @@ const ReporteFeedback = () => {
       return empresaOk && fechaOk;
     });
   }, [feedbacks, filtroEmpresa, fechaDesde, fechaHasta]);
+
+  const incidentesPorFeedbackId = useMemo(() => {
+    return incidentesFeedback.reduce((acc, incidente) => {
+      if (incidente.feedback_id) {
+        acc[incidente.feedback_id] = incidente;
+      }
+      return acc;
+    }, {});
+  }, [incidentesFeedback]);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!feedbackDeepLinkId || isLoading) return;
+
+    const feedbackObjetivo = feedbacksFiltrados.find((feedback) => feedback.id === feedbackDeepLinkId);
+
+    if (feedbackObjetivo) {
+      if (deepLinkHandledRef.current === feedbackDeepLinkId) return;
+      deepLinkHandledRef.current = feedbackDeepLinkId;
+      deepLinkMissingRef.current = null;
+
+      setHighlightedFeedbackId(feedbackDeepLinkId);
+
+      requestAnimationFrame(() => {
+        feedbackRowRefs.current[feedbackDeepLinkId]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+      highlightTimeoutRef.current = setTimeout(() => {
+        setHighlightedFeedbackId((current) => (current === feedbackDeepLinkId ? null : current));
+      }, 4000);
+
+      return;
+    }
+
+    if (feedbacksFiltrados.length > 0 && deepLinkMissingRef.current !== feedbackDeepLinkId) {
+      deepLinkMissingRef.current = feedbackDeepLinkId;
+      toast.info("El feedback enlazado no está visible con los registros cargados.");
+    }
+  }, [feedbackDeepLinkId, feedbacksFiltrados, isLoading]);
 
   const formatearFecha = (iso) => {
     if (!iso) return "-";
@@ -193,13 +259,26 @@ const ReporteFeedback = () => {
                 <th className="py-2 px-3 text-center">Calificación</th>
                 <th className="py-2 px-3">Comentario</th>
                 <th className="py-2 px-3 text-center">Foto</th>
+                <th className="py-2 px-3 text-center">Incidente</th>
               </tr>
             </thead>
             <tbody className="text-sm text-[#0A2A47]">
               {feedbacksFiltrados.map((f) => (
+                (() => {
+                  const esFeedbackNegativo = Number(f.calificacion) <= 2;
+                  const incidenteAsociado = esFeedbackNegativo ? incidentesPorFeedbackId[f.id] : null;
+
+                  return (
                 <tr
                   key={f.id}
-                  className="transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8]"
+                  ref={(node) => {
+                    if (node) {
+                      feedbackRowRefs.current[f.id] = node;
+                    }
+                  }}
+                  className={`transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${
+                    highlightedFeedbackId === f.id ? "bg-[#eef6ff] border-l-4 border-l-[#0A2A47]" : ""
+                  }`}
                 >
                   <td className="py-2 px-3 align-top">
                     {formatearFecha(f.creado_en)}
@@ -247,13 +326,28 @@ const ReporteFeedback = () => {
                       <span className="text-xs text-gray-400">Sin foto</span>
                     )}
                   </td>
+                  <td className="py-2 px-3 align-top text-center">
+                    {incidenteAsociado ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/incidentes?feedback=${f.id}`)}
+                        className="text-[#0A2A47] font-semibold hover:text-[#123b63] hover:underline"
+                      >
+                        Ver incidente
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
                 </tr>
+                  );
+                })()
               ))}
 
               {feedbacksFiltrados.length === 0 && !isLoading && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="p-4 text-center text-gray-500 text-sm"
                   >
                     No hay feedbacks que coincidan con los filtros seleccionados.
@@ -264,7 +358,7 @@ const ReporteFeedback = () => {
               {isLoading && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="p-4 text-center text-gray-500 text-sm"
                   >
                     Cargando feedbacks...
