@@ -6,11 +6,13 @@ import {
   useEliminarFeedbackQrMutation,
   useActualizarFeedbackQrMutation,
 } from "../../../redux/api/listasApi";
+import { useObtenerEmpresasQuery } from "../../../redux/api/empresasApi";
 import { List, Plus, Search, Trash2, Pencil, Maximize2 } from "lucide-react";
 import { toast } from "react-toastify";
 
 const FeedbackQR = () => {
   const { data: feedbacks = [], isLoading, isFetching, refetch } = useObtenerFeedbackQrQuery();
+  const { data: empresas = [] } = useObtenerEmpresasQuery();
   const [crearFeedbackList] = useCrearFeedbackListMutation();
   const [eliminarFeedbackQr] = useEliminarFeedbackQrMutation();
   const [actualizarFeedbackQr] = useActualizarFeedbackQrMutation();
@@ -20,8 +22,8 @@ const FeedbackQR = () => {
   const [modoEditar, setModoEditar] = useState(false);
   const [feedbackSeleccionado, setFeedbackSeleccionado] = useState(null);
   const [form, setForm] = useState({
-    nombre: "",
-    direccion: "",
+    empresa_id: "",
+    contexto: "",
   });
 
   const [feedbackAEliminar, setFeedbackAEliminar] = useState(null);
@@ -38,7 +40,7 @@ const FeedbackQR = () => {
   const handleCrearClick = () => {
     setModoEditar(false);
     setFeedbackSeleccionado(null);
-    setForm({ nombre: "", direccion: "" });
+    setForm({ empresa_id: "", contexto: "" });
     setModalOpen(true);
   };
 
@@ -46,16 +48,16 @@ const FeedbackQR = () => {
     setModoEditar(true);
     setFeedbackSeleccionado(feedback);
     setForm({
-      nombre: feedback.nombre || "",
-      direccion: feedback.direccion || "",
+      empresa_id: feedback.empresa_id || "",
+      contexto: feedback.contexto || feedback.direccion || "",
     });
     setModalOpen(true);
   };
 
   const handleSubmit = async () => {
     try {
-      if (!form.nombre || !form.direccion) {
-        toast.error("Nombre y dirección son obligatorios.");
+      if (!form.empresa_id) {
+        toast.error("Debes seleccionar una empresa.");
         return;
       }
 
@@ -63,14 +65,14 @@ const FeedbackQR = () => {
         await actualizarFeedbackQr({
           feedback_id: feedbackSeleccionado.id,
           datos: {
-            nombre: form.nombre,
-            direccion: form.direccion,
+            empresa_id: form.empresa_id,
+            contexto: form.contexto || null,
           },
         }).unwrap();
       } else {
         await crearFeedbackList({
-          nombre: form.nombre,
-          direccion: form.direccion,
+          empresa_id: form.empresa_id,
+          contexto: form.contexto || null,
         }).unwrap();
       }
 
@@ -82,7 +84,7 @@ const FeedbackQR = () => {
 
       setModalOpen(false);
       setFeedbackSeleccionado(null);
-      setForm({ nombre: "", direccion: "" });
+      setForm({ empresa_id: "", contexto: "" });
       refetch();
     } catch (error) {
       console.error("Error guardando feedback QR:", error);
@@ -147,7 +149,7 @@ const FeedbackQR = () => {
               <tr className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 left-0">
                 <th className="py-2 px-3">QR</th>
                 <th className="py-2 px-3">Empresa</th>
-                <th className="py-2 px-3">Dirección</th>
+                <th className="py-2 px-3">Descripción</th>
                 <th className="py-2 px-3">Acciones</th>
               </tr>
             </thead>
@@ -178,7 +180,7 @@ const FeedbackQR = () => {
                     )}
                   </td>
                   <td className="py-2 px-3">{f.nombre || "-"}</td>
-                  <td className="py-2 px-3">{f.direccion || "-"}</td>
+                  <td className="py-2 px-3">{f.contexto || f.direccion || "-"}</td>
                   <td className="py-2 px-3">
                     <div className="flex items-center justify-center gap-3">
                       <button
@@ -219,24 +221,33 @@ const FeedbackQR = () => {
               </h3>
 
               <label className="block mb-1 text-[#0A2A47]">
-                Empresa / Nombre <span className="text-red-500">*</span>
+                Empresa <span className="text-red-500">*</span>
               </label>
-              <input
+              <select
                 className="border w-full px-2 py-1 mb-3 rounded border-[#0A2A47]"
-                value={form.nombre}
+                value={form.empresa_id}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, nombre: e.target.value }))
+                  setForm((prev) => ({ ...prev, empresa_id: e.target.value }))
                 }
-              />
+              >
+                <option value="">Selecciona una empresa</option>
+                {empresas.map((empresa) => (
+                  <option key={empresa.id} value={empresa.id}>
+                    {empresa.nombre}
+                  </option>
+                ))}
+              </select>
 
               <label className="block mb-1 text-[#0A2A47]">
-                Dirección <span className="text-red-500">*</span>
+                Descripción del punto de feedback
               </label>
-              <input
-                className="border w-full px-2 py-1 mb-4 rounded border-[#0A2A47]"
-                value={form.direccion}
+              <textarea
+                className="border w-full px-2 py-1 mb-4 rounded border-[#0A2A47] resize-none"
+                rows={3}
+                placeholder="Aula 204, Edificio B"
+                value={form.contexto}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, direccion: e.target.value }))
+                  setForm((prev) => ({ ...prev, contexto: e.target.value }))
                 }
               />
 
@@ -251,7 +262,7 @@ const FeedbackQR = () => {
                   onClick={() => {
                     setModalOpen(false);
                     setFeedbackSeleccionado(null);
-                    setForm({ nombre: "", direccion: "" });
+                    setForm({ empresa_id: "", contexto: "" });
                   }}
                   className="border flex-1 py-1 rounded hover:bg-[#a0dea1]"
                 >

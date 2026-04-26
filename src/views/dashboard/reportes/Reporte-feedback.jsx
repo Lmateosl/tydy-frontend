@@ -189,7 +189,7 @@ const ReporteFeedback = () => {
                 <th className="py-2 px-3">Fecha</th>
                 <th className="py-2 px-3">Nombre</th>
                 <th className="py-2 px-3">Empresa</th>
-                <th className="py-2 px-3">Dirección</th>
+                <th className="py-2 px-3">Lugar evaluado</th>
                 <th className="py-2 px-3 text-center">Calificación</th>
                 <th className="py-2 px-3">Comentario</th>
                 <th className="py-2 px-3 text-center">Foto</th>
@@ -210,7 +210,7 @@ const ReporteFeedback = () => {
                       : "Anónimo"}
                   </td>
                   <td className="py-2 px-3 align-top">{f.empresa}</td>
-                  <td className="py-2 px-3 align-top">{f.direccion}</td>
+                  <td className="py-2 px-3 align-top">{f.contexto || f.direccion || "-"}</td>
                   <td className="py-2 px-3 align-top text-center">
                     <div className="flex flex-col items-center">
                       <span className="font-semibold">

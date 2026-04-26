@@ -22,6 +22,53 @@ import {
   Users,
 } from "lucide-react";
 
+const PERIODOS_DASHBOARD = [
+  { value: "hoy", label: "Hoy" },
+  { value: "7dias", label: "7 dias" },
+  { value: "1mes", label: "1 mes" },
+  { value: "6meses", label: "6 meses" },
+  { value: "1anio", label: "1 año" },
+];
+
+function obtenerRangoPeriodo(periodo) {
+  const ahora = new Date();
+  const desde = new Date(ahora);
+  const hasta = new Date(ahora);
+
+  desde.setHours(0, 0, 0, 0);
+  hasta.setHours(23, 59, 59, 999);
+
+  switch (periodo) {
+    case "7dias":
+      desde.setDate(desde.getDate() - 7);
+      break;
+    case "1mes":
+      desde.setMonth(desde.getMonth() - 1);
+      break;
+    case "6meses":
+      desde.setMonth(desde.getMonth() - 6);
+      break;
+    case "1anio":
+      desde.setFullYear(desde.getFullYear() - 1);
+      break;
+    case "hoy":
+    default:
+      break;
+  }
+
+  return { desde, hasta };
+}
+
+function formatearFechaApi(fecha) {
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, "0");
+  const day = String(fecha.getDate()).padStart(2, "0");
+  const hours = String(fecha.getHours()).padStart(2, "0");
+  const minutes = String(fecha.getMinutes()).padStart(2, "0");
+  const seconds = String(fecha.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
 function TarjetaResumen({ titulo, valor, icono, principal = false }) {
   if (principal) {
     return (
@@ -36,7 +83,7 @@ function TarjetaResumen({ titulo, valor, icono, principal = false }) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+    <div className="bg-white border border-[#e6f0f8] rounded-xl p-3 shadow-sm">
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs text-gray-500">{titulo}</p>
         <div className="text-[#0A2A47]">{icono}</div>
@@ -47,10 +94,19 @@ function TarjetaResumen({ titulo, valor, icono, principal = false }) {
 }
 
 export default function Dashboard() {
-  const [desdeRiesgos, setDesdeRiesgos] = useState("");
-  const [hastaRiesgos, setHastaRiesgos] = useState("");
-  const desdeRiesgosParam = desdeRiesgos ? `${desdeRiesgos}T00:00:00` : undefined;
-  const hastaRiesgosParam = hastaRiesgos ? `${hastaRiesgos}T23:59:59` : undefined;
+  const [periodoDashboard, setPeriodoDashboard] = useState("hoy");
+
+  const rangoDashboard = useMemo(() => {
+    const { desde, hasta } = obtenerRangoPeriodo(periodoDashboard);
+    return {
+      desde,
+      hasta,
+      params: {
+        desde: formatearFechaApi(desde),
+        hasta: formatearFechaApi(hasta),
+      },
+    };
+  }, [periodoDashboard]);
 
   const {
     data: resumen,
@@ -61,7 +117,7 @@ export default function Dashboard() {
   const {
     data: actividades = [],
     isLoading: isLoadingActividades,
-  } = useObtenerActividadesUsuarioQuery();
+  } = useObtenerActividadesUsuarioQuery(rangoDashboard.params);
   const {
     data: feedbacks = [],
     isLoading: isLoadingFeedbacks,
@@ -70,10 +126,7 @@ export default function Dashboard() {
     data: riesgosData,
     isLoading: isLoadingRiesgos,
     isFetching: isFetchingRiesgos,
-  } = useObtenerRiesgosOperativosQuery({
-    desde: desdeRiesgosParam,
-    hasta: hastaRiesgosParam,
-  });
+  } = useObtenerRiesgosOperativosQuery(rangoDashboard.params);
 
   const cargando = isLoading || isFetching;
   const valor = (campo) => (cargando ? "..." : resumen?.[campo] ?? 0);
@@ -156,7 +209,14 @@ export default function Dashboard() {
 
   const feedbackPorCalificacion = useMemo(() => {
     const buckets = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    feedbacks.forEach((feedback) => {
+    const feedbacksFiltrados = feedbacks.filter((feedback) => {
+      if (!feedback?.creado_en) return false;
+      const fecha = new Date(feedback.creado_en);
+      if (Number.isNaN(fecha.getTime())) return false;
+      return fecha >= rangoDashboard.desde && fecha <= rangoDashboard.hasta;
+    });
+
+    feedbacksFiltrados.forEach((feedback) => {
       const rating = Math.round(Number(feedback?.calificacion));
       if (rating >= 1 && rating <= 5) {
         buckets[rating] += 1;
@@ -167,7 +227,7 @@ export default function Dashboard() {
       categories: ["1", "2", "3", "4", "5"],
       series: [1, 2, 3, 4, 5].map((rating) => buckets[rating]),
     };
-  }, [feedbacks]);
+  }, [feedbacks, rangoDashboard.desde, rangoDashboard.hasta]);
 
   const opcionesBaseChart = {
     chart: {
@@ -199,12 +259,46 @@ export default function Dashboard() {
     },
   };
 
+  const renderTabsPeriodo = (periodoActivo, onChange) => (
+    <div className="flex flex-wrap gap-2">
+      {PERIODOS_DASHBOARD.map((periodo) => {
+        const activo = periodoActivo === periodo.value;
+        return (
+          <button
+            key={periodo.value}
+            type="button"
+            onClick={() => onChange(periodo.value)}
+            className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${
+              activo
+                ? "bg-[#0A2A47] text-white"
+                : "border border-[#0A2A47] text-[#0A2A47] hover:bg-[#e6f0f8]"
+            }`}
+          >
+            {periodo.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <Layout>
       <div className="p-4">
-        <h1 className="text-3xl font-extrabold text-[#0A2A47] mb-4">
-          Dashboard operativo
-        </h1>
+        <div className="mb-6 rounded-2xl bg-white border border-[#e6f0f8] shadow-sm p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h1 className="text-3xl font-extrabold text-[#0A2A47]">
+                Dashboard operativo
+              </h1>
+              <p className="mt-2 text-sm text-gray-500">
+                Estado real de la operación en el periodo seleccionado.
+              </p>
+            </div>
+            <div className="lg:max-w-[420px] lg:text-right">
+              {renderTabsPeriodo(periodoDashboard, setPeriodoDashboard)}
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
           <TarjetaResumen
@@ -217,12 +311,29 @@ export default function Dashboard() {
             titulo="Completadas hoy"
             valor={valor("actividades_completadas_hoy")}
             icono={<CheckCircle2 size={16} />}
+            principal
           />
           <TarjetaResumen
             titulo="Pendientes hoy"
             valor={valor("actividades_pendientes_hoy")}
             icono={<Clock3 size={16} />}
+            principal
           />
+          <TarjetaResumen
+            titulo="Evidencias faltantes"
+            valor={valor("evidencias_faltantes")}
+            icono={<Camera size={16} />}
+            principal
+          />
+          <TarjetaResumen
+            titulo="Feedbacks negativos"
+            valor={valor("feedbacks_negativos")}
+            icono={<AlertCircle size={16} />}
+            principal
+          />
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <TarjetaResumen
             titulo="Actividades vencidas"
             valor={valor("actividades_vencidas")}
@@ -237,16 +348,6 @@ export default function Dashboard() {
             titulo="Locaciones con actividad"
             valor={valor("locaciones_con_actividad_hoy")}
             icono={<MapPin size={16} />}
-          />
-          <TarjetaResumen
-            titulo="Evidencias faltantes"
-            valor={valor("evidencias_faltantes")}
-            icono={<Camera size={16} />}
-          />
-          <TarjetaResumen
-            titulo="Feedbacks negativos"
-            valor={valor("feedbacks_negativos")}
-            icono={<AlertCircle size={16} />}
           />
           <TarjetaResumen
             titulo="Incidentes abiertos"
@@ -264,40 +365,15 @@ export default function Dashboard() {
         <div className="mb-6">
           <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
             <h2 className="text-2xl font-extrabold text-[#0A2A47]">
-              Riesgos operativos
+              Atención requerida
             </h2>
             <p className="text-sm text-gray-500">
-              Filtra este bloque por rango de fechas sin afectar el resumen.
+              Problemas detectados en el periodo seleccionado.
             </p>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3 mb-4">
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <span className="text-sm text-[#0A2A47] font-semibold whitespace-nowrap">
-                Desde:
-              </span>
-              <input
-                type="date"
-                className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-                value={desdeRiesgos}
-                onChange={(e) => setDesdeRiesgos(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <span className="text-sm text-[#0A2A47] font-semibold whitespace-nowrap">
-                Hasta:
-              </span>
-              <input
-                type="date"
-                className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-                value={hastaRiesgos}
-                onChange={(e) => setHastaRiesgos(e.target.value)}
-              />
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Locaciones con problemas
@@ -342,7 +418,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Empleados con tareas pendientes
@@ -382,7 +458,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Comentarios recientes
@@ -422,7 +498,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Feedback negativo reciente
@@ -468,12 +544,17 @@ export default function Dashboard() {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-2xl font-extrabold text-[#0A2A47] mb-4">
-            Tendencias operativas
-          </h2>
+          <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+            <h2 className="text-2xl font-extrabold text-[#0A2A47]">
+              Tendencias operativas
+            </h2>
+            <p className="text-sm text-gray-500">
+              Lectura de actividad y percepción en el mismo periodo.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-[#0A2A47]">
@@ -515,7 +596,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-[#0A2A47]">
@@ -554,7 +635,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-[#0A2A47]">

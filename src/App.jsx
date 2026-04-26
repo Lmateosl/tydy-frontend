@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./auth/Login";
 import Dashboard from "./views/dashboard/dashboard/Dashboard";
+import PortalCliente from "./views/dashboard/cliente/PortalCliente";
 import Usuarios from "./views/dashboard/usuarios/Usuarios";
 import Empresas from "./views/dashboard/empresas/Empresas";
 import Actividades from "./views/dashboard/actividades/Actividades";
@@ -26,10 +27,11 @@ function App() {
       <Routes>
         {/* Ruta de Login siempre accesible */}
         <Route path="/login" element={token ? <Navigate to={usuario?.rol === "empleado" ? "/main" : "/"} /> : <Login />} />
+        <Route path="/feedback" element={<Feedback />} />
         <Route path="/feedback/:empresa/:direccion/:company_id" element={<Feedback />} />
 
         {/* Rutas solo para admin y supervisor */}
-        {token && usuario?.rol !== "empleado" && (
+        {token && (usuario?.rol === "admin" || usuario?.rol === "supervisor") && (
           <>
             <Route path="/" element={<Dashboard />} />
             {(usuario?.rol === "admin") && (
@@ -47,6 +49,15 @@ function App() {
               </>
             )}
             <Route path="/reportes" element={<Reportes />} />
+            <Route path="/cuenta" element={<Cuenta />} />
+          </>
+        )}
+
+        {/* Rutas solo para cliente */}
+        {token && usuario?.rol === "cliente" && (
+          <>
+            <Route path="/" element={<PortalCliente />} />
+            <Route path="/reportes" element={<PortalCliente />} />
             <Route path="/cuenta" element={<Cuenta />} />
           </>
         )}

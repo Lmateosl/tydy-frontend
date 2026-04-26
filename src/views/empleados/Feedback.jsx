@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useCrearFeedbackUserMutation } from "../../redux/api/listasApi";
 import logo from "../../assets/imgs/Logo_blanco_trasparente.png";
 import { toast } from "react-toastify";
 
 const Feedback = () => {
   const { empresa, direccion, company_id } = useParams();
+  const [searchParams] = useSearchParams();
   const empresaDecodificada = useMemo(
     () => (empresa ? decodeURIComponent(empresa) : ""),
     [empresa]
@@ -14,6 +15,33 @@ const Feedback = () => {
     () => (direccion ? decodeURIComponent(direccion) : ""),
     [direccion]
   );
+  const empresaIdQuery = searchParams.get("empresa_id") || "";
+  const contextoQueryRaw = searchParams.get("contexto") || "";
+  const companyIdQuery = searchParams.get("company_id") || "";
+  const empresaNombreQueryRaw = searchParams.get("empresa") || "";
+  const modoModerno = Boolean(empresaIdQuery);
+
+  const contextoQuery = useMemo(
+    () => (contextoQueryRaw ? decodeURIComponent(contextoQueryRaw) : ""),
+    [contextoQueryRaw]
+  );
+  const empresaNombreQuery = useMemo(
+    () => (empresaNombreQueryRaw ? decodeURIComponent(empresaNombreQueryRaw) : ""),
+    [empresaNombreQueryRaw]
+  );
+  const companyIdFinal = modoModerno ? companyIdQuery : company_id;
+  const empresaVisible = useMemo(() => {
+    if (modoModerno) {
+      return empresaNombreQuery || "Empresa asignada";
+    }
+    return empresaDecodificada || "Servicio asignado";
+  }, [modoModerno, empresaNombreQuery, empresaDecodificada]);
+  const lugarEvaluado = useMemo(() => {
+    if (modoModerno) {
+      return contextoQuery || direccionDecodificada || "";
+    }
+    return direccionDecodificada || "";
+  }, [modoModerno, contextoQuery, direccionDecodificada]);
 
 
   const [crearFeedbackUser, { isLoading }] = useCrearFeedbackUserMutation();
@@ -31,12 +59,17 @@ const Feedback = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!empresaDecodificada || !direccionDecodificada) {
+    if (!modoModerno && (!empresaDecodificada || !direccionDecodificada)) {
       toast.error("Falta información de la empresa o dirección.");
       return;
     }
 
-    if (!company_id) {
+    if (modoModerno && !empresaIdQuery) {
+      toast.error("Falta el identificador de la empresa.");
+      return;
+    }
+
+    if (!companyIdFinal) {
       toast.error("Falta el identificador de la empresa (company_id).");
       return;
     }
@@ -47,15 +80,33 @@ const Feedback = () => {
     }
 
     try {
-      await crearFeedbackUser({
-        empresa: empresaDecodificada,
-        direccion: direccionDecodificada,
+      const payload = {
         calificacion: Number(calificacion),
-        company_id: company_id,
+        company_id: companyIdFinal,
         nombre: nombre || null,
         comentario: comentario || null,
         foto: foto || null,
-      }).unwrap();
+      };
+
+      if (modoModerno) {
+        payload.empresa_id = empresaIdQuery;
+        if (contextoQuery) {
+          payload.contexto = contextoQuery;
+          payload.direccion = contextoQuery;
+        }
+        if (empresaNombreQuery) {
+          payload.empresa = empresaNombreQuery;
+        }
+      }
+
+      if (empresaDecodificada) {
+        payload.empresa = empresaDecodificada;
+      }
+      if (direccionDecodificada) {
+        payload.direccion = direccionDecodificada;
+      }
+
+      await crearFeedbackUser(payload).unwrap();
 
       toast.success("¡Gracias por tu opinión! Tu feedback ha sido enviado.");
 
@@ -92,12 +143,25 @@ const Feedback = () => {
           Tu opinión es muy importante
         </h1>
         <p className="text-sm md:text-base text-[#0A2A47] text-center mb-4">
-          Cuéntanos cómo estuvo la limpieza en{" "}
-          <span className="font-semibold">
-            {empresaDecodificada} {direccionDecodificada}
-          </span>
+          Cuéntanos cómo estuvo el servicio en{" "}
+          <span className="font-semibold">{empresaVisible}</span>
+          {lugarEvaluado ? (
+            <>
+              {" "}para el punto evaluado{" "}
+              <span className="font-semibold">{lugarEvaluado}</span>
+            </>
+          ) : null}
           . Esta encuesta es corta y nos ayuda a mejorar.
         </p>
+
+        {lugarEvaluado ? (
+          <div className="mb-4 rounded-xl border border-[#0A2A47] bg-[#f5f9fc] px-4 py-3">
+            <p className="text-xs font-semibold text-[#0A2A47] uppercase tracking-wide">
+              Lugar evaluado
+            </p>
+            <p className="text-sm text-[#0A2A47] mt-1">{lugarEvaluado}</p>
+          </div>
+        ) : null}
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">

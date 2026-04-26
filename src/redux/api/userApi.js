@@ -2,7 +2,6 @@ import { apiSlice } from './apiSlice';
 
 export const userApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    
     obtenerPerfil: builder.query({
       query: () => '/usuarios/perfil',
     }),
@@ -79,7 +78,24 @@ export const userApi = apiSlice.injectEndpoints({
     obtenerEstructuraUsuario: builder.query({
       query: (usuario_id) => `/usuarios/${usuario_id}/estructura`,
     }),
-    
+
+    obtenerEmpresasCliente: builder.query({
+      query: (usuario_id) => `/usuarios/${usuario_id}/empresas-cliente`,
+    }),
+
+    asignarEmpresaCliente: builder.mutation({
+      query: ({ usuario_id, empresa_id }) => ({
+        url: `/usuarios/${usuario_id}/empresas-cliente/${empresa_id}`,
+        method: 'POST',
+      }),
+    }),
+
+    quitarEmpresaCliente: builder.mutation({
+      query: ({ usuario_id, empresa_id }) => ({
+        url: `/usuarios/${usuario_id}/empresas-cliente/${empresa_id}`,
+        method: 'DELETE',
+      }),
+    }),
   }),
 });
 
@@ -102,4 +118,7 @@ export const {
   useCambiarContrasenaMutation,
   useObtenerEstructuraUsuarioQuery,
   useLazyObtenerEstructuraUsuarioQuery,
+  useObtenerEmpresasClienteQuery,
+  useAsignarEmpresaClienteMutation,
+  useQuitarEmpresaClienteMutation,
 } = userApi;

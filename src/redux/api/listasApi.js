@@ -43,7 +43,7 @@ export const listasApi = apiSlice.injectEndpoints({
       query: (payload) => ({
         url: "/listas_actividades/feedback/list",
         method: "POST",
-        body: payload, // { nombre, direccion }
+        body: payload, // { empresa_id, contexto? }
       }),
     }),
     obtenerFeedbackQr: builder.query({
@@ -55,7 +55,7 @@ export const listasApi = apiSlice.injectEndpoints({
       query: ({ feedback_id, datos }) => ({
         url: `/listas_actividades/feedback/${feedback_id}`,
         method: "PUT",
-        body: datos, // { nombre?, direccion? }
+        body: datos, // { empresa_id?, contexto? }
       }),
     }),
     eliminarFeedbackQr: builder.mutation({

@@ -45,8 +45,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
   ];
 
   const navItemsCliente = [
-    { label: "Dashboard", icon: <Home size={22} />, path: "/" },
-    { label: "Reportes", icon: <FileBarChart2 size={22} />, path: "/reportes" },
+    { label: "Portal", icon: <Home size={22} />, path: "/" },
   ];
 
   const [navItems, setNavItems] = useState(navItemsCliente);

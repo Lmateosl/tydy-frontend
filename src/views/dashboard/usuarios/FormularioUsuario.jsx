@@ -1,5 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import { useCrearUsuarioMutation, useEditarUsuarioMutation, useEliminarUsuarioMutation } from "../../../redux/api/userApi";
+import { useState, useEffect, useRef, useMemo } from "react";
+import {
+  useCrearUsuarioMutation,
+  useEditarUsuarioMutation,
+  useEliminarUsuarioMutation,
+  useObtenerEmpresasClienteQuery,
+  useAsignarEmpresaClienteMutation,
+  useQuitarEmpresaClienteMutation,
+} from "../../../redux/api/userApi";
+import { useObtenerEmpresasQuery } from "../../../redux/api/empresasApi";
 import { toast } from "react-toastify";
 import { Camera } from "lucide-react";
 
@@ -15,6 +23,7 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
     foto: null,
     area_id: ""
   });
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState("");
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const fileInputRef = useRef(null);
@@ -22,6 +31,23 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
   const [crearUsuario, { isLoading: creando }] = useCrearUsuarioMutation();
   const [editarUsuario, { isLoading: editando }] = useEditarUsuarioMutation();
   const [eliminarUsuario] = useEliminarUsuarioMutation();
+  const [asignarEmpresaCliente, { isLoading: asignandoEmpresa }] = useAsignarEmpresaClienteMutation();
+  const [quitarEmpresaCliente, { isLoading: quitandoEmpresa }] = useQuitarEmpresaClienteMutation();
+  const { data: empresas = [] } = useObtenerEmpresasQuery(undefined, {
+    skip: !usuario || form.rol !== "cliente",
+  });
+
+  const puedeConsultarEmpresasAsignadas = Boolean(
+    usuario && form.rol === "cliente" && usuario.rol === "cliente"
+  );
+
+  const {
+    data: empresasAsignadas = [],
+    isFetching: cargandoEmpresasAsignadas,
+    refetch: refetchEmpresasAsignadas,
+  } = useObtenerEmpresasClienteQuery(usuario?.id, {
+    skip: !puedeConsultarEmpresasAsignadas,
+  });
 
   useEffect(() => {
     if (usuario) {
@@ -50,7 +76,13 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
         foto: null
       });
     }
+    setEmpresaSeleccionada("");
   }, [usuario, modoCrear]);
+
+  const empresasDisponibles = useMemo(() => {
+    const asignadasIds = new Set(empresasAsignadas.map((item) => item.empresa_id));
+    return empresas.filter((empresa) => !asignadasIds.has(empresa.id));
+  }, [empresas, empresasAsignadas]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -108,6 +140,42 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
       setUsuarioSeleccionado(null);
     } catch (error) {
       const msg = error?.data?.detail || error?.data?.detail?.[0]?.msg || "Error al guardar el usuario";
+      toast.error(msg);
+    }
+  };
+
+  const handleAsignarEmpresa = async () => {
+    if (!usuario?.id || !empresaSeleccionada) {
+      toast.error("Selecciona una empresa para asignar");
+      return;
+    }
+
+    try {
+      await asignarEmpresaCliente({
+        usuario_id: usuario.id,
+        empresa_id: empresaSeleccionada,
+      }).unwrap();
+      toast.success("Empresa asignada correctamente");
+      setEmpresaSeleccionada("");
+      refetchEmpresasAsignadas();
+    } catch (error) {
+      const msg = error?.data?.detail || "Error al asignar la empresa";
+      toast.error(msg);
+    }
+  };
+
+  const handleQuitarEmpresa = async (empresaId) => {
+    if (!usuario?.id) return;
+
+    try {
+      await quitarEmpresaCliente({
+        usuario_id: usuario.id,
+        empresa_id: empresaId,
+      }).unwrap();
+      toast.success("Empresa quitada correctamente");
+      refetchEmpresasAsignadas();
+    } catch (error) {
+      const msg = error?.data?.detail || "Error al quitar la empresa";
       toast.error(msg);
     }
   };
@@ -249,6 +317,83 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
             </div>
           </div>
         </div>
+        {usuario && form.rol === "cliente" && (
+          <div className="border border-[#e6f0f8] rounded-xl p-4 bg-[#f8fbfe]">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-[#0A2A47]">Empresas asignadas</h3>
+                <p className="text-xs text-[#5b6b79] mt-1">
+                  Gestiona las empresas cliente que este usuario podrá consultar más adelante.
+                </p>
+              </div>
+
+              {!puedeConsultarEmpresasAsignadas ? (
+                <div className="rounded-lg border border-[#d9e7f2] bg-white px-3 py-3 text-sm text-[#5b6b79]">
+                  Guarda primero el usuario con rol cliente para habilitar la asignación de empresas.
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <select
+                      value={empresaSeleccionada}
+                      onChange={(e) => setEmpresaSeleccionada(e.target.value)}
+                      className="flex-1 border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                      disabled={asignandoEmpresa}
+                    >
+                      <option value="">Selecciona una empresa</option>
+                      {empresasDisponibles.map((empresa) => (
+                        <option key={empresa.id} value={empresa.id}>
+                          {empresa.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={handleAsignarEmpresa}
+                      disabled={!empresaSeleccionada || asignandoEmpresa}
+                      className="bg-[#0A2A47] text-white px-4 py-2 rounded font-semibold hover:bg-[#123b63] disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {asignandoEmpresa ? "Asignando..." : "Asignar"}
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    {cargandoEmpresasAsignadas ? (
+                      <div className="rounded-lg border border-[#d9e7f2] bg-white px-3 py-3 text-sm text-[#5b6b79]">
+                        Cargando empresas asignadas...
+                      </div>
+                    ) : empresasAsignadas.length === 0 ? (
+                      <div className="rounded-lg border border-[#d9e7f2] bg-white px-3 py-3 text-sm text-[#5b6b79]">
+                        Este cliente todavía no tiene empresas asignadas.
+                      </div>
+                    ) : (
+                      empresasAsignadas.map((asignacion) => (
+                        <div
+                          key={asignacion.id}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-[#d9e7f2] bg-white px-3 py-3"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-[#0A2A47]">
+                              {asignacion.empresa?.nombre || "Empresa sin nombre"}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleQuitarEmpresa(asignacion.empresa_id)}
+                            disabled={quitandoEmpresa}
+                            className="border border-[#0A2A47] text-[#0A2A47] px-3 py-1 rounded font-semibold hover:bg-[#e6f0f8] disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
         {/* Botones */}
         <div className="flex flex-col md:flex-row gap-3 mt-4">
           <button
