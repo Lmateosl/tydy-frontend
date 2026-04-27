@@ -10,6 +10,8 @@ import {
   useLazyObtenerResumenPortalClienteQuery,
   useLazyObtenerRiesgosPortalClienteQuery,
 } from "../../../redux/api/portalClienteApi";
+import { useObtenerMiCompaniaQuery } from "../../../redux/api/userApi";
+import tydyLogoSidebar from "../../../assets/imgs/Logo_fondo_azul.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -25,6 +27,12 @@ import {
   ShieldCheck,
   Star,
 } from "lucide-react";
+import {
+  formatBackendDateTime,
+  formatBusinessDateInput,
+  getBusinessPeriodRange,
+  parseBusinessDateInput,
+} from "../../../utils/dateTime";
 
 const PERIODOS = [
   { value: "hoy", label: "Hoy" },
@@ -34,50 +42,12 @@ const PERIODOS = [
   { value: "1anio", label: "1 año" },
 ];
 
-function obtenerRangoPeriodo(periodo) {
-  const ahora = new Date();
-  const desde = new Date(ahora);
-  const hasta = new Date(ahora);
-
-  desde.setHours(0, 0, 0, 0);
-  hasta.setHours(23, 59, 59, 999);
-
-  switch (periodo) {
-    case "7dias":
-      desde.setDate(desde.getDate() - 7);
-      break;
-    case "1mes":
-      desde.setMonth(desde.getMonth() - 1);
-      break;
-    case "6meses":
-      desde.setMonth(desde.getMonth() - 6);
-      break;
-    case "1anio":
-      desde.setFullYear(desde.getFullYear() - 1);
-      break;
-    case "hoy":
-    default:
-      break;
-  }
-
-  return { desde, hasta };
-}
-
-function formatearFechaApi(fecha) {
-  const year = fecha.getFullYear();
-  const month = String(fecha.getMonth() + 1).padStart(2, "0");
-  const day = String(fecha.getDate()).padStart(2, "0");
-  const hours = String(fecha.getHours()).padStart(2, "0");
-  const minutes = String(fecha.getMinutes()).padStart(2, "0");
-  const seconds = String(fecha.getSeconds()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-}
-
 function formatearFecha(valorFecha) {
   if (!valorFecha) return "-";
   const fecha = new Date(valorFecha);
   if (Number.isNaN(fecha.getTime())) return "-";
   return fecha.toLocaleString("es-ES", {
+    timeZone: "America/Guayaquil",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -90,6 +60,83 @@ function formatearHoras(valor) {
   const numero = Number(valor ?? 0);
   if (!Number.isFinite(numero)) return "0.0 h";
   return `${numero.toFixed(1)} h`;
+}
+
+async function cargarDataUrl(url) {
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function agregarFooterByTydy(doc, pageWidth, pageHeight, logoData) {
+  const chipWidth = 18;
+  const chipHeight = 8;
+  const gap = 2;
+  let logoWidth = 0;
+  let logoHeight = 0;
+
+  if (logoData) {
+    try {
+      const props = doc.getImageProperties(logoData);
+      logoWidth = 12;
+      logoHeight = logoWidth * (props.height / props.width);
+    } catch {
+      logoWidth = 11;
+      logoHeight = 4;
+    }
+  }
+
+  doc.setFont(undefined, "bold");
+  doc.setFontSize(8);
+  const poweredText = "Powered by";
+  const textWidth = doc.getTextWidth(poweredText);
+  const totalWidth = textWidth + gap + chipWidth;
+  const x = (pageWidth - totalWidth) / 2;
+  const y = pageHeight - 9;
+
+  doc.setTextColor(10, 42, 71);
+  doc.text(poweredText, x, y + 5.5);
+
+  const chipX = x + textWidth + gap;
+  doc.setFillColor(10, 42, 71);
+  doc.roundedRect(chipX, y, chipWidth, chipHeight, 4, 4, "F");
+
+  if (logoData) {
+    try {
+      const format = logoData.startsWith("data:image/png") ? "PNG" : "JPEG";
+      doc.addImage(
+        logoData,
+        format,
+        chipX + (chipWidth - logoWidth) / 2,
+        y + (chipHeight - logoHeight) / 2,
+        logoWidth,
+        logoHeight
+      );
+    } catch {
+      doc.setTextColor(255, 255, 255);
+      doc.text("TYDY", chipX + 3.5, y + 5.3);
+    }
+  } else {
+    doc.setTextColor(255, 255, 255);
+    doc.text("TYDY", chipX + 3.5, y + 5.3);
+  }
+}
+
+async function agregarFooterByTydyATodasLasPaginas(doc, pageWidth, pageHeight) {
+  const logoData = await cargarDataUrl(tydyLogoSidebar);
+  const totalPages = doc.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page += 1) {
+    doc.setPage(page);
+    agregarFooterByTydy(doc, pageWidth, pageHeight, logoData);
+  }
 }
 
 function formatDuracion(segundos) {
@@ -222,14 +269,16 @@ function EmptyState({ mensaje }) {
   );
 }
 
-function Seccion({ titulo, subtitulo, children }) {
+function Seccion({ titulo, subtitulo, children, scrollable = false, maxHeight = "max-h-[420px]" }) {
   return (
-    <section className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+    <section className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm flex flex-col">
       <div className="mb-4">
         <h2 className="text-xl font-bold text-[#0A2A47]">{titulo}</h2>
         {subtitulo && <p className="text-sm text-gray-500 mt-1">{subtitulo}</p>}
       </div>
-      {children}
+      <div className={scrollable ? `${maxHeight} min-h-0 overflow-y-auto pr-2` : ""}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -274,13 +323,13 @@ export default function PortalCliente() {
   });
 
   const rango = useMemo(() => {
-    const { desde, hasta } = obtenerRangoPeriodo(periodo);
+    const { desde, hasta } = getBusinessPeriodRange(periodo);
     return {
       desde,
       hasta,
       params: {
-        desde: formatearFechaApi(desde),
-        hasta: formatearFechaApi(hasta),
+        desde: formatBackendDateTime(desde),
+        hasta: formatBackendDateTime(hasta),
       },
     };
   }, [periodo]);
@@ -293,6 +342,7 @@ export default function PortalCliente() {
     useObtenerHistorialPortalClienteQuery(rango.params);
   const { data: feedback = [], isLoading: cargandoFeedback } =
     useObtenerFeedbackPortalClienteQuery(rango.params);
+  const { data: compania } = useObtenerMiCompaniaQuery();
   const [obtenerResumenReporte] = useLazyObtenerResumenPortalClienteQuery();
   const [obtenerRiesgosReporte] = useLazyObtenerRiesgosPortalClienteQuery();
   const [obtenerHistorialReporte] = useLazyObtenerHistorialPortalClienteQuery();
@@ -308,7 +358,7 @@ export default function PortalCliente() {
   const areasConSeguimientoCliente = observaciones?.areas_con_seguimiento ?? [];
   const seguimientosRecientes = observaciones?.seguimientos_recientes ?? [];
 
-  const exportarReporteGeneralPDF = ({
+  const exportarReporteGeneralPDF = async ({
     resumenReporte,
     historialReporte,
     feedbackReporte,
@@ -318,7 +368,7 @@ export default function PortalCliente() {
   }) => {
     const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     const pageWidth = doc.internal.pageSize.getWidth();
-    const fechaArchivo = new Date().toISOString().slice(0, 10);
+    const fechaArchivo = formatBusinessDateInput(new Date());
     let cursorY = 16;
     const totalActividadesReporte = resumenReporte?.actividades_hoy ?? 0;
     const actividadesRealizadasReporte = resumenReporte?.actividades_completadas_hoy ?? 0;
@@ -357,6 +407,18 @@ export default function PortalCliente() {
       });
       cursorY = doc.lastAutoTable.finalY + 4;
     };
+
+    const urlToDataURL = cargarDataUrl;
+
+    if (compania?.logo) {
+      const imgData = await urlToDataURL(compania.logo);
+      if (imgData) {
+        const imgWidth = pageWidth * 0.3;
+        const imgX = (pageWidth - imgWidth) / 2;
+        doc.addImage(imgData, "PNG", imgX, cursorY, imgWidth, 0);
+        cursorY += imgWidth * 0.35 + 6;
+      }
+    }
 
     doc.setFontSize(18);
     doc.setTextColor(10, 42, 71);
@@ -487,13 +549,14 @@ export default function PortalCliente() {
       )
     );
 
+    await agregarFooterByTydyATodasLasPaginas(doc, pageWidth, doc.internal.pageSize.getHeight());
     doc.save(`reporte-cumplimiento-servicio-${fechaArchivo}.pdf`);
   };
 
   const abrirModalReporte = () => {
     setReporteConfig({
-      desde: rango.desde.toISOString().slice(0, 10),
-      hasta: rango.hasta.toISOString().slice(0, 10),
+      desde: formatBusinessDateInput(rango.desde),
+      hasta: formatBusinessDateInput(rango.hasta),
     });
     setModalReporteAbierto(true);
   };
@@ -502,8 +565,12 @@ export default function PortalCliente() {
     if (!reporteConfig.desde || !reporteConfig.hasta) return;
     if (reporteConfig.desde > reporteConfig.hasta) return;
 
-    const desdeReporte = `${reporteConfig.desde}T00:00:00`;
-    const hastaReporte = `${reporteConfig.hasta}T23:59:59`;
+    const rangoDesde = parseBusinessDateInput(reporteConfig.desde);
+    const rangoHasta = parseBusinessDateInput(reporteConfig.hasta);
+    if (!rangoDesde || !rangoHasta) return;
+
+    const desdeReporte = formatBackendDateTime(rangoDesde.desde);
+    const hastaReporte = formatBackendDateTime(rangoHasta.hasta);
     const paramsReporte = {
       desde: desdeReporte,
       hasta: hastaReporte,
@@ -546,19 +613,7 @@ export default function PortalCliente() {
     const pageHeight = doc.internal.pageSize.getHeight();
     let cursorY = 16;
 
-    const urlToDataURL = async (url) => {
-      try {
-        const res = await fetch(url, { mode: "cors" });
-        const blob = await res.blob();
-        return await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-      } catch {
-        return null;
-      }
-    };
+    const urlToDataURL = cargarDataUrl;
 
     const addImageSafe = (imgData, x, y, width, height = 0) => {
       if (!imgData) return false;
@@ -571,6 +626,16 @@ export default function PortalCliente() {
       }
     };
 
+    if (compania?.logo) {
+      const imgData = await urlToDataURL(compania.logo);
+      if (imgData) {
+        const imgWidth = pageWidth * 0.32;
+        if (addImageSafe(imgData, (pageWidth - imgWidth) / 2, cursorY, imgWidth, 0)) {
+          cursorY += imgWidth * 0.35 + 6;
+        }
+      }
+    }
+
     doc.setFontSize(18);
     doc.setTextColor(10, 42, 71);
     doc.text("Ficha de cumplimiento verificado", pageWidth / 2, cursorY, { align: "center" });
@@ -578,7 +643,7 @@ export default function PortalCliente() {
 
     doc.setFontSize(10);
     doc.setTextColor(90, 90, 90);
-    doc.text(`Fecha de generación: ${formatearFecha(new Date().toISOString())}`, pageWidth / 2, cursorY, { align: "center" });
+    doc.text(`Fecha de generación: ${formatearFecha(new Date())}`, pageWidth / 2, cursorY, { align: "center" });
     cursorY += 8;
 
     autoTable(doc, {
@@ -642,6 +707,7 @@ export default function PortalCliente() {
       }
     }
 
+    await agregarFooterByTydyATodasLasPaginas(doc, pageWidth, pageHeight);
     doc.save(`Ficha-cumplimiento-${actividad.id}.pdf`);
   };
 
@@ -722,7 +788,7 @@ export default function PortalCliente() {
           ) : historial.length === 0 ? (
             <EmptyState mensaje="Aún no hay evidencia registrada para este período." />
           ) : (
-            <div className="overflow-auto rounded-xl border border-[#e6f0f8]">
+            <div className="max-h-[520px] overflow-x-auto overflow-y-auto rounded-xl border border-[#e6f0f8]">
               <table className="w-full text-left text-[#0A2A47]">
                 <thead className="bg-white border-b border-[#e6f0f8] sticky top-0 z-10">
                   <tr className="text-sm">
@@ -787,6 +853,7 @@ export default function PortalCliente() {
           <Seccion
             titulo="Áreas con seguimiento"
             subtitulo="Áreas y locaciones donde el servicio requirió atención adicional."
+            scrollable
           >
             {cargandoObservaciones ? (
               <EmptyState mensaje="Cargando seguimiento del servicio..." />
@@ -824,6 +891,7 @@ export default function PortalCliente() {
           <Seccion
             titulo="Seguimientos recientes"
             subtitulo="Casos visibles del servicio con su estado y respuesta registrada."
+            scrollable
           >
             {cargandoObservaciones ? (
               <EmptyState mensaje="Cargando seguimientos..." />
@@ -890,6 +958,8 @@ export default function PortalCliente() {
         <Seccion
           titulo="Feedback"
           subtitulo="Historial de valoraciones asociadas al servicio durante el período seleccionado."
+          scrollable
+          maxHeight="max-h-[480px]"
         >
           {cargandoFeedback ? (
             <EmptyState mensaje="Cargando feedback..." />

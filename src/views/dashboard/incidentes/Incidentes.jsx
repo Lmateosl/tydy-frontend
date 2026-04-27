@@ -176,6 +176,7 @@ function formatFecha(fecha) {
   const parsed = new Date(fecha);
   if (Number.isNaN(parsed.getTime())) return "-";
   return parsed.toLocaleString("es-ES", {
+    timeZone: "America/Guayaquil",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

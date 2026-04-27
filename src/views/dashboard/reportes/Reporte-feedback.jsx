@@ -5,6 +5,7 @@ import { useObtenerFeedbackUserQuery } from "../../../redux/api/listasApi";
 import { useObtenerIncidentesQuery } from "../../../redux/api/incidentesApi";
 import { Search, Calendar, Star, Image as ImageIcon } from "lucide-react";
 import { toast } from "react-toastify";
+import { parseBusinessDateInput } from "../../../utils/dateTime";
 
 const ReporteFeedback = () => {
   const navigate = useNavigate();
@@ -54,15 +55,15 @@ const ReporteFeedback = () => {
 
       let fechaOk = true;
       const fecha = f.creado_en ? new Date(f.creado_en) : null;
+      const rangoDesde = fechaDesde ? parseBusinessDateInput(fechaDesde) : null;
+      const rangoHasta = fechaHasta ? parseBusinessDateInput(fechaHasta) : null;
 
-      if (fecha && fechaDesde) {
-        const dDesde = new Date(`${fechaDesde}T00:00:00`);
-        if (fecha < dDesde) fechaOk = false;
+      if (fecha && rangoDesde) {
+        if (fecha < rangoDesde.desde) fechaOk = false;
       }
 
-      if (fecha && fechaHasta) {
-        const dHasta = new Date(`${fechaHasta}T23:59:59`);
-        if (fecha > dHasta) fechaOk = false;
+      if (fecha && rangoHasta) {
+        if (fecha > rangoHasta.hasta) fechaOk = false;
       }
 
       return empresaOk && fechaOk;
@@ -125,7 +126,14 @@ const ReporteFeedback = () => {
     if (!iso) return "-";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleString();
+    return d.toLocaleString("es-ES", {
+      timeZone: "America/Guayaquil",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const labelCalificacion = (valor) => {

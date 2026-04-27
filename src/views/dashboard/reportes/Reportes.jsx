@@ -4,7 +4,7 @@ import { useObtenerUsuariosQuery } from "../../../redux/api/userApi";
 import Layout from "../../../components/Layout";
 import { useObtenerActividadesUsuarioQuery } from "../../../redux/api/historialApi";
 import { useObtenerIncidentesQuery } from "../../../redux/api/incidentesApi";
-import { format } from "date-fns";
+import tydyLogoSidebar from "../../../assets/imgs/Logo_fondo_azul.png";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -21,12 +21,23 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import {
+  formatBackendDateTime,
+  parseBusinessDateTimeInput,
+} from "../../../utils/dateTime";
 
 const formatFecha = (valor) => {
   if (!valor) return "-";
   const fecha = new Date(valor);
   if (Number.isNaN(fecha.getTime())) return "-";
-  return format(fecha, "dd/MM/yyyy HH:mm");
+  return fecha.toLocaleString("es-ES", {
+    timeZone: "America/Guayaquil",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const formatDuracion = (segundos) => {
@@ -128,6 +139,83 @@ const formatearEstadoVerificacion = (estado) => {
   }
 };
 
+const cargarDataUrl = async (url) => {
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
+
+const agregarFooterByTydy = (doc, pageWidth, pageHeight, logoData) => {
+  const chipWidth = 18;
+  const chipHeight = 8;
+  const gap = 2;
+  let logoWidth = 0;
+  let logoHeight = 0;
+
+  if (logoData) {
+    try {
+      const props = doc.getImageProperties(logoData);
+      logoWidth = 12;
+      logoHeight = logoWidth * (props.height / props.width);
+    } catch {
+      logoWidth = 11;
+      logoHeight = 4;
+    }
+  }
+
+  doc.setFont(undefined, "bold");
+  doc.setFontSize(8);
+  const poweredText = "Powered by";
+  const textWidth = doc.getTextWidth(poweredText);
+  const totalWidth = textWidth + gap + chipWidth;
+  const x = (pageWidth - totalWidth) / 2;
+  const y = pageHeight - 9;
+
+  doc.setTextColor(10, 42, 71);
+  doc.text(poweredText, x, y + 5.5);
+
+  const chipX = x + textWidth + gap;
+  doc.setFillColor(10, 42, 71);
+  doc.roundedRect(chipX, y, chipWidth, chipHeight, 4, 4, "F");
+
+  if (logoData) {
+    try {
+      const format = logoData.startsWith("data:image/png") ? "PNG" : "JPEG";
+      doc.addImage(
+        logoData,
+        format,
+        chipX + (chipWidth - logoWidth) / 2,
+        y + (chipHeight - logoHeight) / 2,
+        logoWidth,
+        logoHeight
+      );
+    } catch {
+      doc.setTextColor(255, 255, 255);
+      doc.text("TYDY", chipX + 3.5, y + 5.3);
+    }
+  } else {
+    doc.setTextColor(255, 255, 255);
+    doc.text("TYDY", chipX + 3.5, y + 5.3);
+  }
+};
+
+const agregarFooterByTydyATodasLasPaginas = async (doc, pageWidth, pageHeight) => {
+  const logoData = await cargarDataUrl(tydyLogoSidebar);
+  const totalPages = doc.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page += 1) {
+    doc.setPage(page);
+    agregarFooterByTydy(doc, pageWidth, pageHeight, logoData);
+  }
+};
+
 function TarjetaResumen({ titulo, valor, detalle, icono, variante = "claro" }) {
   const estilos =
     variante === "principal"
@@ -199,14 +287,16 @@ export default function Reportes() {
   const { data: usuarios = [] } = useObtenerUsuariosQuery();
   const { data: compania } = useObtenerMiCompaniaQuery();
   const { data: incidentes = [] } = useObtenerIncidentesQuery();
+  const desdeDate = useMemo(() => parseBusinessDateTimeInput(desde), [desde]);
+  const hastaDate = useMemo(() => parseBusinessDateTimeInput(hasta), [hasta]);
 
   const { data = [], isLoading: isLoadingActividades } = useObtenerActividadesUsuarioQuery({
     usuario_id: usuarioId || undefined,
     finalizada: finalizada === "" ? undefined : finalizada === "true",
     empresa: empresaFiltro || undefined,
     estado_verificacion: estadoFiltro || undefined,
-    desde: desde || undefined,
-    hasta: hasta || undefined,
+    desde: desdeDate ? formatBackendDateTime(desdeDate) : undefined,
+    hasta: hastaDate ? formatBackendDateTime(hastaDate) : undefined,
   });
 
   const usuariosPorId = useMemo(() => {
@@ -347,19 +437,7 @@ export default function Reportes() {
     const pageHeight = doc.internal.pageSize.getHeight();
     let cursorY = 12;
 
-    const urlToDataURL = async (url) => {
-      try {
-        const res = await fetch(url, { mode: "cors" });
-        const blob = await res.blob();
-        return await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-      } catch {
-        return null;
-      }
-    };
+    const urlToDataURL = cargarDataUrl;
 
     if (compania?.logo) {
       const imgData = await urlToDataURL(compania.logo);
@@ -412,8 +490,8 @@ export default function Reportes() {
       estadoFiltro
         ? `Estado verificación: ${formatearEstadoVerificacion(estadoFiltro)}`
         : "Estado verificación: Todos",
-      desde ? `Desde: ${formatFecha(desde)}` : null,
-      hasta ? `Hasta: ${formatFecha(hasta)}` : null,
+      desdeDate ? `Desde: ${formatFecha(desdeDate)}` : null,
+      hastaDate ? `Hasta: ${formatFecha(hastaDate)}` : null,
     ].filter(Boolean);
 
     autoTable(doc, {
@@ -519,27 +597,17 @@ export default function Reportes() {
       },
     });
 
+    await agregarFooterByTydyATodasLasPaginas(doc, pageWidth, pageHeight);
     doc.save(`Reporte-Actividades-${Date.now()}.pdf`);
   };
 
   const exportarPDFVerificacion = async (actividad) => {
     const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     let cursorY = 14;
 
-    const urlToDataURL = async (url) => {
-      try {
-        const res = await fetch(url, { mode: "cors" });
-        const blob = await res.blob();
-        return await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-      } catch {
-        return null;
-      }
-    };
+    const urlToDataURL = cargarDataUrl;
 
     if (compania?.logo) {
       const imgData = await urlToDataURL(compania.logo);
@@ -681,6 +749,7 @@ export default function Reportes() {
       }
     }
 
+    await agregarFooterByTydyATodasLasPaginas(doc, pageWidth, pageHeight);
     doc.save(`Cumplimiento-Verificado-${actividad.id}.pdf`);
   };
 
@@ -816,44 +885,45 @@ export default function Reportes() {
           </span>
         </div>
 
-        <div className="overflow-auto max-h-[50vh] rounded-xl border border-[#e6f0f8] bg-white shadow-sm">
-          <table className="min-w-full text-sm text-[#0A2A47]">
-            <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
-              <tr>
-                <th className="py-2 px-3">Estado</th>
-                <th className="py-2 px-3">Hora Inicio</th>
-                <th className="py-2 px-3">Hora Fin</th>
-                <th className="py-2 px-3">Lista</th>
-                <th className="py-2 px-3">Actividades Lista</th>
-                <th className="py-2 px-3">Finalizada</th>
-                <th className="py-2 px-3">Comentario</th>
-                <th className="py-2 px-3">Encargado</th>
-                <th className="py-2 px-3">ID Encargado</th>
-                <th className="py-2 px-3">Empresa</th>
-                <th className="py-2 px-3">Locación</th>
-                <th className="py-2 px-3">Área</th>
-                <th className="py-2 px-3">Imagen</th>
-                <th className="py-2 px-3">Verificación</th>
-                <th className="py-2 px-3">Incidente</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dataFiltrada.map(a => (
-                (() => {
-                  const incidenteAsociado = incidentesPorActividadId[a.id];
+        <div className="rounded-xl border border-[#e6f0f8] bg-white shadow-sm">
+          <div className="max-h-[50vh] overflow-x-auto overflow-y-auto rounded-xl">
+            <table className="min-w-full text-sm text-[#0A2A47]">
+              <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
+                <tr>
+                  <th className="py-2 px-3">Estado</th>
+                  <th className="py-2 px-3">Hora Inicio</th>
+                  <th className="py-2 px-3">Hora Fin</th>
+                  <th className="py-2 px-3">Lista</th>
+                  <th className="py-2 px-3">Actividades Lista</th>
+                  <th className="py-2 px-3">Finalizada</th>
+                  <th className="py-2 px-3">Comentario</th>
+                  <th className="py-2 px-3">Encargado</th>
+                  <th className="py-2 px-3">ID Encargado</th>
+                  <th className="py-2 px-3">Empresa</th>
+                  <th className="py-2 px-3">Locación</th>
+                  <th className="py-2 px-3">Área</th>
+                  <th className="py-2 px-3">Imagen</th>
+                  <th className="py-2 px-3">Verificación</th>
+                  <th className="py-2 px-3">Incidente</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dataFiltrada.map(a => (
+                  (() => {
+                    const incidenteAsociado = incidentesPorActividadId[a.id];
 
-                  return (
-                <tr
-                  key={a.id}
-                  ref={(node) => {
-                    if (node) {
-                      actividadRowRefs.current[a.id] = node;
-                    }
-                  }}
-                  className={`transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${
-                    highlightedActividadId === a.id ? "bg-[#eef6ff] border-l-4 border-l-[#0A2A47]" : ""
-                  }`}
-                >
+                    return (
+                  <tr
+                    key={a.id}
+                    ref={(node) => {
+                      if (node) {
+                        actividadRowRefs.current[a.id] = node;
+                      }
+                    }}
+                    className={`transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${
+                      highlightedActividadId === a.id ? "bg-[#eef6ff] border-l-4 border-l-[#0A2A47]" : ""
+                    }`}
+                  >
                   <td className="py-2 px-3 align-top">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${obtenerEstiloEstado(a.estado_verificacion)}`}
@@ -913,12 +983,13 @@ export default function Reportes() {
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                </tr>
-                  );
-                })()
-              ))}
-            </tbody>
-          </table>
+                  </tr>
+                    );
+                  })()
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
         {imagenSeleccionada && (
           <div

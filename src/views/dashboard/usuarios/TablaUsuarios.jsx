@@ -31,7 +31,7 @@ export default function TablaUsuarios({
   if (!usuarios.length) return <p className="text-center">No hay usuarios para mostrar</p>;
 
   return (
-    <div className="bg-white rounded-xl max-h-[20vh] xl:max-h-[40vh] w-full overflow-auto border border-[#e6f0f8] shadow-sm">
+    <div className="bg-white rounded-xl w-full h-full max-h-[calc(100vh-200px)] overflow-auto border border-[#e6f0f8] shadow-sm">
       <table className="w-full text-[#0A2A47]">
         <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
           <tr>

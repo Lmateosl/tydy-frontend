@@ -20,6 +20,11 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import {
+  formatBackendDateTime,
+  getBusinessDateParts,
+  getBusinessPeriodRange,
+} from "../../../utils/dateTime";
 
 const PERIODOS_DASHBOARD = [
   { value: "hoy", label: "Hoy" },
@@ -28,45 +33,6 @@ const PERIODOS_DASHBOARD = [
   { value: "6meses", label: "6 meses" },
   { value: "1anio", label: "1 año" },
 ];
-
-function obtenerRangoPeriodo(periodo) {
-  const ahora = new Date();
-  const desde = new Date(ahora);
-  const hasta = new Date(ahora);
-
-  desde.setHours(0, 0, 0, 0);
-  hasta.setHours(23, 59, 59, 999);
-
-  switch (periodo) {
-    case "7dias":
-      desde.setDate(desde.getDate() - 7);
-      break;
-    case "1mes":
-      desde.setMonth(desde.getMonth() - 1);
-      break;
-    case "6meses":
-      desde.setMonth(desde.getMonth() - 6);
-      break;
-    case "1anio":
-      desde.setFullYear(desde.getFullYear() - 1);
-      break;
-    case "hoy":
-    default:
-      break;
-  }
-
-  return { desde, hasta };
-}
-
-function formatearFechaApi(fecha) {
-  const year = fecha.getFullYear();
-  const month = String(fecha.getMonth() + 1).padStart(2, "0");
-  const day = String(fecha.getDate()).padStart(2, "0");
-  const hours = String(fecha.getHours()).padStart(2, "0");
-  const minutes = String(fecha.getMinutes()).padStart(2, "0");
-  const seconds = String(fecha.getSeconds()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-}
 
 function TarjetaResumen({ titulo, valor, icono, principal = false }) {
   if (principal) {
@@ -96,13 +62,13 @@ export default function Dashboard() {
   const [periodoDashboard, setPeriodoDashboard] = useState("hoy");
 
   const rangoDashboard = useMemo(() => {
-    const { desde, hasta } = obtenerRangoPeriodo(periodoDashboard);
+    const { desde, hasta } = getBusinessPeriodRange(periodoDashboard);
     return {
       desde,
       hasta,
       params: {
-        desde: formatearFechaApi(desde),
-        hasta: formatearFechaApi(hasta),
+        desde: formatBackendDateTime(desde),
+        hasta: formatBackendDateTime(hasta),
       },
     };
   }, [periodoDashboard]);
@@ -112,20 +78,36 @@ export default function Dashboard() {
     isLoading,
     isFetching,
     isError,
-  } = useObtenerResumenOperativoQuery();
+  } = useObtenerResumenOperativoQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
   const {
     data: actividades = [],
     isLoading: isLoadingActividades,
-  } = useObtenerActividadesUsuarioQuery(rangoDashboard.params);
+  } = useObtenerActividadesUsuarioQuery(rangoDashboard.params, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
   const {
     data: feedbacks = [],
     isLoading: isLoadingFeedbacks,
-  } = useObtenerFeedbackUserQuery();
+  } = useObtenerFeedbackUserQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
   const {
     data: riesgosData,
     isLoading: isLoadingRiesgos,
     isFetching: isFetchingRiesgos,
-  } = useObtenerRiesgosOperativosQuery(rangoDashboard.params);
+  } = useObtenerRiesgosOperativosQuery(rangoDashboard.params, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
 
   const cargando = isLoading || isFetching;
   const valor = (campo) => (cargando ? "..." : resumen?.[campo] ?? 0);
@@ -152,6 +134,7 @@ export default function Dashboard() {
     const fecha = new Date(valorFecha);
     if (Number.isNaN(fecha.getTime())) return "-";
     return fecha.toLocaleString("es-ES", {
+      timeZone: "America/Guayaquil",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -178,12 +161,9 @@ export default function Dashboard() {
   const actividadesPorDia = useMemo(() => {
     const agrupado = actividades.reduce((acc, actividad) => {
       if (!actividad?.hora_inicio) return acc;
-      const fecha = new Date(actividad.hora_inicio);
-      if (Number.isNaN(fecha.getTime())) return acc;
-      const clave = fecha.toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-      });
+      const partesFecha = getBusinessDateParts(actividad.hora_inicio);
+      if (!partesFecha) return acc;
+      const clave = `${String(partesFecha.day).padStart(2, "0")}/${String(partesFecha.month).padStart(2, "0")}`;
       acc[clave] = (acc[clave] || 0) + 1;
       return acc;
     }, {});
