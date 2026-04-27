@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { Search, Edit, Plus, MapPin, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Edit,
+  MapPin,
+  Navigation,
+  Plus,
+  Radar,
+  Search,
+  Trash2,
+} from "lucide-react";
 import {
   useCrearLocacionMutation,
   useEditarLocacionMutation,
@@ -18,14 +28,21 @@ export default function CardLocaciones({
   locacionSeleccionada,
   setLocacionSeleccionada,
   refetch,
-  refreshTotales
+  refreshTotales,
 }) {
   const [filtro, setFiltro] = useState("");
   const [modoCrear, setModoCrear] = useState(false);
   const [modalFormularioAbierto, setModalFormularioAbierto] = useState(false);
   const [ordenAsc, setOrdenAsc] = useState(true);
-  const [form, setForm] = useState({ nombre: "", direccion: "", latitud: "", longitud: "", radio_verificacion_metros: 1000 });
+  const [form, setForm] = useState({
+    nombre: "",
+    direccion: "",
+    latitud: "",
+    longitud: "",
+    radio_verificacion_metros: 1000,
+  });
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [modalSugerenciasAbierto, setModalSugerenciasAbierto] = useState(false);
   const [buscar, setBuscar] = useState("");
   const [sugerencias, setSugerencias] = useState([]);
 
@@ -33,10 +50,13 @@ export default function CardLocaciones({
   const [editarLocacion] = useEditarLocacionMutation();
   const [eliminarLocacion] = useEliminarLocacionMutation();
   const [buscarCoordenadas, { isFetching: buscandoDireccionTexto }] = useLazyBuscarCoordenadasQuery();
-  const [buscarDireccionPorCoordenadas, { isFetching: buscandoDireccionMapa }] = useLazyBuscarDireccionPorCoordenadasQuery();
+  const [buscarDireccionPorCoordenadas, { isFetching: buscandoDireccionMapa }] =
+    useLazyBuscarDireccionPorCoordenadasQuery();
 
   const locacionesFiltradas = useMemo(() => {
-    const filtradas = locaciones.filter((l) => l.nombre.toLowerCase().includes(filtro.toLowerCase()));
+    const filtradas = locaciones.filter((l) =>
+      l.nombre.toLowerCase().includes(filtro.toLowerCase())
+    );
     return filtradas.sort((a, b) => {
       if (ordenAsc) return a.nombre.localeCompare(b.nombre);
       return b.nombre.localeCompare(a.nombre);
@@ -44,7 +64,13 @@ export default function CardLocaciones({
   }, [filtro, locaciones, ordenAsc]);
 
   const resetForm = () => {
-    setForm({ nombre: "", direccion: "", latitud: "", longitud: "", radio_verificacion_metros: 1000 });
+    setForm({
+      nombre: "",
+      direccion: "",
+      latitud: "",
+      longitud: "",
+      radio_verificacion_metros: 1000,
+    });
   };
 
   const abrirCrear = () => {
@@ -138,25 +164,28 @@ export default function CardLocaciones({
     return { lat, lng };
   }, []);
 
-  const seleccionarPuntoMapa = useCallback(async (latitud, longitud) => {
-    const { lat, lng } = actualizarPuntoMapa(latitud, longitud);
+  const seleccionarPuntoMapa = useCallback(
+    async (latitud, longitud) => {
+      const { lat, lng } = actualizarPuntoMapa(latitud, longitud);
 
-    try {
-      const resultado = await buscarDireccionPorCoordenadas({
-        latitud: lat,
-        longitud: lng,
-      }).unwrap();
+      try {
+        const resultado = await buscarDireccionPorCoordenadas({
+          latitud: lat,
+          longitud: lng,
+        }).unwrap();
 
-      setForm((prev) => ({
-        ...prev,
-        latitud: resultado.latitud || lat,
-        longitud: resultado.longitud || lng,
-        direccion: resultado.display_name || prev.direccion,
-      }));
-    } catch {
-      toast.info("Punto seleccionado. No se pudo obtener una dirección automática.");
-    }
-  }, [actualizarPuntoMapa, buscarDireccionPorCoordenadas]);
+        setForm((prev) => ({
+          ...prev,
+          latitud: resultado.latitud || lat,
+          longitud: resultado.longitud || lng,
+          direccion: resultado.display_name || prev.direccion,
+        }));
+      } catch {
+        toast.info("Punto seleccionado. No se pudo obtener una dirección automática.");
+      }
+    },
+    [actualizarPuntoMapa, buscarDireccionPorCoordenadas]
+  );
 
   const buscarDireccion = async () => {
     if (!buscar.trim()) {
@@ -168,10 +197,14 @@ export default function CardLocaciones({
       const resultados = await buscarCoordenadas(buscar.trim()).unwrap();
       setSugerencias(resultados);
       if (!resultados.length) {
+        setModalSugerenciasAbierto(false);
         toast.info("No se encontraron opciones para esa dirección.");
+      } else {
+        setModalSugerenciasAbierto(true);
       }
     } catch {
       setSugerencias([]);
+      setModalSugerenciasAbierto(false);
       toast.error("No se encontraron opciones para esa dirección.");
     }
   };
@@ -185,209 +218,314 @@ export default function CardLocaciones({
         seleccionarPuntoMapa(position.coords.latitude, position.coords.longitude);
       },
       () => {
-        toast.info("No se pudo obtener tu ubicación actual. Puedes buscar o seleccionar el punto en el mapa.");
+        toast.info(
+          "No se pudo obtener tu ubicación actual. Puedes buscar o seleccionar el punto en el mapa."
+        );
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }, [form.latitud, form.longitud, modalAbierto, seleccionarPuntoMapa]);
 
   return (
-    <div className="bg-white border border-[#0A2A47] p-4 rounded-xl flex flex-col h-full">
-      <h2 className="text-xl font-bold text-[#0A2A47] mb-4 text-center">Locaciones</h2>
-      <div className="flex flex-col gap-0 mb-2">
-        <button
-          className="bg-[#0A2A47] text-white w-full py-1 mb-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
-          onClick={abrirCrear}
-        >
-          <Plus size={16} className="inline mr-1" /> Crear Locación
-        </button>
-        <input
-          type="text"
-          placeholder="Buscar por nombre"
-          className="border border-[#0A2A47] bg-white rounded-md px-2 py-1 mb-2 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-        />
+    <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-xl shadow-[#0A2A47]/5">
+      <div className="relative overflow-hidden border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+        <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.06),_transparent_38%)]" />
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-extrabold tracking-tight text-[#0A2A47]">Locaciones</h2>
+                <MapPin size={16} className="text-[#5b6b79]" />
+              </div>
+              <p className="mt-1 text-xs text-[#5b6b79]">
+                Define puntos verificados y su cobertura operativa.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#071f35] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/15 transition hover:bg-[#0A2A47]"
+              onClick={abrirCrear}
+            >
+              <Plus size={16} />
+              Crear Locación
+            </button>
+
+            <div className="relative flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre"
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setOrdenAsc(!ordenAsc)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+              >
+                Ordenar
+                {ordenAsc ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-[#e6f0f8]">
-        <table className="w-full text-center text-[#0A2A47]">
-          <thead className="sticky top-0 bg-white text-[#0A2A47] border-b border-[#e6f0f8]">
-            <tr>
-              <th className="py-2 px-3 cursor-pointer flex items-center justify-center" onClick={() => setOrdenAsc(!ordenAsc)}>Nombre {ordenAsc ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</th>
-              <th className="py-2 px-3">Dirección</th>
-            </tr>
-          </thead>
-          <tbody>
-            {locacionesFiltradas.map((l) => (
-              <tr
-                key={l.id}
-                className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${
-                  locacionSeleccionada?.id === l.id ? "bg-[#d6e6f5] border-l-4 border-[#0A2A47]" : ""
-                }`}
-                onClick={() => {
-                  setLocacionSeleccionada(l);
-                  setModoCrear(false);
-                  setModalFormularioAbierto(false);
-                }}
-              >
-                <td className="py-2 px-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <span>{l.nombre}</span>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        abrirEditar(l);
-                      }}
-                      className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5]"
-                      title="Editar locación"
-                    >
-                      <Edit size={14} />
-                    </button>
-                  </div>
-                </td>
-                <td className="py-2 px-3 max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">{l.direccion}</td>
+      <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6">
+          <table className="w-full table-fixed text-left text-sm text-[#0A2A47]">
+            <colgroup>
+              <col className="w-auto" />
+              <col className="w-[92px]" />
+            </colgroup>
+            <thead className="sticky top-0 z-10 border-b border-[#e6f0f8] bg-white/95 backdrop-blur">
+              <tr>
+                <th className="px-3 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">
+                  Espacio
+                </th>
+                <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">
+                  Editar
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {locacionesFiltradas.map((l) => (
+                <tr
+                  key={l.id}
+                  className={`cursor-pointer border-b border-[#edf3f8] transition ${
+                    locacionSeleccionada?.id === l.id ? "bg-[#edf5fb]" : "hover:bg-white"
+                  }`}
+                  onClick={() => {
+                    setLocacionSeleccionada(l);
+                    setModoCrear(false);
+                    setModalFormularioAbierto(false);
+                  }}
+                >
+                  <td className="px-3 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-[#0A2A47]">{l.nombre}</p>
+                      <p className="mt-0.5 text-xs text-[#7b8a97]" title={l.direccion}>
+                        {l.direccion?.length > 8 ? `${l.direccion.slice(0, 8)}...` : l.direccion}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          abrirEditar(l);
+                        }}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe8f2] bg-white text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
+                        title="Editar locación"
+                      >
+                        <Edit size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {locacionesFiltradas.length === 0 && (
+                <tr>
+                  <td className="px-3 py-14 text-center" colSpan="2">
+                    <div className="mx-auto flex max-w-sm flex-col items-center">
+                      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-[#dbe8f2] bg-[#f4f8fb] text-[#7b8a97]">
+                        <Navigation size={22} />
+                      </div>
+                      <p className="text-base font-semibold text-[#0A2A47]">No hay locaciones registradas</p>
+                      <p className="mt-1 text-sm text-[#7b8a97]">
+                        Crea una locación para empezar a validar trabajo por sitio.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
       </div>
 
       {modalFormularioAbierto && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[18px] text-[#0A2A47]">{modoCrear ? "Crear Locación" : "Editar Locación"}</h3>
-              <button
-                type="button"
-                onClick={cerrarFormulario}
-                className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
-              >
-                ×
-              </button>
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
+          <div className="w-full max-w-xl rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl">
+            <div className="border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b8a97]">
+                    Configuración
+                  </p>
+                  <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-[#0A2A47]">
+                    {modoCrear ? "Crear Locación" : "Editar Locación"}
+                  </h3>
+                  <p className="mt-1 text-sm text-[#5b6b79]">
+                    Define nombre, ubicación y radio de verificación del sitio.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={cerrarFormulario}
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f4f8fb] text-[#0A2A47] transition hover:bg-[#e6f0f8]"
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
-            <input
-              type="text"
-              placeholder="Nombre"
-              className="border border-[#0A2A47] bg-white rounded-md px-2 py-1 mb-2 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-            />
-
-            <button
-              onClick={() => setModalAbierto(true)}
-              className="border border-[#0A2A47] text-[#0A2A47] w-full px-4 py-1 rounded mb-2 font-semibold hover:bg-[#e6f0f8]"
-            >
-              Buscar Dirección
-            </button>
-
-            {form.direccion && (
-              <div className="text-sm text-[#0A2A47] mb-2">
-                Dirección: {form.direccion}
+            <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#0A2A47]">Nombre de la locación</label>
+                <input
+                  type="text"
+                  placeholder="Ej. Edificio Norte, Sucursal Centro"
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                  value={form.nombre}
+                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                />
               </div>
-            )}
 
-            <label className="block text-sm text-[#0A2A47] mb-1">Radio de verificación (metros)</label>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              placeholder="1000"
-              className="border border-[#0A2A47] bg-white rounded-md px-2 py-1 mb-2 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              value={form.radio_verificacion_metros}
-              onChange={(e) => setForm({ ...form, radio_verificacion_metros: e.target.value })}
-            />
+              <div className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-[#0A2A47]">Ubicación verificada</p>
+                    <p className="mt-1 text-sm text-[#5b6b79]">
+                      Busca una dirección o marca el punto exacto en el mapa.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setModalAbierto(true)}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+                  >
+                    <Search size={16} />
+                    Buscar Dirección
+                  </button>
+                </div>
 
-            <div className="flex gap-2 mt-4 flex-col">
-              <button onClick={handleSubmit} className="bg-[#0A2A47] text-white w-full px-4 py-1 rounded font-semibold shadow-sm hover:bg-[#123b63]">
-                {modoCrear ? "Crear" : "Actualizar"}
-              </button>
-              {!modoCrear && (
-                <button onClick={handleEliminar} className="border border-[#0A2A47] text-[#0A2A47] px-4 py-1 rounded font-semibold hover:bg-[#e6f0f8]">
-                  Eliminar
+                {form.direccion ? (
+                  <div className="mt-4 rounded-2xl border border-[#e6f0f8] bg-white px-4 py-3 text-sm text-[#0A2A47]">
+                    <span className="font-semibold">Dirección:</span> {form.direccion}
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-2xl border border-dashed border-[#dbe8f2] bg-white px-4 py-3 text-sm text-[#7b8a97]">
+                    Aún no has seleccionado una ubicación.
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#0A2A47]">
+                  <Radar size={16} />
+                  Radio de verificación (metros)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="1000"
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                  value={form.radio_verificacion_metros}
+                  onChange={(e) => setForm({ ...form, radio_verificacion_metros: e.target.value })}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3 pt-2">
+                <button
+                  onClick={handleSubmit}
+                  className="w-full rounded-2xl bg-[#3BAE3D] px-4 py-3 font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]"
+                >
+                  {modoCrear ? "Crear Locación" : "Guardar Cambios"}
                 </button>
-              )}
+                {!modoCrear && (
+                  <button
+                    onClick={handleEliminar}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#f0d4d4] bg-[#fff7f7] px-4 py-3 font-semibold text-[#b84040] transition hover:bg-[#ffecec]"
+                  >
+                    <Trash2 size={16} />
+                    Eliminar Locación
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {modalAbierto && (
-        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}>
-          <div className="bg-white p-4 rounded shadow w-[94vw] max-w-3xl max-h-[90vh] overflow-auto flex flex-col gap-3">
-            <h3 className="text-lg font-bold text-[#0A2A47]">Seleccionar ubicación</h3>
-            <a
-              href="https://locationiq.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="flex w-fit items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-            >
-              <span>Search by</span>
-              <img src={LOCATIONIQ_LOGO_URL} alt="LocationIQ" className="h-4 w-auto" />
-            </a>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Ingrese dirección"
-                className="border border-[#0A2A47] rounded-md px-2 py-1 text-[#0A2A47] w-full bg-white placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-                value={buscar}
-                onChange={(e) => setBuscar(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    buscarDireccion();
-                  }
-                }}
-              />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm px-4">
+          <div className="flex max-h-[90vh] w-[94vw] max-w-4xl flex-col gap-4 overflow-auto rounded-[28px] border border-[#e6f0f8] bg-white p-5 shadow-2xl md:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">Seleccionar ubicación</h3>
+                <p className="mt-1 text-sm text-[#5b6b79]">
+                  Busca una dirección o elige el punto exacto directamente en el mapa.
+                </p>
+              </div>
+              <a
+                href="https://locationiq.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 transition hover:bg-gray-100"
+              >
+                <span>Search by</span>
+                <img src={LOCATIONIQ_LOGO_URL} alt="LocationIQ" className="h-4 w-auto" />
+              </a>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" />
+                <input
+                  type="text"
+                  placeholder="Ingresa dirección"
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                  value={buscar}
+                  onChange={(e) => setBuscar(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      buscarDireccion();
+                    }
+                  }}
+                />
+              </div>
               <button
                 onClick={buscarDireccion}
                 disabled={buscandoDireccionTexto}
-                className={`bg-[#0A2A47] text-white px-4 py-1 rounded-md flex items-center gap-1 ${
-                  buscandoDireccionTexto ? "opacity-60 cursor-not-allowed" : "hover:bg-[#123b63]"
+                className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-[#071f35] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/15 transition ${
+                  buscandoDireccionTexto ? "cursor-not-allowed opacity-60" : "hover:bg-[#0A2A47]"
                 }`}
               >
                 <Search size={16} />
                 {buscandoDireccionTexto ? "Buscando" : "Buscar"}
               </button>
             </div>
-            {sugerencias.length > 0 && (
-              <div className="border max-h-40 overflow-auto mt-2">
-                {sugerencias.map((s, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2 border-b cursor-pointer hover:bg-gray-100 text-sm"
-                    onClick={() => {
-                      actualizarPuntoMapa(s.latitud, s.longitud, s.display_name);
-                    }}
-                  >
-                    <MapPin className="inline mr-1" /> {s.display_name}
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div>
-              <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="mb-3 flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-[#0A2A47]">O selecciona el punto exacto en el mapa</p>
                 {buscandoDireccionMapa && (
-                  <span className="text-xs text-gray-500">Buscando dirección...</span>
+                  <span className="text-xs text-[#7b8a97]">Buscando dirección...</span>
                 )}
               </div>
-              <LocationPickerMap
-                latitud={form.latitud}
-                longitud={form.longitud}
-                onSelect={seleccionarPuntoMapa}
-              />
+              <div className="overflow-hidden rounded-[24px] border border-[#e6f0f8]">
+                <LocationPickerMap
+                  latitud={form.latitud}
+                  longitud={form.longitud}
+                  onSelect={seleccionarPuntoMapa}
+                />
+              </div>
               {form.latitud && form.longitud && (
-                <p className="mt-2 text-xs text-gray-600">
+                <p className="mt-3 text-xs text-[#5b6b79]">
                   Coordenadas seleccionadas: {form.latitud}, {form.longitud}
                 </p>
               )}
             </div>
 
-            <div className="flex justify-end gap-2 mt-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => {
                   if (!form.latitud || !form.longitud) {
@@ -398,11 +536,70 @@ export default function CardLocaciones({
                   setBuscar("");
                   setSugerencias([]);
                 }}
-                className="bg-[#0A2A47] text-white px-4 py-1 rounded-md font-semibold shadow-sm hover:bg-[#123b63]"
+                className="rounded-2xl bg-[#3BAE3D] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]"
               >
                 Usar ubicación
               </button>
-              <button onClick={() => setModalAbierto(false)} className="border border-[#0A2A47] text-[#0A2A47] font-semibold hover:bg-[#e6f0f8] px-4 py-1 rounded-md">Cerrar</button>
+              <button
+                onClick={() => setModalAbierto(false)}
+                className="rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalSugerenciasAbierto && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="w-full max-w-2xl rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+              <div>
+                <h4 className="text-xl font-extrabold tracking-tight text-[#0A2A47]">
+                  Selecciona una dirección
+                </h4>
+                <p className="mt-1 text-sm text-[#5b6b79]">
+                  Elige una opción y la usaremos para esta locación.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalSugerenciasAbierto(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f4f8fb] text-[#0A2A47] transition hover:bg-[#e6f0f8]"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto px-5 py-5 md:px-6 md:py-6">
+              <div className="overflow-hidden rounded-3xl border border-[#e6f0f8] bg-[#fbfdff]">
+                {sugerencias.map((s, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="flex w-full items-start gap-3 border-b border-[#edf3f8] px-4 py-4 text-left text-sm text-[#0A2A47] transition hover:bg-white"
+                    onClick={() => {
+                      actualizarPuntoMapa(s.latitud, s.longitud, s.display_name);
+                      setModalSugerenciasAbierto(false);
+                      setSugerencias([]);
+                    }}
+                  >
+                    <MapPin size={16} className="mt-0.5 shrink-0 text-[#3BAE3D]" />
+                    <span>{s.display_name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end border-t border-[#e6f0f8] px-5 py-4 md:px-6">
+              <button
+                type="button"
+                onClick={() => setModalSugerenciasAbierto(false)}
+                className="rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

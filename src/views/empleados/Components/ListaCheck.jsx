@@ -4,7 +4,7 @@ import { useFinalizarActividadUsuarioMutation } from "../../../redux/api/histori
 import { toast } from "react-toastify";
 import { useState, useRef, useEffect } from "react";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { QrCode, Camera, CheckCircle2, X } from "lucide-react";
+import { QrCode, Camera, CheckCircle2, X, ClipboardList, MessageSquare, ShieldCheck, Keyboard } from "lucide-react";
 
 const calcularDistancia = (lat1, lon1, lat2, lon2) => {
   const toRad = (valor) => (valor * Math.PI) / 180;
@@ -186,34 +186,94 @@ function ListaCheck() {
     }
   };
 
-  if (!listaActiva) return <p className="text-center mt-5">No hay una lista activa.</p>;
+  if (!listaActiva) {
+    return (
+      <div className="mt-5 rounded-[28px] border border-[#e6f0f8] bg-white px-5 py-10 text-center text-sm font-medium text-[#6b7b88] shadow-sm">
+        No hay una lista activa.
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold text-[#0A2A47] mb-4">{listaActiva.nombre}</h2>
-
-      <div className="grid gap-2 mb-4">
-        {listaActiva.actividades.map((actividad) => (
-          <div
-            key={actividad.id}
-            className={`flex items-center justify-between border rounded p-3 ${
-              actividadesFinalizadas.includes(actividad.id) ? "bg-[#3BAE3D] text-white" : "border-[#0A2A47]"
-            }`}
-          >
-            <span>{actividad.nombre}</span>
-            <input
-              type="checkbox"
-              checked={actividadesFinalizadas.includes(actividad.id)}
-              onChange={() => toggleActividad(actividad.id)}
-              className="w-5 h-5"
-            />
+    <div className="space-y-6 p-4">
+      <section className="relative overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white p-5 shadow-xl shadow-[#0A2A47]/5 md:p-6">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.16),_transparent_38%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.1),_transparent_42%)]" />
+        <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#3BAE3D]">
+              Actividad en curso
+            </p>
+            <h2 className="text-3xl font-extrabold tracking-tight text-[#0A2A47] md:text-4xl">
+              {listaActiva.nombre}
+            </h2>
+            <p className="mt-2 text-sm text-[#5b6b79]">
+              Marca cada tarea completada, agrega evidencia si aplica y finaliza el proceso con el método configurado.
+            </p>
           </div>
-        ))}
-      </div>
+          <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-2 text-sm font-semibold text-[#0A2A47]">
+            <ShieldCheck size={16} />
+            {actividadesFinalizadas.length}/{listaActiva.actividades.length} completadas
+          </div>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-sm">
+        <div className="border-b border-[#edf3f8] px-5 py-5 md:px-6">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#3BAE3D]">
+            <ClipboardList size={14} />
+            Checklist
+          </div>
+          <h3 className="text-2xl font-bold tracking-tight text-[#0A2A47]">
+            Tareas a completar
+          </h3>
+        </div>
+
+        <div className="grid gap-3 p-5 md:p-6">
+          {listaActiva.actividades.map((actividad) => (
+            <label
+              key={actividad.id}
+              className={`flex cursor-pointer items-center justify-between gap-4 rounded-[22px] border p-4 transition ${
+                actividadesFinalizadas.includes(actividad.id)
+                  ? "border-[#3BAE3D] bg-[#3BAE3D] text-white shadow-lg shadow-[#3BAE3D]/15"
+                  : "border-[#e6f0f8] bg-[#fbfdff] text-[#0A2A47] hover:border-[#0A2A47]"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${
+                    actividadesFinalizadas.includes(actividad.id)
+                      ? "border-white/20 bg-white/10 text-white"
+                      : "border-[#dbe8f2] bg-white text-[#0A2A47]"
+                  }`}
+                >
+                  <CheckCircle2 size={18} />
+                </div>
+                <span className="text-sm font-semibold">{actividad.nombre}</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={actividadesFinalizadas.includes(actividad.id)}
+                onChange={() => toggleActividad(actividad.id)}
+                className="h-5 w-5"
+              />
+            </label>
+          ))}
+        </div>
+      </section>
 
       {listaActiva.imagen && (
-        <div className="mb-4">
-          <label className="block mb-2 font-bold text-[#0A2A47]">Adjuntar Imagen *</label>
+        <section className="overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-sm">
+          <div className="border-b border-[#edf3f8] px-5 py-5 md:px-6">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#3BAE3D]">
+              <Camera size={14} />
+              Evidencia requerida
+            </div>
+            <h3 className="text-2xl font-bold tracking-tight text-[#0A2A47]">
+              Adjuntar imagen
+            </h3>
+          </div>
+
+          <div className="p-5 md:p-6">
           <input
             id="imagen-upload"
             type="file"
@@ -225,14 +285,16 @@ function ListaCheck() {
           {!imagen ? (
             <label
               htmlFor="imagen-upload"
-              className="cursor-pointer flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#0A2A47] p-5 rounded-xl text-[#0A2A47] hover:bg-[#e6f0f8] transition-colors"
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[24px] border-2 border-dashed border-[#dbe8f2] bg-[#fbfdff] p-8 text-[#0A2A47] transition-colors hover:bg-[#f4f8fb]"
             >
-              <Camera size={28} />
-              <span className="font-semibold">Haz clic aquí para subir imagen</span>
-              <span className="text-xs opacity-80">La imagen es obligatoria para finalizar esta lista</span>
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#dbe8f2] bg-white text-[#3BAE3D]">
+                <Camera size={26} />
+              </div>
+              <span className="text-sm font-semibold">Haz clic aquí para subir imagen</span>
+              <span className="text-xs text-[#7b8a97]">La imagen es obligatoria para finalizar esta lista</span>
             </label>
           ) : (
-            <div className="rounded-xl border border-[#e6f0f8] bg-white shadow-sm overflow-hidden">
+            <div className="overflow-hidden rounded-[24px] border border-[#e6f0f8] bg-white shadow-sm">
               <img
                 src={imagenPreviewUrl}
                 alt="Vista previa de evidencia"
@@ -243,13 +305,13 @@ function ListaCheck() {
                   <CheckCircle2 size={18} className="text-[#3BAE3D] flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold">Imagen cargada correctamente</p>
-                    <p className="text-xs text-gray-500 truncate">{imagen.name}</p>
+                    <p className="truncate text-xs text-gray-500">{imagen.name}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setImagen(null)}
-                  className="flex items-center gap-1 rounded-md border border-red-500 px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
+                  className="flex items-center gap-1 rounded-xl border border-red-300 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"
                 >
                   <X size={14} />
                   Quitar
@@ -257,78 +319,119 @@ function ListaCheck() {
               </div>
               <label
                 htmlFor="imagen-upload"
-                className="block cursor-pointer border-t border-[#e6f0f8] px-3 py-2 text-center text-sm font-semibold text-[#0A2A47] hover:bg-[#e6f0f8]"
+                className="block cursor-pointer border-t border-[#e6f0f8] px-3 py-3 text-center text-sm font-semibold text-[#0A2A47] transition hover:bg-[#f4f8fb]"
               >
                 Cambiar imagen
               </label>
             </div>
           )}
-        </div>
+          </div>
+        </section>
       )}
 
-      <div className="mb-4">
-        <label className="block mb-1 font-bold text-[#0A2A47]">Comentario (opcional)</label>
-        <textarea
-          value={comentario}
-          onChange={(e) => setComentario(e.target.value)}
-          className="w-full p-2 border rounded border-[#0A2A47]"
-          rows="3"
-        />
-      </div>
+      <section className="overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-sm">
+        <div className="border-b border-[#edf3f8] px-5 py-5 md:px-6">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#3BAE3D]">
+            <MessageSquare size={14} />
+            Comentario
+          </div>
+          <h3 className="text-2xl font-bold tracking-tight text-[#0A2A47]">
+            Notas de cierre
+          </h3>
+        </div>
+
+        <div className="p-5 md:p-6">
+          <textarea
+            value={comentario}
+            onChange={(e) => setComentario(e.target.value)}
+            className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] p-4 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+            rows="4"
+            placeholder="Agrega un comentario opcional sobre la actividad..."
+          />
+        </div>
+      </section>
 
       {listaActiva.qrout && (
-        <>
+        <section className="overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-sm">
+          <div className="border-b border-[#edf3f8] px-5 py-5 md:px-6">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#3BAE3D]">
+              <QrCode size={14} />
+              Cierre con QR
+            </div>
+            <h3 className="text-2xl font-bold tracking-tight text-[#0A2A47]">
+              Escanear QR de salida
+            </h3>
+          </div>
+
+          <div className="space-y-4 p-5 md:p-6">
           <button
             onClick={handleEscanearQR}
             disabled={subiendo}
-            className={`flex items-center justify-center gap-2 w-full bg-[#3BAE3D] text-white py-2 rounded mb-4 ${subiendo ? "opacity-60 cursor-not-allowed" : ""}`}
+            className={`flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3BAE3D] py-3 text-sm font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:-translate-y-0.5 hover:bg-[#329734] ${subiendo ? "cursor-not-allowed opacity-60" : ""}`}
           >
             <QrCode /> {subiendo ? "Procesando..." : "Escanear QR"}
           </button>
           {mostrarScanner && (
-            <video
-              ref={scannerRef}
-              style={{
-                width: "100%",
-                maxWidth: "400px",
-                height: "auto",
-                border: "2px solid #0A2A47",
-                borderRadius: "8px",
-              }}
-              autoPlay
-              muted
-            />
+            <div className="flex justify-center rounded-[24px] border border-[#dbe8f2] bg-[#fbfdff] p-4">
+              <video
+                ref={scannerRef}
+                style={{
+                  width: "100%",
+                  maxWidth: "400px",
+                  height: "auto",
+                  border: "2px solid #0A2A47",
+                  borderRadius: "18px",
+                }}
+                autoPlay
+                muted
+              />
+            </div>
           )}
-        </>
+          </div>
+        </section>
       )}
 
       {listaActiva.codeout && (
-        <>
-          <label className="block mb-1 font-bold text-[#0A2A47]">Código de Finalización *</label>
+        <section className="overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-sm">
+          <div className="border-b border-[#edf3f8] px-5 py-5 md:px-6">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#3BAE3D]">
+              <Keyboard size={14} />
+              Código de cierre
+            </div>
+            <h3 className="text-2xl font-bold tracking-tight text-[#0A2A47]">
+              Código de finalización
+            </h3>
+          </div>
+
+          <div className="space-y-4 p-5 md:p-6">
           <input
             type="text"
             value={codigoIngresado}
             onChange={(e) => setCodigoIngresado(e.target.value)}
-            className="w-full p-2 border rounded border-[#0A2A47] mb-4"
+            className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+            placeholder="Ingresa el código de finalización"
           />
           <button
             onClick={handleFinalizarManual}
             disabled={subiendo}
-            className={`w-full bg-[#3BAE3D] text-white py-2 rounded ${subiendo ? "opacity-60 cursor-not-allowed" : ""}`}
+            className={`w-full rounded-2xl bg-[#3BAE3D] py-3 text-sm font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:-translate-y-0.5 hover:bg-[#329734] ${subiendo ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {subiendo ? "Subiendo..." : "Finalizar"}
           </button>
-        </>
+          </div>
+        </section>
       )}
 
       {!listaActiva.qrout && !listaActiva.codeout && (
-        <button
-          onClick={handleFinalizarManual}
-          disabled={subiendo}
-          className={`w-full bg-[#3BAE3D] text-white py-2 rounded ${subiendo ? "opacity-60 cursor-not-allowed" : ""}`}
-        >
-          {subiendo ? "Subiendo..." : "Finalizar"}
-        </button>
+        <section className="rounded-[28px] border border-[#e6f0f8] bg-white p-5 shadow-sm md:p-6">
+          <button
+            onClick={handleFinalizarManual}
+            disabled={subiendo}
+            className={`w-full rounded-2xl bg-[#3BAE3D] py-3 text-sm font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:-translate-y-0.5 hover:bg-[#329734] ${subiendo ? "cursor-not-allowed opacity-60" : ""}`}
+          >
+            {subiendo ? "Subiendo..." : "Finalizar"}
+          </button>
+        </section>
       )}
     </div>
   );

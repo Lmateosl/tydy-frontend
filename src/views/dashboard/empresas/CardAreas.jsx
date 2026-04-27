@@ -1,14 +1,26 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { Plus, Edit, ArrowUp, ArrowDown } from "lucide-react";
-import { 
+import {
+  ArrowDown,
+  ArrowUp,
+  Edit,
+  LayoutGrid,
+  Plus,
+  Search,
+  Trash2,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import {
   useCrearAreaMutation,
   useEditarAreaMutation,
   useEliminarAreaMutation,
-  useLazyObtenerUsuariosAreaQuery
+  useLazyObtenerUsuariosAreaQuery,
 } from "../../../redux/api/empresasApi";
-import { useLazyObtenerUsuariosQuery } from "../../../redux/api/userApi";
-import { useEditarUsuarioMutation } from "../../../redux/api/userApi";
+import {
+  useEditarUsuarioMutation,
+  useLazyObtenerUsuariosQuery,
+} from "../../../redux/api/userApi";
 
 export default function CardAreas({ areas = [], locacionSeleccionada, refetch, refreshTotales }) {
   const [crearArea] = useCrearAreaMutation();
@@ -36,7 +48,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
 
   useEffect(() => {
     if (locacionSeleccionada) {
-        setAreaSeleccionada(null);
+      setAreaSeleccionada(null);
     }
   }, [locacionSeleccionada]);
 
@@ -80,7 +92,11 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
         refetch();
         refreshTotales();
       } else {
-        await editarArea({ locacion_id: locacionSeleccionada.id, area_id: areaSeleccionada.id, datos: { nombre: form.nombre } }).unwrap();
+        await editarArea({
+          locacion_id: locacionSeleccionada.id,
+          area_id: areaSeleccionada.id,
+          datos: { nombre: form.nombre },
+        }).unwrap();
         toast.success("Área editada correctamente");
         refetch();
       }
@@ -92,7 +108,10 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
 
   const handleEliminar = async () => {
     try {
-      await eliminarArea({ locacion_id: locacionSeleccionada.id, area_id: areaSeleccionada.id }).unwrap();
+      await eliminarArea({
+        locacion_id: locacionSeleccionada.id,
+        area_id: areaSeleccionada.id,
+      }).unwrap();
       toast.success("Área eliminada correctamente");
       refetch();
       refreshTotales();
@@ -107,7 +126,7 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
     .filter((a) => a.nombre.toLowerCase().includes(filtro.toLowerCase()))
     .sort((a, b) => {
       if (ordenAsc) return a.nombre.localeCompare(b.nombre);
-      else return b.nombre.localeCompare(a.nombre);
+      return b.nombre.localeCompare(a.nombre);
     });
 
   useEffect(() => {
@@ -131,253 +150,365 @@ export default function CardAreas({ areas = [], locacionSeleccionada, refetch, r
   }, [mostrarModalUsuarios, locacionSeleccionada, areaSeleccionada, obtenerUsuariosArea]);
 
   return (
-    <div className="bg-white border border-[#0A2A47] p-4 rounded-xl flex flex-col h-full">
-      <h2 className="text-xl font-bold text-[#0A2A47] mb-4 text-center">Áreas</h2>
+    <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-xl shadow-[#0A2A47]/5">
+      <div className="relative overflow-hidden border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+        <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.06),_transparent_38%)]" />
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-extrabold tracking-tight text-[#0A2A47]">Áreas</h2>
+                <LayoutGrid size={16} className="text-[#5b6b79]" />
+              </div>
+              <p className="mt-1 text-xs text-[#5b6b79]">
+                Organiza cada locación en zonas operativas claras.
+              </p>
+            </div>
+          </div>
 
-      <div className="flex flex-col gap-0">
-        <button
-          onClick={abrirCrear}
-          className="bg-[#0A2A47] text-white w-full py-1 mb-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
-        >
-          <Plus size={16} className="inline" /> Crear Área
-        </button>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={abrirCrear}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#071f35] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/15 transition hover:bg-[#0A2A47]"
+            >
+              <Plus size={16} />
+              Crear Área
+            </button>
 
-        <input
-          type="text"
-          placeholder="Buscar área"
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-          className="border border-[#0A2A47] bg-white rounded px-2 py-1 mb-4 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-        />
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" />
+                <input
+                  type="text"
+                  placeholder="Buscar área"
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setOrdenAsc(!ordenAsc)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+              >
+                Ordenar
+                {ordenAsc ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-[#e6f0f8] shadow-sm">
-        <table className="w-full text-center text-[#0A2A47]">
-          <thead className="sticky top-0 bg-white text-[#0A2A47] border-b border-[#e6f0f8]">
-            <tr>
-              <th
-                className="py-2 px-3 cursor-pointer flex items-center justify-center"
-                onClick={() => setOrdenAsc(!ordenAsc)}
-              >
-                Nombre {ordenAsc ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {areasFiltradas.map((area) => (
-              <tr
-                key={area.id}
-                className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${areaSeleccionada?.id === area.id ? "bg-[#d6e6f5] border-l-4 border-[#0A2A47]" : ""}`}
-                onClick={() => {
-                  setAreaSeleccionada(area);
-                  setModoCrear(false);
-                  setModalFormularioAbierto(false);
-                }}
-              >
-                <td className="py-2 px-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <span>{area.nombre}</span>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        abrirEditar(area);
-                      }}
-                      className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5]"
-                      title="Editar área"
-                    >
-                      <Edit size={14} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {areasFiltradas.length === 0 && (
+      <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6">
+          <table className="w-full table-fixed text-left text-sm text-[#0A2A47]">
+            <colgroup>
+              <col className="w-auto" />
+              <col className="w-[92px]" />
+            </colgroup>
+            <thead className="sticky top-0 z-10 border-b border-[#e6f0f8] bg-white/95 backdrop-blur">
               <tr>
-                <td className="py-2 px-3 text-[#0A2A47]" colSpan="2">No hay áreas</td>
+                <th className="px-3 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">
+                  Área
+                </th>
+                <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">
+                  Editar
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {areasFiltradas.map((area) => (
+                <tr
+                  key={area.id}
+                  className={`cursor-pointer border-b border-[#edf3f8] transition ${
+                    areaSeleccionada?.id === area.id ? "bg-[#edf5fb]" : "hover:bg-white"
+                  }`}
+                  onClick={() => {
+                    setAreaSeleccionada(area);
+                    setModoCrear(false);
+                    setModalFormularioAbierto(false);
+                  }}
+                >
+                  <td className="px-3 py-3">
+                    <p className="truncate font-semibold text-[#0A2A47]">{area.nombre}</p>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          abrirEditar(area);
+                        }}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe8f2] bg-white text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
+                        title="Editar área"
+                      >
+                        <Edit size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {areasFiltradas.length === 0 && (
+                <tr>
+                  <td className="px-3 py-14 text-center" colSpan="2">
+                    <div className="mx-auto flex max-w-sm flex-col items-center">
+                      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-[#dbe8f2] bg-[#f4f8fb] text-[#7b8a97]">
+                        <LayoutGrid size={22} />
+                      </div>
+                      <p className="text-base font-semibold text-[#0A2A47]">No hay áreas disponibles</p>
+                      <p className="mt-1 text-sm text-[#7b8a97]">
+                        Crea la primera área para empezar a ordenar la operación por zonas.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
       </div>
 
       {modalFormularioAbierto && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[18px] text-[#0A2A47]">{modoCrear ? "Crear Área" : "Editar Área"}</h3>
-              <button
-                type="button"
-                onClick={cerrarFormulario}
-                className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
-              >
-                ×
-              </button>
-            </div>
-          <input
-            name="nombre"
-            placeholder="Nombre"
-            value={form.nombre}
-            onChange={handleChange}
-            className="border border-[#0A2A47] bg-white rounded-md px-2 py-2 mb-4 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-          />
-
-          <div className="flex flex-col gap-2">
-            <button onClick={handleSubmit} className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]">
-              {modoCrear ? "Crear" : "Actualizar"}
-            </button>
-
-            {!modoCrear && (
-              <>
-                <button onClick={handleEliminar} className="border border-[#0A2A47] text-[#0A2A47] w-full py-2 rounded font-semibold hover:bg-[#e6f0f8]">
-                  Eliminar
-                </button>
-                {areaSeleccionada && (
-                  <div className="pt-4">
-                    <button
-                      onClick={() => setMostrarModal(true)}
-                      className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
-                    >
-                      Añadir Empleado
-                    </button>
-                    <button
-                      onClick={() => setMostrarModalUsuarios(true)}
-                      className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] mt-2"
-                    >
-                      Ver Empleados
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          </div>
-        </div>
-      )}
-      {mostrarModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}>
-          <div className="bg-white p-4 rounded-xl w-full max-w-md">
-            <h3 className="text-xl font-bold mb-2 text-[#0A2A47]">Seleccionar Empleado</h3>
-            
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                placeholder="Buscar por nombre o identificación"
-                value={buscarEmpleado}
-                onChange={(e) => setBuscarEmpleado(e.target.value)}
-                className="border border-[#0A2A47] rounded-md px-2 py-1 flex-1 text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              />
-              <button
-                onClick={() => triggerBuscarUsuarios()}
-                className="bg-[#0A2A47] text-white px-3 py-1 rounded font-semibold shadow-sm hover:bg-[#123b63]"
-              >
-                Buscar
-              </button>
-            </div>
-
-            <div className="max-h-48 overflow-auto mb-2 rounded-2xl">
-              <table className="w-full text-[#333333] text-left">
-                <thead className="bg-[#0A2A47] text-white text-center">
-                  <tr>
-                    <th className="py-1">Nombre</th>
-                    <th className="py-1">Identificación</th>
-                    <th className="py-1">Área</th>
-                  </tr>
-                </thead>
-                <tbody className="text-center">
-                  {usuarios
-                    .filter(u => u.rol === "empleado" && 
-                      (u.nombre.toLowerCase().includes(buscarEmpleado.toLowerCase()) || 
-                       (u.identificacion || "").toLowerCase().includes(buscarEmpleado.toLowerCase())))
-                    .map(u => (
-                      <tr
-                        key={u.id}
-                        className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${usuarioSeleccionado?.id === u.id ? "bg-[#d6e6f5] text-[#0A2A47]" : ""}`}
-                        onClick={() => setUsuarioSeleccionado(u)}
-                      >
-                        <td className="py-1">{u.nombre}</td>
-                        <td className="py-1">{u.identificacion}</td>
-                        <td className="py-1">{u.area_nombre || "-"}</td>
-                      </tr>
-                  ))}
-                  {usuarios.length === 0 && (
-                    <tr>
-                      <td colSpan="2" className="py-1">Sin resultados</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {usuarioSeleccionado && (
-              <div className="text-center">
-                <p className="mb-2">Vas a añadir <strong className="text-[#0A2A47]">{usuarioSeleccionado.nombre}</strong> al área <strong className="text-[#0A2A47]">{areaSeleccionada.nombre}</strong></p>
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
+          <div className="w-full max-w-lg rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl">
+            <div className="border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b8a97]">
+                    Configuración
+                  </p>
+                  <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-[#0A2A47]">
+                    {modoCrear ? "Crear Área" : "Editar Área"}
+                  </h3>
+                  <p className="mt-1 text-sm text-[#5b6b79]">
+                    Define una zona interna para ordenar mejor las tareas y responsables.
+                  </p>
+                </div>
                 <button
-                  onClick={async () => {
-                    try {
-                      const formData = new FormData();
-                      formData.append("area_id", areaSeleccionada.id);
-                      await editarUsuario({ usuario_id: usuarioSeleccionado.id, datos: formData }).unwrap();
-                      toast.success("Usuario añadido al área");
-                      setMostrarModal(false);
-                      setUsuarioSeleccionado(null);
-                    } catch {
-                      toast.error("Error al añadir usuario");
-                    }
-                  }}
-                  className="bg-[#0A2A47] text-white px-4 w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] mb-2"
+                  type="button"
+                  onClick={cerrarFormulario}
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f4f8fb] text-[#0A2A47] transition hover:bg-[#e6f0f8]"
                 >
-                  Confirmar
+                  ×
                 </button>
               </div>
-            )}
-            <button
-                onClick={() => setMostrarModal(false)}
-                className="border border-[#0A2A47] text-[#0A2A47] px-2 py-1 w-full rounded font-semibold hover:bg-[#e6f0f8]"
-              >
-                Cerrar
-            </button>
+            </div>
+
+            <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#0A2A47]">Nombre del área</label>
+                <input
+                  name="nombre"
+                  placeholder="Ej. Recepción, Bodega, Piso 2"
+                  value={form.nombre}
+                  onChange={handleChange}
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                />
+              </div>
+
+              {!modoCrear && areaSeleccionada && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={() => setMostrarModal(true)}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#071f35] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/15 transition hover:bg-[#0A2A47]"
+                  >
+                    <UserPlus size={16} />
+                    Añadir Empleado
+                  </button>
+                  <button
+                    onClick={() => setMostrarModalUsuarios(true)}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+                  >
+                    <Users size={16} />
+                    Ver Empleados
+                  </button>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 pt-2">
+                <button
+                  onClick={handleSubmit}
+                  className="w-full rounded-2xl bg-[#3BAE3D] px-4 py-3 font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]"
+                >
+                  {modoCrear ? "Crear Área" : "Guardar Cambios"}
+                </button>
+
+                {!modoCrear && (
+                  <button
+                    onClick={handleEliminar}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#f0d4d4] bg-[#fff7f7] px-4 py-3 font-semibold text-[#b84040] transition hover:bg-[#ffecec]"
+                  >
+                    <Trash2 size={16} />
+                    Eliminar Área
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
-      {mostrarModalUsuarios && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}>
-          <div className="bg-white p-4 rounded-xl w-full max-w-md">
-            <h3 className="text-xl font-bold mb-2 text-[#0A2A47]">
-              Empleados en el área {areaSeleccionada?.nombre}
-            </h3>
 
-            {loadingUsuariosArea ? (
-              <p className="text-center">Cargando...</p>
-            ) : usuariosArea.length === 0 ? (
-              <p className="text-center">No hay empleados en el área</p>
-            ) : (
-              <div className="max-h-48 overflow-auto mb-2 rounded-2xl">
-                <table className="w-full text-[#333333] text-left">
-                  <thead className="bg-[#0A2A47] text-white text-center">
+      {mostrarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm px-4">
+          <div className="w-full max-w-2xl rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl">
+            <div className="border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+              <h3 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">Seleccionar Empleado</h3>
+              <p className="mt-1 text-sm text-[#5b6b79]">
+                Asigna un empleado al área <span className="font-semibold text-[#0A2A47]">{areaSeleccionada?.nombre}</span>.
+              </p>
+            </div>
+
+            <div className="space-y-4 px-5 py-5 md:px-6 md:py-6">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="relative flex-1">
+                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o identificación"
+                    value={buscarEmpleado}
+                    onChange={(e) => setBuscarEmpleado(e.target.value)}
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                  />
+                </div>
+                <button
+                  onClick={() => triggerBuscarUsuarios()}
+                  className="rounded-2xl bg-[#071f35] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/15 transition hover:bg-[#0A2A47]"
+                >
+                  Buscar
+                </button>
+              </div>
+
+              <div className="max-h-72 overflow-auto rounded-3xl border border-[#e6f0f8] bg-[#fbfdff]">
+                <table className="w-full text-left text-sm text-[#333333]">
+                  <thead className="sticky top-0 border-b border-[#e6f0f8] bg-white/95 backdrop-blur">
                     <tr>
-                      <th className="py-1">Nombre</th>
-                      <th className="py-1">Identificación</th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Nombre</th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Identificación</th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Área</th>
                     </tr>
                   </thead>
-                  <tbody className="text-center">
-                    {usuariosArea.map((u) => (
-                      <tr key={u.id} className="transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8]">
-                        <td className="py-1">{u.nombre}</td>
-                        <td className="py-1">{u.identificacion}</td>
+                  <tbody>
+                    {usuarios
+                      .filter(
+                        (u) =>
+                          u.rol === "empleado" &&
+                          (u.nombre.toLowerCase().includes(buscarEmpleado.toLowerCase()) ||
+                            (u.identificacion || "").toLowerCase().includes(buscarEmpleado.toLowerCase()))
+                      )
+                      .map((u) => (
+                        <tr
+                          key={u.id}
+                          className={`cursor-pointer border-b border-[#edf3f8] transition hover:bg-white ${
+                            usuarioSeleccionado?.id === u.id ? "bg-[#edf5fb]" : ""
+                          }`}
+                          onClick={() => setUsuarioSeleccionado(u)}
+                        >
+                          <td className="px-4 py-3 font-medium text-[#0A2A47]">{u.nombre}</td>
+                          <td className="px-4 py-3 text-[#5b6b79]">{u.identificacion}</td>
+                          <td className="px-4 py-3 text-[#5b6b79]">{u.area_nombre || "-"}</td>
+                        </tr>
+                      ))}
+                    {usuarios.length === 0 && (
+                      <tr>
+                        <td colSpan="3" className="px-4 py-10 text-center text-[#7b8a97]">
+                          Sin resultados
+                        </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
-            )}
 
-            <button
-              onClick={() => setMostrarModalUsuarios(false)}
-              className="border border-[#0A2A47] text-[#0A2A47] px-2 py-1 w-full rounded font-semibold hover:bg-[#e6f0f8]"
-            >
-              Cerrar
-            </button>
+              {usuarioSeleccionado && (
+                <div className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] p-4 text-sm text-[#5b6b79]">
+                  Vas a añadir a <strong className="text-[#0A2A47]">{usuarioSeleccionado.nombre}</strong> al área{" "}
+                  <strong className="text-[#0A2A47]">{areaSeleccionada.nombre}</strong>.
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                {usuarioSeleccionado && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const formData = new FormData();
+                        formData.append("area_id", areaSeleccionada.id);
+                        await editarUsuario({ usuario_id: usuarioSeleccionado.id, datos: formData }).unwrap();
+                        toast.success("Usuario añadido al área");
+                        setMostrarModal(false);
+                        setUsuarioSeleccionado(null);
+                      } catch {
+                        toast.error("Error al añadir usuario");
+                      }
+                    }}
+                    className="rounded-2xl bg-[#3BAE3D] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]"
+                  >
+                    Confirmar asignación
+                  </button>
+                )}
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarModalUsuarios && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm px-4">
+          <div className="w-full max-w-2xl rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl">
+            <div className="border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+              <h3 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">
+                Empleados en {areaSeleccionada?.nombre}
+              </h3>
+              <p className="mt-1 text-sm text-[#5b6b79]">
+                Vista rápida de las personas asignadas a esta área.
+              </p>
+            </div>
+
+            <div className="px-5 py-5 md:px-6 md:py-6">
+              {loadingUsuariosArea ? (
+                <div className="rounded-2xl border border-dashed border-[#dbe8f2] bg-[#f8fbfd] px-4 py-10 text-center text-[#7b8a97]">
+                  Cargando empleados...
+                </div>
+              ) : usuariosArea.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-[#dbe8f2] bg-[#f8fbfd] px-4 py-10 text-center text-[#7b8a97]">
+                  No hay empleados en el área
+                </div>
+              ) : (
+                <div className="max-h-72 overflow-auto rounded-3xl border border-[#e6f0f8] bg-[#fbfdff]">
+                  <table className="w-full text-left text-sm text-[#333333]">
+                    <thead className="sticky top-0 border-b border-[#e6f0f8] bg-white/95 backdrop-blur">
+                      <tr>
+                        <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Nombre</th>
+                        <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Identificación</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usuariosArea.map((u) => (
+                        <tr key={u.id} className="border-b border-[#edf3f8] transition hover:bg-white">
+                          <td className="px-4 py-3 font-medium text-[#0A2A47]">{u.nombre}</td>
+                          <td className="px-4 py-3 text-[#5b6b79]">{u.identificacion}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <div className="mt-5 flex justify-end">
+                <button
+                  onClick={() => setMostrarModalUsuarios(false)}
+                  className="rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

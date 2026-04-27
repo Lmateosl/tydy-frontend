@@ -43,6 +43,37 @@ export default function Usuarios() {
     setUsuarioSeleccionado(null);
   };
 
+  const TarjetaResumen = ({ titulo, valor, icono, principal = false }) => {
+    if (principal) {
+      return (
+        <div className="relative overflow-hidden bg-[#071f35] text-white rounded-2xl p-4 flex flex-col justify-between shadow-xl shadow-[#071f35]/15 border border-white/10 min-h-[118px]">
+          <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.24),_transparent_38%)]" />
+          <div className="relative flex items-start justify-between gap-3">
+            <span className="text-sm text-white/70 font-medium">{titulo}</span>
+            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 text-[#b7f7ba] flex items-center justify-center">
+              {icono}
+            </div>
+          </div>
+          <div className="relative mt-4">
+            <span className="text-3xl font-extrabold tracking-tight">{valor}</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white/95 border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">{titulo}</p>
+          <div className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] flex items-center justify-center border border-[#e6f0f8]">
+            {icono}
+          </div>
+        </div>
+        <p className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{valor}</p>
+      </div>
+    );
+  };
+
   const exportarCSV = () => {
     const headers = ["Nombre", "Email", "Rol", "Número", "Dirección", "Identificación"];
     const rows = usuariosFiltrados.map((u) => [
@@ -158,95 +189,86 @@ export default function Usuarios() {
 
   return (
     <Layout>
-      <div className="p-4">
-        <h1 className="text-3xl font-extrabold text-[#0A2A47] mb-4">Usuarios</h1>
-
-        {/* Tarjetas de resumen */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
-          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
-            <span className="text-sm opacity-80">Total usuarios</span>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-3xl font-bold">{usuarios.length}</span>
-              <Users className="text-[#3BAE3D]" />
+      <div className="p-4 md:p-6 bg-[#f4f8fb] min-h-full">
+        <div className="relative overflow-hidden mb-6 rounded-[28px] bg-white border border-[#e6f0f8] shadow-xl shadow-[#0A2A47]/5 p-5 md:p-6">
+          <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.08),_transparent_35%)]" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A2A47] tracking-tight">Usuarios</h1>
+              <p className="mt-2 text-sm text-gray-500 max-w-xl">
+                Gestiona roles, permisos y acceso operativo de tu equipo.
+              </p>
             </div>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-gray-500">Administradores</p>
-              <Shield size={16} className="text-[#0A2A47]" />
-            </div>
-            <p className="text-2xl font-bold text-[#0A2A47]">
-              {usuarios.filter(u => u.rol === 'admin').length}
-            </p>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-gray-500">Supervisores</p>
-              <UserCheck size={16} className="text-[#0A2A47]" />
-            </div>
-            <p className="text-2xl font-bold text-[#0A2A47]">
-              {usuarios.filter(u => u.rol === 'supervisor').length}
-            </p>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-gray-500">Empleados</p>
-              <User size={16} className="text-[#0A2A47]" />
-            </div>
-            <p className="text-2xl font-bold text-[#0A2A47]">
-              {usuarios.filter(u => u.rol === 'empleado').length}
-            </p>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-gray-500">Clientes</p>
-              <UserCircle size={16} className="text-[#0A2A47]" />
-            </div>
-            <p className="text-2xl font-bold text-[#0A2A47]">
-              {usuarios.filter(u => u.rol === 'cliente').length}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
-           <input
-            type="text"
-            placeholder="Buscar por nombre, identificación o email"
-            className="border border-gray-300 rounded px-3 py-1 w-full md:w-2/5 text-[#333333]"
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={exportarPDF}
-              className="flex items-center gap-1 bg-[#0A2A47] text-white px-3 py-1 rounded hover:border-[#0A2A47] hover:bg-white hover:text-[#0A2A47] hover:border-1"
-            >
-              <Download size={16} />
-              Exportar PDF
-            </button>
-            <button
-              onClick={exportarCSV}
-              className="flex items-center gap-1 bg-[#0A2A47] text-white px-3 py-1 rounded hover:border-[#0A2A47] hover:bg-white hover:text-[#0A2A47] hover:border-1"
-            >
-              <Download size={16} />
-              Exportar CSV
-            </button>
             <button
               onClick={abrirCrearUsuario}
-              className="flex items-center gap-1 bg-[#3BAE3D] text-white px-3 py-1 rounded hover:border-[#3BAE3D] hover:bg-white hover:text-[#3BAE3D] hover:border-1"
+              className="inline-flex items-center justify-center gap-2 bg-[#3BAE3D] text-white px-4 py-3 rounded-2xl font-semibold shadow-lg shadow-[#3BAE3D]/20 hover:bg-[#2f9631] transition"
             >
-              <Plus size={16} />
+              <Plus size={18} />
               Añadir Usuario
             </button>
           </div>
         </div>
 
+        {/* Tarjetas de resumen */}
+        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+          <TarjetaResumen
+            titulo="Total usuarios"
+            valor={usuarios.length}
+            icono={<Users size={20} />}
+            principal
+          />
+          <TarjetaResumen
+            titulo="Administradores"
+            valor={usuarios.filter(u => u.rol === 'admin').length}
+            icono={<Shield size={16} />}
+          />
+          <TarjetaResumen
+            titulo="Supervisores"
+            valor={usuarios.filter(u => u.rol === 'supervisor').length}
+            icono={<UserCheck size={16} />}
+          />
+          <TarjetaResumen
+            titulo="Empleados"
+            valor={usuarios.filter(u => u.rol === 'empleado').length}
+            icono={<User size={16} />}
+          />
+          <TarjetaResumen
+            titulo="Clientes"
+            valor={usuarios.filter(u => u.rol === 'cliente').length}
+            icono={<UserCircle size={16} />}
+          />
+        </div>
+
+        <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm mb-4">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+            <input
+              type="text"
+              placeholder="Buscar por nombre, identificación o email"
+              className="w-full lg:w-2/5 px-4 py-3 bg-[#f8fbfd] text-[#333333] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+            />
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={exportarPDF}
+                className="flex items-center justify-center gap-2 bg-[#071f35] text-white px-4 py-3 rounded-xl font-semibold shadow-sm hover:bg-white hover:text-[#071f35] hover:ring-1 hover:ring-[#071f35] transition"
+              >
+                <Download size={16} />
+                Exportar PDF
+              </button>
+              <button
+                onClick={exportarCSV}
+                className="flex items-center justify-center gap-2 bg-white text-[#071f35] px-4 py-3 rounded-xl font-semibold border border-[#dbe8f2] hover:border-[#071f35] transition"
+              >
+                <Download size={16} />
+                Exportar CSV
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-5 w-full">
-          <div className="w-full overflow-auto">
+          <div className="w-full overflow-auto rounded-2xl shadow-sm">
             <TablaUsuarios
               usuarios={usuariosFiltrados}
               isLoading={isLoading}
@@ -259,16 +281,16 @@ export default function Usuarios() {
         </div>
       </div>
       {modalFormularioAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-[#0A2A47]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-3xl bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#e6f0f8]">
+              <h2 className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">
                 {modoCrear ? "Añadir Usuario" : "Editar Usuario"}
               </h2>
               <button
                 type="button"
                 onClick={cerrarFormularioUsuario}
-                className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
+                className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] hover:bg-[#e6f0f8] font-bold transition"
               >
                 ×
               </button>

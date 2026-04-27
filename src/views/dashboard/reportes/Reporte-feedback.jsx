@@ -156,76 +156,77 @@ const ReporteFeedback = () => {
 
   return (
     <Layout>
-      <div className="p-4">
-        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
-          <h1 className="text-3xl font-extrabold text-[#0A2A47]">
-            Reporte de Feedbacks
-          </h1>
-          <button
-            onClick={() => refetch()}
-            className="text-sm px-3 py-2 border border-[#0A2A47] rounded-md text-[#0A2A47] hover:bg-[#e6f0f8] flex items-center gap-1 font-semibold"
-          >
-            <Calendar size={16} />
-            Actualizar
-          </button>
+      <div className="p-4 md:p-6 bg-[#f4f8fb] min-h-full">
+        <div className="relative overflow-hidden mb-6 rounded-[28px] bg-white border border-[#e6f0f8] shadow-xl shadow-[#0A2A47]/5 p-5 md:p-6">
+          <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.08),_transparent_35%)]" />
+          <div className="relative flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A2A47] tracking-tight">
+                Reporte de Feedbacks
+              </h1>
+              <p className="mt-2 text-sm text-[#5b6b79] max-w-2xl">
+                Analiza satisfacción, comentarios, evidencia y casos negativos vinculados a puntos de servicio.
+              </p>
+            </div>
+            <button
+              onClick={() => refetch()}
+              className="inline-flex items-center gap-2 rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
+            >
+              <Calendar size={16} />
+              Actualizar
+            </button>
+          </div>
         </div>
 
-        {/* Tarjetas de resumen */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
-          <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
-            <span className="text-sm opacity-80">Total feedbacks</span>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-3xl font-bold">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <div className="relative overflow-hidden bg-[#071f35] text-white rounded-2xl p-4 flex flex-col justify-between shadow-xl shadow-[#071f35]/15 border border-white/10 min-h-[118px]">
+            <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.24),_transparent_38%)]" />
+            <div className="relative flex items-start justify-between gap-3">
+              <span className="text-sm text-white/70 font-medium">Total feedbacks</span>
+              <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 text-[#b7f7ba] flex items-center justify-center">
+                <Star size={20} />
+              </div>
+            </div>
+            <div className="relative mt-4">
+              <span className="text-3xl font-extrabold tracking-tight">
                 {isLoading || isFetching ? "..." : stats.total}
               </span>
-              <Star className="text-[#3BAE3D]" />
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">Muy sucio (1)</p>
-            <p className="text-2xl font-bold text-[#0A2A47]">
-              {stats.counts[1] || 0}
-            </p>
+          <div className="bg-white/95 border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">Muy sucio (1)</p>
+            <p className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{stats.counts[1] || 0}</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">Sucio (2)</p>
-            <p className="text-2xl font-bold text-[#0A2A47]">
-              {stats.counts[2] || 0}
-            </p>
+          <div className="bg-white/95 border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">Sucio (2)</p>
+            <p className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{stats.counts[2] || 0}</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">Aceptable (3)</p>
-            <p className="text-2xl font-bold text-[#0A2A47]">
-              {stats.counts[3] || 0}
-            </p>
+          <div className="bg-white/95 border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">Aceptable (3)</p>
+            <p className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{stats.counts[3] || 0}</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col gap-1 shadow-sm">
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-500">Limpio (4)</span>
-              <span className="text-xs text-gray-500">Muy limpio (5)</span>
+          <div className="bg-white/95 border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex justify-between text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">
+              <span>Limpio (4)</span>
+              <span>Muy limpio (5)</span>
             </div>
-            <div className="flex justify-between items-end gap-4 mt-1">
-              <span className="text-2xl font-bold text-[#0A2A47]">
-                {stats.counts[4] || 0}
-              </span>
-              <span className="text-2xl font-bold text-[#0A2A47]">
-                {stats.counts[5] || 0}
-              </span>
+            <div className="flex justify-between items-end gap-4">
+              <span className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{stats.counts[4] || 0}</span>
+              <span className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{stats.counts[5] || 0}</span>
             </div>
           </div>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 mb-4 flex flex-col md:flex-row gap-3 items-center shadow-sm">
-          <div className="flex items-center gap-2 w-full md:w-1/3">
-            <Search className="text-gray-500" size={18} />
+        <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 mb-4 flex flex-col md:flex-row gap-3 items-center shadow-sm">
+          <div className="relative w-full md:w-1/3">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" size={18} />
             <input
               type="text"
-              className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
               placeholder="Filtrar por nombre de empresa"
               value={filtroEmpresa}
               onChange={(e) => setFiltroEmpresa(e.target.value)}
@@ -237,7 +238,7 @@ const ReporteFeedback = () => {
             </span>
             <input
               type="date"
-              className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
               value={fechaDesde}
               onChange={(e) => setFechaDesde(e.target.value)}
             />
@@ -248,7 +249,7 @@ const ReporteFeedback = () => {
             </span>
             <input
               type="date"
-              className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
               value={fechaHasta}
               onChange={(e) => setFechaHasta(e.target.value)}
             />
@@ -256,18 +257,18 @@ const ReporteFeedback = () => {
         </div>
 
         {/* Tabla de resultados */}
-        <div className="max-h-[60vh] overflow-auto rounded-xl border border-[#e6f0f8] bg-white shadow-sm">
+        <div className="max-h-[60vh] overflow-auto rounded-3xl border border-[#e6f0f8] bg-white shadow-sm">
           <table className="w-full text-left text-[#0A2A47]">
             <thead className="sticky top-0 z-10">
-              <tr className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] text-sm">
-                <th className="py-2 px-3">Fecha</th>
-                <th className="py-2 px-3">Nombre</th>
-                <th className="py-2 px-3">Empresa</th>
-                <th className="py-2 px-3">Lugar evaluado</th>
-                <th className="py-2 px-3 text-center">Calificación</th>
-                <th className="py-2 px-3">Comentario</th>
-                <th className="py-2 px-3 text-center">Foto</th>
-                <th className="py-2 px-3 text-center">Incidente</th>
+              <tr className="bg-white/95 backdrop-blur text-[#0A2A47] border-b border-[#e6f0f8] text-sm">
+                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Fecha</th>
+                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Nombre</th>
+                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Empresa</th>
+                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Lugar evaluado</th>
+                <th className="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Calificación</th>
+                <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Comentario</th>
+                <th className="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Foto</th>
+                <th className="px-4 py-4 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Incidente</th>
               </tr>
             </thead>
             <tbody className="text-sm text-[#0A2A47]">
@@ -284,21 +285,21 @@ const ReporteFeedback = () => {
                       feedbackRowRefs.current[f.id] = node;
                     }
                   }}
-                  className={`transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${
+                  className={`transition-colors border-b border-[#edf3f8] hover:bg-[#fbfdff] ${
                     highlightedFeedbackId === f.id ? "bg-[#eef6ff] border-l-4 border-l-[#0A2A47]" : ""
                   }`}
                 >
-                  <td className="py-2 px-3 align-top">
+                  <td className="py-4 px-4 align-top">
                     {formatearFecha(f.creado_en)}
                   </td>
-                  <td className="py-2 px-3 align-top">
+                  <td className="py-4 px-4 align-top">
                     {f.nombre && f.nombre.trim()
                       ? f.nombre
                       : "Anónimo"}
                   </td>
-                  <td className="py-2 px-3 align-top">{f.empresa}</td>
-                  <td className="py-2 px-3 align-top">{f.contexto || f.direccion || "-"}</td>
-                  <td className="py-2 px-3 align-top text-center">
+                  <td className="py-4 px-4 align-top">{f.empresa}</td>
+                  <td className="py-4 px-4 align-top">{f.contexto || f.direccion || "-"}</td>
+                  <td className="py-4 px-4 align-top text-center">
                     <div className="flex flex-col items-center">
                       <span className="font-semibold">
                         {Number(f.calificacion).toFixed(1)}
@@ -308,12 +309,12 @@ const ReporteFeedback = () => {
                       </span>
                     </div>
                   </td>
-                  <td className="py-2 px-3 align-top max-w-xs">
+                  <td className="py-4 px-4 align-top max-w-xs">
                     <p className="line-clamp-3 break-words">
                       {f.comentario || "-"}
                     </p>
                   </td>
-                  <td className="py-2 px-3 align-top text-center">
+                  <td className="py-4 px-4 align-top text-center">
                     {f.foto ? (
                       <button
                         type="button"
@@ -323,7 +324,7 @@ const ReporteFeedback = () => {
                         <img
                           src={f.foto}
                           alt="Foto de feedback"
-                          className="h-12 w-12 object-cover rounded-md border border-[#e6f0f8] mb-1 shadow-sm"
+                          className="h-12 w-12 object-cover rounded-xl border border-[#e6f0f8] mb-1 shadow-sm"
                         />
                         <span className="flex items-center gap-1">
                           <ImageIcon size={12} />
@@ -334,7 +335,7 @@ const ReporteFeedback = () => {
                       <span className="text-xs text-gray-400">Sin foto</span>
                     )}
                   </td>
-                  <td className="py-2 px-3 align-top text-center">
+                  <td className="py-4 px-4 align-top text-center">
                     {incidenteAsociado ? (
                       <button
                         type="button"
@@ -380,21 +381,21 @@ const ReporteFeedback = () => {
         {/* Modal de zoom de foto */}
         {zoomUrl && (
           <div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+            className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center z-50 px-4"
             onClick={() => setZoomUrl(null)}
           >
             <div
-              className="bg-white p-5 rounded-xl max-w-md w-full border border-[#0A2A47] shadow-xl"
+              className="bg-white p-5 rounded-[28px] max-w-md w-full border border-[#e6f0f8] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={zoomUrl}
                 alt="Foto ampliada"
-                className="w-full h-auto rounded-md mb-3"
+                className="w-full h-auto rounded-xl mb-3"
               />
               <button
                 onClick={() => setZoomUrl(null)}
-                className="w-full border border-[#0A2A47] text-[#0A2A47] py-2 rounded-md hover:bg-[#e6f0f8] text-sm font-semibold"
+                className="w-full border border-[#dbe8f2] text-[#0A2A47] py-3 rounded-2xl hover:border-[#0A2A47] hover:bg-[#f8fbfd] text-sm font-semibold transition"
               >
                 Cerrar
               </button>

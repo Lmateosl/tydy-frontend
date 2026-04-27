@@ -236,34 +236,43 @@ function obtenerNombreActividad(actividad) {
 function TarjetaResumen({ titulo, valor, detalle, icono, principal = false }) {
   if (principal) {
     return (
-      <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
-        <span className="text-sm opacity-80">{titulo}</span>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-3xl font-bold">{valor}</span>
-          <div className="text-[#3BAE3D]">{icono}</div>
+      <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[#071f35] p-4 text-white shadow-xl shadow-[#0A2A47]/10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.2),_transparent_38%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.08),_transparent_45%)]" />
+        <div className="relative flex h-full flex-col justify-between gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <span className="text-sm text-white/75">{titulo}</span>
+              <div className="mt-3 text-3xl font-bold">{valor}</div>
+            </div>
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-[#b7f7ba]">
+              {icono}
+            </div>
+          </div>
+          <p className="text-xs leading-relaxed text-white/75">{detalle}</p>
         </div>
-        <p className="text-xs text-white/75 mt-3">{detalle}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+    <div className="rounded-[24px] border border-[#e6f0f8] bg-white/95 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm text-gray-500">{titulo}</p>
-          <p className="text-3xl font-bold text-[#0A2A47] mt-2">{valor}</p>
+          <p className="text-sm text-[#6b7b88]">{titulo}</p>
+          <p className="mt-2 text-3xl font-bold text-[#0A2A47]">{valor}</p>
         </div>
-        <div className="text-[#0A2A47]">{icono}</div>
+        <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#e6f0f8] bg-[#f4f8fb] text-[#0A2A47]">
+          {icono}
+        </div>
       </div>
-      <p className="text-xs text-gray-500 mt-3">{detalle}</p>
+      <p className="mt-3 text-xs leading-relaxed text-[#7b8a97]">{detalle}</p>
     </div>
   );
 }
 
 function EmptyState({ mensaje }) {
   return (
-    <div className="rounded-lg border border-dashed border-[#d8e7f2] bg-[#f8fbfe] px-4 py-6 text-sm text-[#5d7183] text-center">
+    <div className="rounded-[24px] border border-dashed border-[#dbe8f2] bg-[#f8fbfd] px-5 py-10 text-center text-sm font-medium text-[#6b7b88]">
       {mensaje}
     </div>
   );
@@ -271,12 +280,12 @@ function EmptyState({ mensaje }) {
 
 function Seccion({ titulo, subtitulo, children, scrollable = false, maxHeight = "max-h-[420px]" }) {
   return (
-    <section className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm flex flex-col">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-[#0A2A47]">{titulo}</h2>
-        {subtitulo && <p className="text-sm text-gray-500 mt-1">{subtitulo}</p>}
+    <section className="flex flex-col overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-sm">
+      <div className="border-b border-[#edf3f8] px-5 py-5 md:px-6">
+        <h2 className="text-2xl font-bold tracking-tight text-[#0A2A47]">{titulo}</h2>
+        {subtitulo && <p className="mt-1 text-sm text-[#5b6b79]">{subtitulo}</p>}
       </div>
-      <div className={scrollable ? `${maxHeight} min-h-0 overflow-y-auto pr-2` : ""}>
+      <div className={`p-5 md:p-6 ${scrollable ? `${maxHeight} min-h-0 overflow-y-auto` : ""}`}>
         {children}
       </div>
     </section>
@@ -285,9 +294,9 @@ function Seccion({ titulo, subtitulo, children, scrollable = false, maxHeight = 
 
 function DetalleVerificacion({ label, value }) {
   return (
-    <div className="border border-[#e6f0f8] bg-white rounded-md p-2 shadow-sm">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-sm font-semibold text-[#0A2A47] break-words">{value || "-"}</p>
+    <div className="rounded-2xl border border-[#e6f0f8] bg-[#fbfdff] p-3 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">{label}</p>
+      <p className="mt-2 break-words text-sm font-semibold text-[#0A2A47]">{value || "-"}</p>
     </div>
   );
 }
@@ -296,17 +305,14 @@ function DetallePrecision({ label, value }) {
   const tooltip = "Precisión GPS aproximada: 8 m = ubicación bastante buena; 25 m = razonable; 120 m = ubicación floja; 500 m = muy poco confiable.";
 
   return (
-    <div className="border border-[#e6f0f8] bg-white rounded-md p-2 shadow-sm">
+    <div className="rounded-2xl border border-[#e6f0f8] bg-[#fbfdff] p-3 shadow-sm">
       <div className="flex items-center gap-1">
-        <p className="text-xs text-gray-500">{label}</p>
-        <span
-          title={tooltip}
-          className="inline-flex cursor-help text-[#0A2A47]"
-        >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">{label}</p>
+        <span title={tooltip} className="inline-flex cursor-help text-[#0A2A47]">
           <Info size={13} />
         </span>
       </div>
-      <p className="text-sm font-semibold text-[#0A2A47] break-words">{value || "-"}</p>
+      <p className="mt-2 break-words text-sm font-semibold text-[#0A2A47]">{value || "-"}</p>
     </div>
   );
 }
@@ -713,45 +719,54 @@ export default function PortalCliente() {
 
   return (
     <Layout>
-      <div className="p-4 flex flex-col gap-6">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-[#0A2A47]">Portal de servicio</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Seguimiento en tiempo real del servicio contratado
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex flex-wrap gap-2">
-              {PERIODOS.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => setPeriodo(item.value)}
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
-                    periodo === item.value
-                      ? "bg-[#0A2A47] text-white border-[#0A2A47]"
-                      : "bg-white text-[#0A2A47] border-[#e6f0f8] hover:bg-[#e6f0f8]"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+      <div className="flex flex-col gap-6 px-4 py-5 md:px-6">
+        <section className="relative overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white p-5 shadow-xl shadow-[#0A2A47]/5 md:p-6">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.16),_transparent_38%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.1),_transparent_42%)]" />
+          <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-3xl">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#3BAE3D]">
+                Portal cliente
+              </p>
+              <h1 className="text-3xl font-extrabold tracking-tight text-[#0A2A47] md:text-4xl">
+                Seguimiento verificado del servicio
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm text-[#5b6b79]">
+                Consulta ejecuciones, evidencia, seguimiento y feedback del servicio en una vista
+                clara y auditable.
+              </p>
             </div>
 
-            <button
-              type="button"
-              onClick={abrirModalReporte}
-              className="bg-[#0A2A47] text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-[#123b63] flex items-center justify-center gap-2"
-            >
-              <Download size={16} />
-              Descargar reporte
-            </button>
-          </div>
-        </div>
+            <div className="flex flex-col gap-3 xl:min-w-[420px] xl:max-w-[520px] xl:items-end">
+              <div className="flex flex-wrap gap-2">
+                {PERIODOS.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setPeriodo(item.value)}
+                    className={`rounded-2xl border px-3.5 py-2 text-sm font-semibold transition ${
+                      periodo === item.value
+                        ? "border-[#071f35] bg-[#071f35] text-white shadow-lg shadow-[#071f35]/10"
+                        : "border-[#dbe8f2] bg-white text-[#0A2A47] hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <button
+                type="button"
+                onClick={abrirModalReporte}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#071f35] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/10 transition hover:-translate-y-0.5 hover:bg-[#0c2a47]"
+              >
+                <Download size={16} />
+                Descargar reporte
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <TarjetaResumen
             titulo="Actividades realizadas"
             valor={cargandoTarjetas ? "..." : actividadesRealizadas}
@@ -788,68 +803,70 @@ export default function PortalCliente() {
           ) : historial.length === 0 ? (
             <EmptyState mensaje="Aún no hay evidencia registrada para este período." />
           ) : (
-            <div className="max-h-[520px] overflow-x-auto overflow-y-auto rounded-xl border border-[#e6f0f8]">
-              <table className="w-full text-left text-[#0A2A47]">
-                <thead className="bg-white border-b border-[#e6f0f8] sticky top-0 z-10">
-                  <tr className="text-sm">
-                    <th className="px-3 py-3">Fecha</th>
-                    <th className="px-3 py-3">Locación</th>
-                    <th className="px-3 py-3">Actividad</th>
-                    <th className="px-3 py-3">Imagen</th>
-                    <th className="px-3 py-3">Comentario</th>
-                    <th className="px-3 py-3">Ficha</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {historial.map((item) => (
-                    <tr key={item.id} className="border-b border-[#e6f0f8] hover:bg-[#e6f0f8] transition-colors align-top">
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        {formatearFecha(item.hora_fin || item.hora_inicio)}
-                      </td>
-                      <td className="px-3 py-3">
-                        {item.usuario?.area?.locacion?.nombre || "-"}
-                      </td>
-                      <td className="px-3 py-3 min-w-[240px]">
-                        {obtenerNombreActividad(item)}
-                      </td>
-                      <td className="px-3 py-3">
-                        {item.imagen ? (
-                          <a href={item.imagen} target="_blank" rel="noreferrer">
-                            <img
-                              src={item.imagen}
-                              alt="Evidencia del servicio"
-                              className="h-16 w-16 object-cover rounded-md border border-[#e6f0f8] shadow-sm hover:opacity-85"
-                            />
-                          </a>
-                        ) : (
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <ImageOff size={14} />
-                            <span>Sin evidencia visual</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 min-w-[240px]">
-                        {item.comentario?.trim() || "Sin comentario"}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => setActividadFicha(item)}
-                          className="inline-flex items-center gap-1 rounded-md bg-[#0A2A47] px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#123b63]"
-                        >
-                          <ScanSearch size={14} />
-                          Ver ficha
-                        </button>
-                      </td>
+            <div className="overflow-hidden rounded-[24px] border border-[#e6f0f8] bg-white shadow-sm">
+              <div className="max-h-[520px] overflow-auto">
+                <table className="w-full min-w-[860px] text-left text-[#0A2A47]">
+                  <thead className="sticky top-0 z-10 bg-white/95 backdrop-blur">
+                    <tr>
+                      <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Fecha</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Locación</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Actividad</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Imagen</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Comentario</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Ficha</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="text-sm">
+                    {historial.map((item) => (
+                      <tr key={item.id} className="border-t border-[#edf3f8] align-top transition hover:bg-[#fbfdff]">
+                        <td className="whitespace-nowrap px-4 py-3">
+                          {formatearFecha(item.hora_fin || item.hora_inicio)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.usuario?.area?.locacion?.nombre || "-"}
+                        </td>
+                        <td className="min-w-[240px] px-4 py-3">
+                          {obtenerNombreActividad(item)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.imagen ? (
+                            <a href={item.imagen} target="_blank" rel="noreferrer">
+                              <img
+                                src={item.imagen}
+                                alt="Evidencia del servicio"
+                                className="h-16 w-16 rounded-2xl border border-[#e6f0f8] object-cover shadow-sm transition hover:opacity-85"
+                              />
+                            </a>
+                          ) : (
+                            <div className="flex items-center gap-2 text-xs text-[#7b8a97]">
+                              <ImageOff size={14} />
+                              <span>Sin evidencia visual</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="min-w-[240px] px-4 py-3">
+                          {item.comentario?.trim() || "Sin comentario"}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => setActividadFicha(item)}
+                            className="inline-flex items-center gap-2 rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-2 text-xs font-semibold text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-white"
+                          >
+                            <ScanSearch size={14} />
+                            Ver ficha
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </Seccion>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           <Seccion
             titulo="Áreas con seguimiento"
             subtitulo="Áreas y locaciones donde el servicio requirió atención adicional."
@@ -862,23 +879,25 @@ export default function PortalCliente() {
             ) : (
               <div className="flex flex-col gap-3">
                 {areasConSeguimientoCliente.map((item, index) => (
-                  <div key={`${item.area_id || item.locacion_id || item.locacion_nombre}-${index}`} className="rounded-lg border border-[#e6f0f8] p-3 bg-[#f8fbfe]">
+                  <div key={`${item.area_id || item.locacion_id || item.locacion_nombre}-${index}`} className="rounded-[22px] border border-[#e6f0f8] bg-[#fbfdff] p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-[#0A2A47]">
                           {item.area_nombre || item.locacion_nombre || "Ubicación no disponible"}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="mt-1 text-xs text-[#7b8a97]">
                           {item.locacion_nombre && item.area_nombre ? item.locacion_nombre : "Servicio asignado"}
                         </p>
                       </div>
-                      <MapPin size={16} className="text-[#0A2A47]" />
+                      <div className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#dbe8f2] bg-white text-[#0A2A47]">
+                        <MapPin size={16} />
+                      </div>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 rounded-full bg-white border border-[#d7e5f0] text-[#0A2A47]">
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                      <span className="rounded-full border border-[#dbe8f2] bg-white px-2.5 py-1 text-[#0A2A47]">
                         Seguimientos: {item.total_seguimientos}
                       </span>
-                      <span className="px-2 py-1 rounded-full bg-white border border-[#d7e5f0] text-[#0A2A47]">
+                      <span className="rounded-full border border-[#dbe8f2] bg-white px-2.5 py-1 text-[#0A2A47]">
                         Abiertos: {item.seguimientos_abiertos}
                       </span>
                     </div>
@@ -900,38 +919,38 @@ export default function PortalCliente() {
             ) : (
               <div className="flex flex-col gap-3">
                 {seguimientosRecientes.map((item) => (
-                  <div key={item.id} className="rounded-lg border border-[#e6f0f8] p-3 bg-white">
+                  <div key={item.id} className="rounded-[22px] border border-[#e6f0f8] bg-white p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-[#0A2A47]">
                           {item.locacion_nombre || "Locación no disponible"}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="mt-1 text-xs text-[#7b8a97]">
                           {item.area_nombre || "Área no disponible"}
                         </p>
                       </div>
-                      <span className="rounded-full bg-[#f8fbfe] px-2 py-1 text-xs font-semibold text-[#0A2A47]">
+                      <span className="rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-2.5 py-1 text-xs font-semibold text-[#0A2A47]">
                         {item.estado}
                       </span>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                      <span className="rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-2.5 py-1 text-[#0A2A47]">
                         {item.tipo_publico}
                       </span>
-                      <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                      <span className="rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-2.5 py-1 text-[#0A2A47]">
                         Abierto: {formatearFecha(item.creado_en)}
                       </span>
                       {item.resuelto_en ? (
-                        <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                        <span className="rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-2.5 py-1 text-[#0A2A47]">
                           Resuelto: {formatearFecha(item.resuelto_en)}
                         </span>
                       ) : null}
-                      <span className="px-2 py-1 rounded-full bg-[#f8fbfe] border border-[#d7e5f0] text-[#0A2A47]">
+                      <span className="rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-2.5 py-1 text-[#0A2A47]">
                         Tiempo de respuesta: {item.tiempo_respuesta_horas != null ? formatearHoras(item.tiempo_respuesta_horas) : "Pendiente"}
                       </span>
                     </div>
                     {(item.evidencia_resolucion || item.foto_resolucion) ? (
-                      <div className="mt-3 space-y-2">
+                      <div className="mt-4 space-y-2">
                         {item.evidencia_resolucion ? (
                           <p className="text-sm text-[#0A2A47]">
                             {item.evidencia_resolucion}
@@ -942,7 +961,7 @@ export default function PortalCliente() {
                             <img
                               src={item.foto_resolucion}
                               alt="Evidencia de resolución"
-                              className="h-16 w-16 object-cover rounded-md border border-[#e6f0f8] shadow-sm hover:opacity-85"
+                              className="h-16 w-16 rounded-2xl border border-[#e6f0f8] object-cover shadow-sm transition hover:opacity-85"
                             />
                           </a>
                         ) : null}
@@ -966,27 +985,27 @@ export default function PortalCliente() {
           ) : feedback.length === 0 ? (
             <EmptyState mensaje="No hay feedback disponible para este período." />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {feedback.map((item) => (
-                <div key={item.id} className="rounded-lg border border-[#e6f0f8] p-4 bg-white shadow-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-[#0A2A47]">
-                          {item.empresa}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Lugar evaluado: {item.contexto || item.direccion || "-"}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {item.nombre?.trim() || "Anónimo"} · {formatearFecha(item.creado_en)}
-                        </p>
+                <div key={item.id} className="rounded-[22px] border border-[#e6f0f8] bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[#0A2A47]">
+                        {item.empresa}
+                      </p>
+                      <p className="mt-1 text-xs text-[#7b8a97]">
+                        Lugar evaluado: {item.contexto || item.direccion || "-"}
+                      </p>
+                      <p className="mt-1 text-xs text-[#7b8a97]">
+                        {item.nombre?.trim() || "Anónimo"} · {formatearFecha(item.creado_en)}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-1 text-[#3BAE3D] font-semibold">
+                    <div className="inline-flex items-center gap-1 rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-2.5 py-1 text-sm font-semibold text-[#3BAE3D]">
                       <Star size={15} />
                       <span>{Number(item.calificacion).toFixed(1)}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-[#0A2A47] mt-3">
+                  <p className="mt-4 text-sm text-[#0A2A47]">
                     {item.comentario?.trim() || "Sin comentario adicional"}
                   </p>
                 </div>
@@ -997,25 +1016,25 @@ export default function PortalCliente() {
 
         {modalReporteAbierto && (
           <div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
             onClick={() => {
               if (!generandoReporte) setModalReporteAbierto(false);
             }}
           >
             <div
-              className="bg-white rounded-xl border border-[#0A2A47] shadow-xl w-full max-w-md"
+              className="w-full max-w-md rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="border-b border-[#e6f0f8] p-4">
-                <h2 className="text-xl font-bold text-[#0A2A47]">Generar reporte</h2>
-                <p className="text-sm text-gray-500 mt-1">
+              <div className="border-b border-[#edf3f8] px-5 py-5">
+                <h2 className="text-2xl font-bold tracking-tight text-[#0A2A47]">Generar reporte</h2>
+                <p className="mt-1 text-sm text-[#5b6b79]">
                   Selecciona la fecha de inicio y fin para generar el PDF del servicio.
                 </p>
               </div>
 
-              <div className="p-4 space-y-4">
+              <div className="space-y-4 px-5 py-5">
                 <div>
-                  <label className="block text-sm font-semibold text-[#0A2A47] mb-2">
+                  <label className="mb-2 block text-sm font-semibold text-[#0A2A47]">
                     Fecha de inicio
                   </label>
                   <input
@@ -1024,12 +1043,12 @@ export default function PortalCliente() {
                     onChange={(e) =>
                       setReporteConfig((prev) => ({ ...prev, desde: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-[#d7e5f0] px-3 py-2 text-sm text-[#0A2A47] focus:border-[#0A2A47] focus:outline-none"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-[#0A2A47] mb-2">
+                  <label className="mb-2 block text-sm font-semibold text-[#0A2A47]">
                     Fecha de fin
                   </label>
                   <input
@@ -1038,7 +1057,7 @@ export default function PortalCliente() {
                     onChange={(e) =>
                       setReporteConfig((prev) => ({ ...prev, hasta: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-[#d7e5f0] px-3 py-2 text-sm text-[#0A2A47] focus:border-[#0A2A47] focus:outline-none"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   />
                 </div>
 
@@ -1048,7 +1067,7 @@ export default function PortalCliente() {
                   </p>
                 ) : null}
 
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                   <button
                     type="button"
                     onClick={generarReporteConRango}
@@ -1058,7 +1077,7 @@ export default function PortalCliente() {
                       !reporteConfig.hasta ||
                       reporteConfig.desde > reporteConfig.hasta
                     }
-                    className="flex-1 rounded bg-[#0A2A47] py-2 text-white font-semibold shadow-sm hover:bg-[#123b63] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-2xl bg-[#071f35] py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/10 transition hover:-translate-y-0.5 hover:bg-[#0c2a47] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {generandoReporte ? "Generando..." : "Generar PDF"}
                   </button>
@@ -1066,7 +1085,7 @@ export default function PortalCliente() {
                     type="button"
                     onClick={() => setModalReporteAbierto(false)}
                     disabled={generandoReporte}
-                    className="flex-1 rounded border border-[#0A2A47] py-2 text-[#0A2A47] font-semibold hover:bg-[#e6f0f8] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-2xl border border-[#dbe8f2] py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Cancelar
                   </button>
@@ -1078,30 +1097,30 @@ export default function PortalCliente() {
 
         {imagenSeleccionada && (
           <div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 backdrop-blur-sm"
             onClick={() => setImagenSeleccionada(null)}
           >
             <img
               src={imagenSeleccionada}
               alt="Vista ampliada"
-              className="max-h-[90%] max-w-[90%] object-contain rounded-xl border border-[#0A2A47] bg-white p-2 shadow-xl"
+              className="max-h-[90%] max-w-[90%] rounded-[28px] border border-[#e6f0f8] bg-white p-2 object-contain shadow-2xl"
             />
           </div>
         )}
 
         {actividadFicha && (
           <div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
             onClick={() => setActividadFicha(null)}
           >
             <div
-              className="bg-white rounded-xl border border-[#0A2A47] shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto"
+              className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 bg-white border-b border-[#e6f0f8] p-4 flex items-center justify-between gap-4">
+              <div className="sticky top-0 flex items-center justify-between gap-4 border-b border-[#edf3f8] bg-white/95 px-5 py-5 backdrop-blur">
                 <div>
-                  <h2 className="text-xl font-bold text-[#0A2A47]">Ficha de cumplimiento verificado</h2>
-                  <p className="text-sm text-gray-500">{actividadFicha.lista?.nombre || "Sin lista"}</p>
+                  <h2 className="text-2xl font-bold tracking-tight text-[#0A2A47]">Ficha de cumplimiento verificado</h2>
+                  <p className="text-sm text-[#5b6b79]">{actividadFicha.lista?.nombre || "Sin lista"}</p>
                 </div>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${obtenerEstiloEstado(actividadFicha.estado_verificacion)}`}
@@ -1111,14 +1130,14 @@ export default function PortalCliente() {
                 </span>
               </div>
 
-              <div className="p-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="space-y-4 p-5 md:p-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <DetalleVerificacion label="Locación" value={actividadFicha.usuario?.area?.locacion?.nombre} />
                   <DetalleVerificacion label="Área" value={actividadFicha.usuario?.area?.nombre} />
                   <DetalleVerificacion label="Lista / actividad" value={obtenerNombreActividad(actividadFicha)} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
                   <DetalleVerificacion label="Estado de verificación" value={formatearEstadoVerificacion(actividadFicha.estado_verificacion)} />
                   <DetalleVerificacion label="Fecha inicio" value={formatearFecha(actividadFicha.hora_inicio)} />
                   <DetalleVerificacion label="Fecha fin" value={formatearFecha(actividadFicha.hora_fin)} />
@@ -1135,24 +1154,24 @@ export default function PortalCliente() {
                   />
                 </div>
 
-                <div className="border border-[#e6f0f8] rounded-md p-3 shadow-sm">
-                  <p className="text-xs text-gray-500 mb-1">Comentario</p>
-                  <p className="text-sm text-[#0A2A47] whitespace-pre-wrap">{actividadFicha.comentario || "-"}</p>
+                <div className="rounded-2xl border border-[#e6f0f8] bg-[#fbfdff] p-4 shadow-sm">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Comentario</p>
+                  <p className="whitespace-pre-wrap text-sm text-[#0A2A47]">{actividadFicha.comentario || "-"}</p>
                 </div>
 
                 {staticMapUrl(actividadFicha) ? (
-                  <div className="border border-[#e6f0f8] rounded-md p-3 shadow-sm">
-                    <p className="text-xs text-gray-500 mb-2">Snapshot / mapa</p>
+                  <div className="rounded-2xl border border-[#e6f0f8] bg-[#fbfdff] p-4 shadow-sm">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Snapshot / mapa</p>
                     <img
                       src={staticMapUrl(actividadFicha)}
                       alt="Mapa de verificación"
-                      className="max-h-72 w-full object-contain rounded-md border border-[#e6f0f8] shadow-sm"
+                      className="max-h-72 w-full rounded-2xl border border-[#e6f0f8] object-contain shadow-sm"
                     />
                   </div>
                 ) : null}
 
-                <div className="border border-[#e6f0f8] rounded-md p-3 shadow-sm">
-                  <p className="text-xs text-gray-500 mb-2">Evidencia visual</p>
+                <div className="rounded-2xl border border-[#e6f0f8] bg-[#fbfdff] p-4 shadow-sm">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Evidencia visual</p>
                   {actividadFicha.imagen ? (
                     <button
                       type="button"
@@ -1162,9 +1181,9 @@ export default function PortalCliente() {
                       <img
                         src={actividadFicha.imagen}
                         alt="Evidencia"
-                        className="max-h-72 w-full object-contain rounded-md border border-[#e6f0f8] shadow-sm hover:opacity-90"
+                        className="max-h-72 w-full rounded-2xl border border-[#e6f0f8] object-contain shadow-sm hover:opacity-90"
                       />
-                      <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#0A2A47]">
+                      <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#0A2A47]">
                         <ImageIcon size={13} />
                         Ampliar evidencia
                       </span>
@@ -1177,7 +1196,7 @@ export default function PortalCliente() {
                 <button
                   type="button"
                   onClick={() => exportarFichaPDF(actividadFicha)}
-                  className="w-full rounded bg-[#0A2A47] py-2 text-white font-semibold shadow-sm hover:bg-[#123b63]"
+                  className="w-full rounded-2xl bg-[#071f35] py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/10 transition hover:-translate-y-0.5 hover:bg-[#0c2a47]"
                 >
                   Descargar ficha PDF
                 </button>
@@ -1185,7 +1204,7 @@ export default function PortalCliente() {
                 <button
                   type="button"
                   onClick={() => setActividadFicha(null)}
-                  className="w-full rounded border border-[#0A2A47] py-2 text-[#0A2A47] font-semibold hover:bg-[#e6f0f8]"
+                  className="w-full rounded-2xl border border-[#dbe8f2] py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
                 >
                   Cerrar
                 </button>

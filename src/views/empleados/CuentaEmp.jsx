@@ -4,7 +4,7 @@ import CuentaReusable from "../dashboard/cuenta/CuentaReusable";
 export default function CeuntaEmp() {
   return (
     <Layout>
-      <div className="bg-white p-4">
+      <div className="bg-transparent p-4">
         <CuentaReusable />
       </div>
     </Layout>

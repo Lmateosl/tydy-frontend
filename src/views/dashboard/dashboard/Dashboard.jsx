@@ -37,23 +37,30 @@ const PERIODOS_DASHBOARD = [
 function TarjetaResumen({ titulo, valor, icono, principal = false }) {
   if (principal) {
     return (
-      <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
-        <span className="text-sm opacity-80">{titulo}</span>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-3xl font-bold">{valor}</span>
-          <div className="text-[#3BAE3D]">{icono}</div>
+      <div className="relative overflow-hidden bg-[#071f35] text-white rounded-2xl p-4 flex flex-col justify-between shadow-xl shadow-[#071f35]/15 border border-white/10 min-h-[118px]">
+        <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.24),_transparent_38%)]" />
+        <div className="relative flex items-start justify-between gap-3">
+          <span className="text-sm text-white/70 font-medium">{titulo}</span>
+          <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 text-[#b7f7ba] flex items-center justify-center">
+            {icono}
+          </div>
+        </div>
+        <div className="relative mt-4">
+          <span className="text-3xl font-extrabold tracking-tight">{valor}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-[#e6f0f8] rounded-xl p-3 shadow-sm">
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs text-gray-500">{titulo}</p>
-        <div className="text-[#0A2A47]">{icono}</div>
+    <div className="bg-white/95 border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">{titulo}</p>
+        <div className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] flex items-center justify-center border border-[#e6f0f8]">
+          {icono}
+        </div>
       </div>
-      <p className="text-2xl font-bold text-[#0A2A47]">{valor}</p>
+      <p className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{valor}</p>
     </div>
   );
 }
@@ -124,7 +131,7 @@ export default function Dashboard() {
   };
 
   const renderEmptyState = (mensaje) => (
-    <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-sm text-gray-500 text-center">
+    <div className="rounded-2xl border border-dashed border-[#dbe8f2] bg-[#f8fbfd] px-4 py-5 text-sm text-gray-500 text-center">
       {mensaje}
     </div>
   );
@@ -251,7 +258,7 @@ export default function Dashboard() {
   };
 
   const renderTabsPeriodo = (periodoActivo, onChange) => (
-    <div className="flex flex-wrap gap-2">
+    <div className="inline-flex flex-wrap gap-1.5 rounded-2xl bg-[#f4f8fb] border border-[#e6f0f8] p-1.5">
       {PERIODOS_DASHBOARD.map((periodo) => {
         const activo = periodoActivo === periodo.value;
         return (
@@ -259,10 +266,10 @@ export default function Dashboard() {
             key={periodo.value}
             type="button"
             onClick={() => onChange(periodo.value)}
-            className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${
+            className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
               activo
-                ? "bg-[#0A2A47] text-white"
-                : "border border-[#0A2A47] text-[#0A2A47] hover:bg-[#e6f0f8]"
+                ? "bg-[#071f35] text-white shadow-md shadow-[#071f35]/15"
+                : "text-[#0A2A47] hover:bg-white hover:shadow-sm"
             }`}
           >
             {periodo.label}
@@ -274,14 +281,15 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="p-4">
-        <div className="mb-6 rounded-2xl bg-white border border-[#e6f0f8] shadow-sm p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="p-4 md:p-6 bg-[#f4f8fb] min-h-full">
+        <div className="relative overflow-hidden mb-6 rounded-[28px] bg-white border border-[#e6f0f8] shadow-xl shadow-[#0A2A47]/5 p-5 md:p-6">
+          <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.08),_transparent_35%)]" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h1 className="text-3xl font-extrabold text-[#0A2A47]">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A2A47] tracking-tight">
                 Dashboard operativo
               </h1>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-500 max-w-xl">
                 Estado real de la operación en el periodo seleccionado.
               </p>
             </div>
@@ -291,7 +299,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
           <TarjetaResumen
             titulo="Actividades hoy"
             valor={valor("actividades_hoy")}
@@ -324,7 +332,7 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <TarjetaResumen
             titulo="Incidentes abiertos"
             valor={valor("incidentes_abiertos")}
@@ -355,7 +363,7 @@ export default function Dashboard() {
 
         <div className="mb-6">
           <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
-            <h2 className="text-2xl font-extrabold text-[#0A2A47]">
+            <h2 className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">
               Atención requerida
             </h2>
             <p className="text-sm text-gray-500">
@@ -364,7 +372,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Locaciones con problemas
@@ -380,7 +388,7 @@ export default function Dashboard() {
                   {riesgosOperativos.locacionesConProblemas.map((locacion) => (
                     <div
                       key={locacion.locacion_id || locacion.locacion_nombre}
-                      className="rounded-lg border border-gray-100 px-3 py-3"
+                      className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-3 py-3 hover:border-[#dbe8f2] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -396,10 +404,10 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
-                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                        <span className="rounded-full bg-white border border-[#e6f0f8] px-2.5 py-1">
                           No verificadas: {locacion.actividades_no_verificadas}
                         </span>
-                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                        <span className="rounded-full bg-white border border-[#e6f0f8] px-2.5 py-1">
                           Evidencias faltantes: {locacion.evidencias_faltantes}
                         </span>
                       </div>
@@ -409,7 +417,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Empleados con tareas pendientes
@@ -425,7 +433,7 @@ export default function Dashboard() {
                   {riesgosOperativos.empleadosConTareasPendientes.map((empleado) => (
                     <div
                       key={empleado.usuario_id || `${empleado.nombre}-${empleado.locacion_nombre || "sin-locacion"}`}
-                      className="rounded-lg border border-gray-100 px-3 py-3"
+                      className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-3 py-3 hover:border-[#dbe8f2] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -449,7 +457,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Incidentes recientes
@@ -465,7 +473,7 @@ export default function Dashboard() {
                   {riesgosOperativos.incidentesRecientes.map((incidente) => (
                     <div
                       key={incidente.id}
-                      className="rounded-lg border border-gray-100 px-3 py-3"
+                      className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-3 py-3 hover:border-[#dbe8f2] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -481,13 +489,13 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
-                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                        <span className="rounded-full bg-white border border-[#e6f0f8] px-2.5 py-1">
                           {formatearTipoIncidente(incidente.tipo)}
                         </span>
-                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                        <span className="rounded-full bg-white border border-[#e6f0f8] px-2.5 py-1">
                           {incidente.estado}
                         </span>
-                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                        <span className="rounded-full bg-white border border-[#e6f0f8] px-2.5 py-1">
                           Prioridad: {incidente.prioridad}
                         </span>
                       </div>
@@ -497,7 +505,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#0A2A47]">
                   Locaciones con más incidentes
@@ -513,7 +521,7 @@ export default function Dashboard() {
                   {riesgosOperativos.locacionesConMasIncidentes.map((locacion) => (
                     <div
                       key={locacion.locacion_id || `${locacion.locacion_nombre}-${locacion.empresa_nombre || "sin-empresa"}`}
-                      className="rounded-lg border border-gray-100 px-3 py-3"
+                      className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-3 py-3 hover:border-[#dbe8f2] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -529,7 +537,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
-                        <span className="rounded-full bg-[#F8FAFC] px-2 py-1">
+                        <span className="rounded-full bg-white border border-[#e6f0f8] px-2.5 py-1">
                           Abiertos: {locacion.incidentes_abiertos}
                         </span>
                       </div>
@@ -543,7 +551,7 @@ export default function Dashboard() {
 
         <div className="mb-6">
           <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
-            <h2 className="text-2xl font-extrabold text-[#0A2A47]">
+            <h2 className="text-2xl font-extrabold text-[#0A2A2A47] tracking-tight">
               Tendencias operativas
             </h2>
             <p className="text-sm text-gray-500">
@@ -552,7 +560,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-[#0A2A47]">
@@ -571,7 +579,7 @@ export default function Dashboard() {
               ) : (
                 <Chart
                   type="area"
-                  height={280}
+                  height={300}
                   series={[{ name: "Actividades", data: actividadesPorDia.series }]}
                   options={{
                     ...opcionesBaseChart,
@@ -594,7 +602,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-[#0A2A47]">
@@ -613,7 +621,7 @@ export default function Dashboard() {
               ) : (
                 <Chart
                   type="bar"
-                  height={280}
+                  height={300}
                   series={[{ name: "Actividades", data: actividadesPorLocacion.series }]}
                   options={{
                     ...opcionesBaseChart,
@@ -633,7 +641,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-[#0A2A47]">
@@ -652,7 +660,7 @@ export default function Dashboard() {
               ) : (
                 <Chart
                   type="donut"
-                  height={280}
+                  height={300}
                   series={feedbackPorCalificacion.series}
                   options={{
                     ...opcionesBaseChart,

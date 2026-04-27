@@ -62,23 +62,30 @@ const RESOLVER_INICIAL = {
 function TarjetaResumen({ titulo, valor, icono, principal = false }) {
   if (principal) {
     return (
-      <div className="bg-[#0A2A47] text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
-        <span className="text-sm opacity-80">{titulo}</span>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-3xl font-bold">{valor}</span>
-          <div className="text-[#3BAE3D]">{icono}</div>
+      <div className="relative overflow-hidden bg-[#071f35] text-white rounded-2xl p-4 flex flex-col justify-between shadow-xl shadow-[#071f35]/15 border border-white/10 min-h-[118px]">
+        <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.24),_transparent_38%)]" />
+        <div className="relative flex items-start justify-between gap-3">
+          <span className="text-sm text-white/70 font-medium">{titulo}</span>
+          <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/10 text-[#b7f7ba] flex items-center justify-center">
+            {icono}
+          </div>
+        </div>
+        <div className="relative mt-4">
+          <span className="text-3xl font-extrabold tracking-tight">{valor}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-[#e6f0f8] rounded-xl p-3 shadow-sm">
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs text-gray-500">{titulo}</p>
-        <div className="text-[#0A2A47]">{icono}</div>
+    <div className="bg-white/95 border border-[#e6f0f8] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">{titulo}</p>
+        <div className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] flex items-center justify-center border border-[#e6f0f8]">
+          {icono}
+        </div>
       </div>
-      <p className="text-2xl font-bold text-[#0A2A47]">{valor}</p>
+      <p className="text-2xl font-extrabold text-[#0A2A47] tracking-tight">{valor}</p>
     </div>
   );
 }
@@ -582,41 +589,52 @@ export default function Incidentes() {
 
   return (
     <Layout>
-      <div className="p-4">
+      <div className="p-4 md:p-6 bg-[#f4f8fb] min-h-full">
+        <div className="relative overflow-hidden mb-6 rounded-[28px] bg-white border border-[#e6f0f8] shadow-xl shadow-[#0A2A47]/5 p-5 md:p-6">
+          <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.08),_transparent_35%)]" />
+          <div className="relative flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A2A47] tracking-tight">Incidentes</h1>
+              <p className="mt-2 text-sm text-[#5b6b79] max-w-2xl">
+                Centraliza desvíos operativos, asignación, resolución y trazabilidad desde una sola vista.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <h1 className="text-3xl font-extrabold text-[#0A2A47]">Incidentes</h1>
           <button
             onClick={abrirCrear}
-            className="flex items-center gap-2 bg-[#0A2A47] text-white px-4 py-2 rounded-md font-semibold shadow-sm hover:bg-[#123b63]"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#3BAE3D] text-white px-4 py-3 font-semibold shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]"
           >
             <Plus size={16} />
             Crear incidente
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <TarjetaResumen titulo="Total incidentes" valor={isLoading || isFetching ? "..." : resumen.total} icono={<ShieldAlert />} principal />
           <TarjetaResumen titulo="Abiertos" valor={isLoading || isFetching ? "..." : resumen.abiertos} icono={<AlertTriangle size={16} />} />
           <TarjetaResumen titulo="Asignados / en proceso" valor={isLoading || isFetching ? "..." : resumen.enCurso} icono={<XCircle size={16} />} />
           <TarjetaResumen titulo="Resueltos / cerrados" valor={isLoading || isFetching ? "..." : resumen.resueltos} icono={<CheckCircle2 size={16} />} />
         </div>
 
-        <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 mb-4 flex flex-col md:flex-row gap-3 items-center shadow-sm">
-          <div className="flex items-center gap-2 w-full md:w-[32%]">
-            <Search className="text-gray-500" size={18} />
+        <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 mb-4 flex flex-col md:flex-row gap-3 items-center shadow-sm">
+          <div className="relative w-full md:w-[32%]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" size={18} />
             <input
               type="text"
               placeholder="Buscar por descripción o contexto"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
             />
           </div>
 
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-[22%] text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="w-full md:w-[22%] rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           >
             <option value="">Todos los estados</option>
             {ESTADOS_INCIDENTE.map((estado) => (
@@ -629,7 +647,7 @@ export default function Incidentes() {
           <select
             value={filtroPrioridad}
             onChange={(e) => setFiltroPrioridad(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-[22%] text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="w-full md:w-[22%] rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           >
             <option value="">Todas las prioridades</option>
             {PRIORIDADES_INCIDENTE.map((prioridad) => (
@@ -642,7 +660,7 @@ export default function Incidentes() {
           <select
             value={filtroTipo}
             onChange={(e) => setFiltroTipo(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full md:w-[24%] text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="w-full md:w-[24%] rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           >
             <option value="">Todos los tipos</option>
             {TIPOS_INCIDENTE.map((tipo) => (
@@ -673,20 +691,20 @@ export default function Incidentes() {
             }
           />
         ) : (
-          <div className="max-h-[60vh] overflow-auto rounded-xl border border-[#e6f0f8] bg-white shadow-sm">
+          <div className="max-h-[60vh] overflow-auto rounded-3xl border border-[#e6f0f8] bg-white shadow-sm">
             <table className="w-full text-left text-[#0A2A47]">
               <thead className="sticky top-0 z-10">
-                <tr className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] text-sm">
-                  <th className="py-2 px-3">Tipo</th>
-                  <th className="py-2 px-3">Prioridad</th>
-                  <th className="py-2 px-3">Estado</th>
-                  <th className="py-2 px-3">Descripción</th>
-                  <th className="py-2 px-3">Empleado</th>
-                  <th className="py-2 px-3">Supervisor</th>
-                  <th className="py-2 px-3">Asignado a</th>
-                  <th className="py-2 px-3">Origen</th>
-                  <th className="py-2 px-3">Creado</th>
-                  <th className="py-2 px-3 text-center">Acciones</th>
+                <tr className="bg-white/95 backdrop-blur text-[#0A2A47] border-b border-[#e6f0f8] text-sm">
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Tipo</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Prioridad</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Estado</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Descripción</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Empleado</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Supervisor</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Asignado a</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Origen</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Creado</th>
+                  <th className="px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="text-sm text-[#0A2A47]">
@@ -702,11 +720,11 @@ export default function Incidentes() {
                         incidenteRowRefs.current[incidente.id] = node;
                       }
                     }}
-                    className={`transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] align-top ${
+                    className={`transition-colors border-b border-[#edf3f8] hover:bg-[#fbfdff] align-top ${
                       highlightedIncidenteId === incidente.id ? "bg-[#eef6ff] border-l-4 border-l-[#0A2A47]" : ""
                     }`}
                   >
-                    <td className="py-3 px-3 whitespace-nowrap">
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <div className="flex flex-col gap-1">
                         <TipoBadge tipo={incidente.tipo} />
                         {sourceMeta.url ? (
@@ -714,13 +732,13 @@ export default function Incidentes() {
                         ) : null}
                       </div>
                     </td>
-                    <td className="py-3 px-3 whitespace-nowrap">
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <PrioridadBadge prioridad={incidente.prioridad} />
                     </td>
-                    <td className="py-3 px-3 whitespace-nowrap">
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <EstadoBadge estado={incidente.estado} />
                     </td>
-                    <td className="py-3 px-3 min-w-[260px]">
+                    <td className="py-4 px-4 min-w-[260px]">
                       <p className="font-medium">{incidente.descripcion}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {empresasMap[incidente.empresa_id]?.nombre || "Sin empresa"}
@@ -730,10 +748,10 @@ export default function Incidentes() {
                         {areasMap[incidente.area_id]?.nombre || "Sin área"}
                       </p>
                     </td>
-                    <td className="py-3 px-3 whitespace-nowrap">{usuariosMap[incidente.empleado_id]?.nombre || "-"}</td>
-                    <td className="py-3 px-3 whitespace-nowrap">{usuariosMap[incidente.supervisor_id]?.nombre || "-"}</td>
-                    <td className="py-3 px-3 whitespace-nowrap">{usuariosMap[incidente.asignado_a_id]?.nombre || "-"}</td>
-                    <td className="py-3 px-3 whitespace-nowrap">
+                    <td className="py-4 px-4 whitespace-nowrap">{usuariosMap[incidente.empleado_id]?.nombre || "-"}</td>
+                    <td className="py-4 px-4 whitespace-nowrap">{usuariosMap[incidente.supervisor_id]?.nombre || "-"}</td>
+                    <td className="py-4 px-4 whitespace-nowrap">{usuariosMap[incidente.asignado_a_id]?.nombre || "-"}</td>
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <div className="flex flex-col gap-1">
                         {sourceMeta.url ? (
                           <button
@@ -748,19 +766,19 @@ export default function Incidentes() {
                         <span className="text-[11px] text-gray-500">{sourceMeta.hint}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3 whitespace-nowrap">{formatFecha(incidente.creado_en)}</td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                    <td className="py-4 px-4 whitespace-nowrap">{formatFecha(incidente.creado_en)}</td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
                         <button
                           onClick={() => abrirEditar(incidente)}
-                          className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5]"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe8f2] bg-white text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
                           title="Editar"
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           onClick={() => abrirResolver(incidente)}
-                          className="rounded-full p-1 text-emerald-600 hover:bg-emerald-50"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
                           title="Resolver"
                           disabled={incidente.estado === "cerrado"}
                         >
@@ -769,7 +787,7 @@ export default function Incidentes() {
                         {(incidente.estado === "resuelto" || incidente.estado === "cerrado") && (
                           <button
                             onClick={() => abrirVerResolucion(incidente)}
-                            className="rounded-full p-1 text-blue-600 hover:bg-blue-50"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
                             title="Ver resolución"
                           >
                             <Eye size={16} />
@@ -777,7 +795,7 @@ export default function Incidentes() {
                         )}
                         <button
                           onClick={() => confirmarCerrar(incidente)}
-                          className="rounded-full p-1 text-amber-600 hover:bg-amber-50 disabled:opacity-40"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 disabled:opacity-40"
                           title="Cerrar"
                           disabled={incidente.estado !== "resuelto"}
                         >
@@ -785,7 +803,7 @@ export default function Incidentes() {
                         </button>
                         <button
                           onClick={() => confirmarEliminar(incidente)}
-                          className="rounded-full p-1 text-red-500 hover:bg-red-50"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#f0d4d4] bg-[#fff7f7] text-red-500 transition hover:bg-red-50 hover:text-red-700"
                           title="Eliminar"
                         >
                           <Trash2 size={16} />
@@ -802,16 +820,16 @@ export default function Incidentes() {
         )}
 
         {modalFormularioOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-[#0A2A47]">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
+            <div className="w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-[28px] bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
+              <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#e6f0f8]">
+                <h2 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">
                   {incidenteEditando ? "Editar incidente" : "Crear incidente"}
                 </h2>
                 <button
                   type="button"
                   onClick={cerrarFormulario}
-                  className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
+                  className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] hover:bg-[#e6f0f8] font-bold transition"
                 >
                   ×
                 </button>
@@ -823,7 +841,7 @@ export default function Incidentes() {
                   <select
                     value={form.tipo}
                     onChange={(e) => setForm((prev) => ({ ...prev, tipo: e.target.value }))}
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     {TIPOS_INCIDENTE.map((tipo) => (
                       <option key={tipo.value} value={tipo.value}>
@@ -838,7 +856,7 @@ export default function Incidentes() {
                   <select
                     value={form.prioridad}
                     onChange={(e) => setForm((prev) => ({ ...prev, prioridad: e.target.value }))}
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     {PRIORIDADES_INCIDENTE.map((prioridad) => (
                       <option key={prioridad.value} value={prioridad.value}>
@@ -855,7 +873,7 @@ export default function Incidentes() {
                     onChange={(e) => setForm((prev) => ({ ...prev, descripcion: e.target.value }))}
                     rows={4}
                     placeholder="Describe el incidente y el contexto operativo"
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] placeholder:text-[#8a99a8] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   />
                 </div>
 
@@ -864,7 +882,7 @@ export default function Incidentes() {
                   <select
                     value={form.empresa_id}
                     onChange={(e) => handleEmpresaChange(e.target.value)}
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     <option value="">Sin empresa</option>
                     {empresas.map((empresa) => (
@@ -880,7 +898,7 @@ export default function Incidentes() {
                   <select
                     value={form.locacion_id}
                     onChange={(e) => handleLocacionChange(e.target.value)}
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     <option value="">Sin locación</option>
                     {locacionesFiltradas.map((locacion) => (
@@ -896,7 +914,7 @@ export default function Incidentes() {
                   <select
                     value={form.area_id}
                     onChange={(e) => setForm((prev) => ({ ...prev, area_id: e.target.value }))}
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     <option value="">Sin área</option>
                     {areasFiltradas.map((area) => (
@@ -912,7 +930,7 @@ export default function Incidentes() {
                   <select
                     value={form.empleado_id}
                     onChange={(e) => setForm((prev) => ({ ...prev, empleado_id: e.target.value }))}
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     <option value="">Sin empleado</option>
                     {empleados.map((usuario) => (
@@ -928,7 +946,7 @@ export default function Incidentes() {
                   <select
                     value={form.supervisor_id}
                     onChange={(e) => setForm((prev) => ({ ...prev, supervisor_id: e.target.value }))}
-                    className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     <option value="">Sin supervisor</option>
                     {supervisores.map((usuario) => (
@@ -972,7 +990,7 @@ export default function Incidentes() {
                   type="button"
                   onClick={handleGuardarIncidente}
                   disabled={creandoIncidente || editandoIncidente}
-                  className="bg-[#0A2A47] text-white px-4 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] disabled:opacity-60"
+                  className="bg-[#071f35] text-white px-4 py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition disabled:opacity-60"
                 >
                   {creandoIncidente || editandoIncidente
                     ? "Guardando..."
@@ -983,7 +1001,7 @@ export default function Incidentes() {
                 <button
                   type="button"
                   onClick={cerrarFormulario}
-                  className="border border-[#0A2A47] text-[#0A2A47] px-4 py-2 rounded font-semibold hover:bg-[#e6f0f8]"
+                  className="border border-[#dbe8f2] text-[#0A2A47] px-4 py-3 rounded-2xl font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                 >
                   Cancelar
                 </button>
@@ -993,14 +1011,14 @@ export default function Incidentes() {
         )}
 
         {modalResolverOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-xl rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-[#0A2A47]">Resolver incidente</h2>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
+            <div className="w-full max-w-xl rounded-[28px] bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
+              <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#e6f0f8]">
+                <h2 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">Resolver incidente</h2>
                 <button
                   type="button"
                   onClick={cerrarResolver}
-                  className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
+                  className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] hover:bg-[#e6f0f8] font-bold transition"
                 >
                   ×
                 </button>
@@ -1016,7 +1034,7 @@ export default function Incidentes() {
                 onChange={(e) => setResolverForm((prev) => ({ ...prev, evidencia_resolucion: e.target.value }))}
                 rows={4}
                 placeholder="Describe cómo se resolvió el incidente"
-                className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+                className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] placeholder:text-[#8a99a8] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
               />
 
               <div className="mt-4">
@@ -1025,7 +1043,7 @@ export default function Incidentes() {
                   type="file"
                   accept="image/*"
                   onChange={handleFotoResolucionChange}
-                  className="border border-[#0A2A47] px-3 py-2 rounded-md w-full text-[#0A2A47] file:mr-3 file:border-0 file:bg-[#e6f0f8] file:px-3 file:py-1 file:rounded file:text-[#0A2A47] file:font-semibold"
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] file:mr-3 file:border-0 file:bg-[#e6f0f8] file:px-3 file:py-1.5 file:rounded-xl file:text-[#0A2A47] file:font-semibold"
                 />
               </div>
 
@@ -1048,14 +1066,14 @@ export default function Incidentes() {
                   type="button"
                   onClick={handleResolverIncidente}
                   disabled={resolviendoIncidente}
-                  className="bg-[#0A2A47] text-white px-4 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63] disabled:opacity-60"
+                  className="bg-[#071f35] text-white px-4 py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition disabled:opacity-60"
                 >
                   {resolviendoIncidente ? "Resolviendo..." : "Resolver incidente"}
                 </button>
                 <button
                   type="button"
                   onClick={cerrarResolver}
-                  className="border border-[#0A2A47] text-[#0A2A47] px-4 py-2 rounded font-semibold hover:bg-[#e6f0f8]"
+                  className="border border-[#dbe8f2] text-[#0A2A47] px-4 py-3 rounded-2xl font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                 >
                   Cancelar
                 </button>
@@ -1065,14 +1083,14 @@ export default function Incidentes() {
         )}
 
         {modalVerResolucionOpen && incidenteViendoResolucion && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-xl rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-[#0A2A47]">Ver resolución</h2>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
+            <div className="w-full max-w-xl rounded-[28px] bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
+              <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#e6f0f8]">
+                <h2 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">Ver resolución</h2>
                 <button
                   type="button"
                   onClick={cerrarVerResolucion}
-                  className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
+                  className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] hover:bg-[#e6f0f8] font-bold transition"
                 >
                   ×
                 </button>
@@ -1118,7 +1136,7 @@ export default function Incidentes() {
                 <button
                   type="button"
                   onClick={cerrarVerResolucion}
-                  className="border border-[#0A2A47] text-[#0A2A47] px-4 py-2 rounded font-semibold hover:bg-[#e6f0f8]"
+                    className="border border-[#dbe8f2] text-[#0A2A47] px-4 py-3 rounded-2xl font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                 >
                   Cerrar
                 </button>
@@ -1128,9 +1146,9 @@ export default function Incidentes() {
         )}
 
         {confirmacion && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-md rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-              <h3 className="text-xl font-bold text-[#0A2A47]">{confirmacion.titulo}</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
+            <div className="w-full max-w-md rounded-[28px] bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
+              <h3 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">{confirmacion.titulo}</h3>
               <p className="text-sm text-gray-500 mt-2">{confirmacion.descripcion}</p>
 
               <div className="flex flex-col md:flex-row gap-2 mt-5">
@@ -1140,8 +1158,8 @@ export default function Incidentes() {
                   disabled={ejecutandoConfirmacion}
                   className={`px-4 py-2 rounded font-semibold shadow-sm disabled:opacity-60 ${
                     confirmacion.danger
-                      ? "bg-red-600 text-white hover:bg-red-700"
-                      : "bg-[#0A2A47] text-white hover:bg-[#123b63]"
+                      ? "bg-red-600 text-white hover:bg-red-700 rounded-2xl py-3"
+                      : "bg-[#071f35] text-white hover:bg-[#123b63] rounded-2xl py-3"
                   }`}
                 >
                   {ejecutandoConfirmacion ? "Procesando..." : confirmacion.confirmText}
@@ -1149,7 +1167,7 @@ export default function Incidentes() {
                 <button
                   type="button"
                   onClick={() => setConfirmacion(null)}
-                  className="border border-[#0A2A47] text-[#0A2A47] px-4 py-2 rounded font-semibold hover:bg-[#e6f0f8]"
+                  className="border border-[#dbe8f2] text-[#0A2A47] px-4 py-3 rounded-2xl font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                 >
                   Cancelar
                 </button>

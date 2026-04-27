@@ -3,7 +3,7 @@ import { useObtenerEstructuraUsuarioQuery } from "../../../redux/api/userApi";
 import { useSelector } from "react-redux";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin } from "lucide-react";
+import { AlertTriangle, MapPin, Navigation, ShieldCheck } from "lucide-react";
 
 const Geo = ({ setDentroArea, setValidacionUbicacion }) => {
   const usuario = useSelector((state) => state.usuarios.usuarioLogueado);
@@ -74,53 +74,87 @@ const Geo = ({ setDentroArea, setValidacionUbicacion }) => {
     );
   };
 
-  if (isLoading) return <p className="text-center">Cargando...</p>;
-  if (isError || !data) return <p className="text-center text-red-500">Error al obtener datos.</p>;
+  if (isLoading) {
+    return (
+      <div className="rounded-[28px] border border-[#e6f0f8] bg-white px-5 py-10 text-center text-sm font-medium text-[#6b7b88] shadow-sm">
+        Cargando...
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="rounded-[28px] border border-red-200 bg-white px-5 py-10 text-center text-sm font-medium text-red-600 shadow-sm">
+        Error al obtener datos.
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-2xl border-1 border-[#0A2A47] p-6 text-center flex flex-col items-center gap-4">
-      <h2 className="text-xl font-bold text-[#0A2A47] flex items-center gap-2">
-        <MapPin size={20} className="text-[#3BAE3D]" /> Área de trabajo
-      </h2>
-      <p className="text-gray-700">
-        Dirígete a tu lugar de trabajo y confirma tu ubicación para poder iniciar tus actividades.
-      </p>
-      <button
-        onClick={verificarUbicacion}
-        className="bg-[#3BAE3D] text-white font-bold px-6 py-2 rounded hover:opacity-90 transition"
-      >
-        Empezar
-      </button>
-
-      {estadoUbicacion === "fuera" && (
-        <div className="mt-4 text-center text-amber-700 flex flex-col items-center gap-2">
-          <p>
-            Estás fuera del radio permitido para este lugar de trabajo. Puedes continuar, pero esta
-            actividad quedará marcada para revisión.
-          </p>
-          <button
-            onClick={() => navigate("/lugar")}
-            className="border border-amber-500 text-amber-700 font-bold px-4 py-1 rounded hover:bg-amber-500 hover:text-white transition"
-          >
-            Ver lugar de trabajo
-          </button>
+    <div className="overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-sm">
+      <div className="border-b border-[#edf3f8] px-5 py-5 md:px-6">
+        <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#3BAE3D]">
+          <ShieldCheck size={14} />
+          Validación GPS
         </div>
-      )}
+        <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[#0A2A47]">
+          <MapPin size={22} className="text-[#3BAE3D]" />
+          Área de trabajo
+        </h2>
+        <p className="mt-2 max-w-xl text-sm text-[#5b6b79]">
+          Dirígete a tu lugar de trabajo y confirma tu ubicación para poder iniciar tus actividades.
+        </p>
+      </div>
 
-      {estadoUbicacion === "sin_referencia" && (
-        <div className="mt-4 text-center text-amber-700">
-          <p>
+      <div className="space-y-4 px-5 py-5 text-center md:px-6 md:py-6">
+        <div className="mx-auto flex max-w-md flex-col items-center rounded-[24px] border border-[#e6f0f8] bg-[#fbfdff] px-5 py-6">
+          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#dbe8f2] bg-white text-[#3BAE3D]">
+            <Navigation size={24} />
+          </div>
+          <p className="text-sm leading-relaxed text-[#0A2A47]">
+            Verificaremos tu posición actual para confirmar que estás en el punto correcto antes de comenzar.
+          </p>
+        </div>
+
+        <button
+          onClick={verificarUbicacion}
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#3BAE3D] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:-translate-y-0.5 hover:bg-[#329734]"
+        >
+          <Navigation size={16} />
+          Empezar
+        </button>
+
+        {estadoUbicacion === "fuera" && (
+          <div className="mx-auto mt-2 flex max-w-2xl flex-col items-center gap-3 rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-5 text-center text-amber-800">
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-amber-600">
+              <AlertTriangle size={20} />
+            </div>
+            <p className="text-sm leading-relaxed">
+              Estás fuera del radio permitido para este lugar de trabajo. Puedes continuar, pero esta
+              actividad quedará marcada para revisión.
+            </p>
+            <button
+              onClick={() => navigate("/lugar")}
+              className="rounded-2xl border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+            >
+              Ver lugar de trabajo
+            </button>
+          </div>
+        )}
+
+        {estadoUbicacion === "sin_referencia" && (
+          <div className="mx-auto mt-2 max-w-2xl rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-5 text-center text-sm leading-relaxed text-amber-800">
             Esta locación todavía no tiene un punto GPS de referencia. Podrás continuar, pero la
             verificación quedará marcada para revisión.
-          </p>
-        </div>
-      )}
+          </div>
+        )}
 
-      {estadoUbicacion === "sin_gps" && (
-        <div className="mt-4 text-center text-red-600 flex flex-col items-center gap-2">
-          <p>Necesitamos tu ubicación para poder iniciar tus actividades.</p>
-        </div>
-      )}
+        {estadoUbicacion === "sin_gps" && (
+          <div className="mx-auto mt-2 max-w-2xl rounded-[24px] border border-red-200 bg-red-50 px-5 py-5 text-center text-sm leading-relaxed text-red-600">
+            Necesitamos tu ubicación para poder iniciar tus actividades.
+          </div>
+        )}
+      </div>
     </div>
   );
 };

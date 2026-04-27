@@ -194,237 +194,256 @@ export default function FormularioUsuario({ usuario, modoCrear, setModoCrear, se
     }
   };
 
-  if (!modoCrear && !usuario) {
-    return <div className="h-full flex items-center justify-center text-[#333333]">Selecciona un usuario para editar</div>;
-  }
-
+if (!modoCrear && !usuario) {
   return (
-    <div className="w-full">
-      <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Columna 1: Solo Foto */}
-          <div className="flex flex-col items-center gap-3 w-full">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="group relative h-28 w-28 rounded-full border border-[#e6f0f8] overflow-hidden flex items-center justify-center hover:border-[#0A2A47] focus:outline-none focus:ring-2 focus:ring-[#0A2A47]"
-              title="Seleccionar imagen"
-            >
-              {form.foto ? (
-                <img src={URL.createObjectURL(form.foto)} alt="Foto" className="h-full w-full object-cover" />
-              ) : usuario?.foto ? (
-                <img src={usuario.foto} alt="Foto" className="h-full w-full object-cover" />
-              ) : (
-                <Camera className="text-gray-400 h-10 w-10" />
-              )}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                Cambiar
-              </div>
-            </button>
-            <input
-              ref={fileInputRef}
-              name="foto"
-              type="file"
-              accept="image/*"
-              onChange={handleChange}
-              className="hidden"
-            />
-            <span className="text-xs text-[#0A2A47]">Haz click en la imagen</span>
-          </div>
-          {/* Columna 2 */}
-          <div className="flex flex-col gap-4 w-full">
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Nombre</label>
-              <input
-                name="nombre"
-                value={form.nombre}
-                onChange={handleChange}
-                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Email</label>
-              <input
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Contraseña</label>
-              <input
-                name="contrasena"
-                type="password"
-                value={form.contrasena}
-                onChange={handleChange}
-                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Rol</label>
-              <select
-                name="rol"
-                value={form.rol}
-                onChange={handleChange}
-                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              >
-                <option value="empleado">Empleado</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="cliente">Cliente</option>
-              </select>
-            </div>
-          </div>
-          {/* Columna 3 */}
-          <div className="flex flex-col gap-4 w-full">
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Número</label>
-              <input
-                name="numero"
-                value={form.numero}
-                onChange={handleChange}
-                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Dirección</label>
-              <input
-                name="direccion"
-                value={form.direccion}
-                onChange={handleChange}
-                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Identificación</label>
-              <input
-                name="identificacion"
-                value={form.identificacion}
-                onChange={handleChange}
-                className="w-full border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#0A2A47] mb-1">Área</label>
-              <input
-                name="area_nombre"
-                value={form.area_nombre}
-                readOnly
-                className="w-full border border-[#e6f0f8] bg-[#f5f9fc] rounded-md px-3 py-2 text-[#0A2A47]"
-              />
-            </div>
-          </div>
+    <div className="min-h-[360px] flex items-center justify-center rounded-3xl border border-dashed border-[#dbe8f2] bg-[#f8fbfd] text-center p-8">
+      <div>
+        <div className="mx-auto mb-4 w-12 h-12 rounded-2xl bg-[#0A2A47]/10 text-[#0A2A47] flex items-center justify-center">
+          <Camera size={24} />
         </div>
-        {usuario && form.rol === "cliente" && (
-          <div className="border border-[#e6f0f8] rounded-xl p-4 bg-[#f8fbfe]">
-            <div className="flex flex-col gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-[#0A2A47]">Empresas asignadas</h3>
-                <p className="text-xs text-[#5b6b79] mt-1">
-                  Gestiona las empresas cliente que este usuario podrá consultar más adelante.
-                </p>
-              </div>
-
-              {!puedeConsultarEmpresasAsignadas ? (
-                <div className="rounded-lg border border-[#d9e7f2] bg-white px-3 py-3 text-sm text-[#5b6b79]">
-                  Guarda primero el usuario con rol cliente para habilitar la asignación de empresas.
-                </div>
-              ) : (
-                <>
-                  <div className="flex flex-col md:flex-row gap-3">
-                    <select
-                      value={empresaSeleccionada}
-                      onChange={(e) => setEmpresaSeleccionada(e.target.value)}
-                      className="flex-1 border border-[#0A2A47] rounded-md px-3 py-2 text-[#0A2A47] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-                      disabled={asignandoEmpresa}
-                    >
-                      <option value="">Selecciona una empresa</option>
-                      {empresasDisponibles.map((empresa) => (
-                        <option key={empresa.id} value={empresa.id}>
-                          {empresa.nombre}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleAsignarEmpresa}
-                      disabled={!empresaSeleccionada || asignandoEmpresa}
-                      className="bg-[#0A2A47] text-white px-4 py-2 rounded font-semibold hover:bg-[#123b63] disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {asignandoEmpresa ? "Asignando..." : "Asignar"}
-                    </button>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    {cargandoEmpresasAsignadas ? (
-                      <div className="rounded-lg border border-[#d9e7f2] bg-white px-3 py-3 text-sm text-[#5b6b79]">
-                        Cargando empresas asignadas...
-                      </div>
-                    ) : empresasAsignadas.length === 0 ? (
-                      <div className="rounded-lg border border-[#d9e7f2] bg-white px-3 py-3 text-sm text-[#5b6b79]">
-                        Este cliente todavía no tiene empresas asignadas.
-                      </div>
-                    ) : (
-                      empresasAsignadas.map((asignacion) => (
-                        <div
-                          key={asignacion.id}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-[#d9e7f2] bg-white px-3 py-3"
-                        >
-                          <div>
-                            <p className="text-sm font-semibold text-[#0A2A47]">
-                              {asignacion.empresa?.nombre || "Empresa sin nombre"}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleQuitarEmpresa(asignacion.empresa_id)}
-                            disabled={quitandoEmpresa}
-                            className="border border-[#0A2A47] text-[#0A2A47] px-3 py-1 rounded font-semibold hover:bg-[#e6f0f8] disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            Quitar
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-        {/* Botones */}
-        <div className="flex flex-col md:flex-row gap-3 mt-4">
-          <button
-            type="submit"
-            disabled={creando || editando || (usuario?.rol === "admin" && !modoCrear)}
-            className="flex-1 bg-[#0A2A47] text-white py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
-          >
-            {modoCrear ? "Crear Usuario" : "Guardar Cambios"}
-          </button>
-          <button
-            type="button"
-            onClick={handleEliminar}
-            className="flex-1 border border-[#0A2A47] text-[#0A2A47] py-2 rounded font-semibold hover:bg-[#e6f0f8]"
-            disabled={modoCrear || usuario?.rol === "admin"}
-          >
-            Eliminar
-          </button>
-        </div>
-      </form>
-      {previewOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-          onClick={() => setPreviewOpen(false)}
-        >
-          <img
-            src={form.foto ? URL.createObjectURL(form.foto) : usuario?.foto}
-            alt="Vista previa"
-            className="max-w-[90%] max-h-[90%] object-contain"
-          />
-        </div>
-      )}
+        <p className="text-[#0A2A47] font-bold">Selecciona un usuario</p>
+        <p className="text-sm text-gray-500 mt-1">El detalle aparecerá aquí para editar su información.</p>
+      </div>
     </div>
   );
+}
+
+return (
+  <div className="w-full">
+    <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+      <div className="relative overflow-hidden rounded-3xl border border-[#e6f0f8] bg-white shadow-sm p-5 md:p-6">
+        <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.10),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.06),_transparent_35%)]" />
+        <div className="relative flex flex-col gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_1fr] gap-6">
+            {/* Columna 1: Solo Foto */}
+            <div className="flex flex-col items-center justify-center gap-4 w-full rounded-3xl border border-[#e6f0f8] bg-[#f8fbfd] p-5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="group relative h-32 w-32 rounded-3xl border border-[#e6f0f8] bg-white overflow-hidden flex items-center justify-center shadow-sm hover:border-[#3BAE3D] focus:outline-none focus:ring-4 focus:ring-[#3BAE3D]/10 transition"
+                title="Seleccionar imagen"
+              >
+                {form.foto ? (
+                  <img src={URL.createObjectURL(form.foto)} alt="Foto" className="h-full w-full object-cover" />
+                ) : usuario?.foto ? (
+                  <img src={usuario.foto} alt="Foto" className="h-full w-full object-cover" />
+                ) : (
+                  <Camera className="text-gray-400 h-11 w-11" />
+                )}
+                <div className="absolute inset-0 flex items-center justify-center bg-[#071f35]/70 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                  Cambiar
+                </div>
+              </button>
+              <input
+                ref={fileInputRef}
+                name="foto"
+                type="file"
+                accept="image/*"
+                onChange={handleChange}
+                className="hidden"
+              />
+              <div className="text-center">
+                <p className="text-sm font-semibold text-[#0A2A47]">Foto de perfil</p>
+                <span className="text-xs text-gray-500">Haz click para cambiar la imagen</span>
+              </div>
+            </div>
+            {/* Columna 2 */}
+            <div className="flex flex-col gap-4 w-full">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nombre</label>
+                <input
+                  name="nombre"
+                  value={form.nombre}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Email</label>
+                <input
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Contraseña</label>
+                <input
+                  name="contrasena"
+                  type="password"
+                  value={form.contrasena}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Rol</label>
+                <select
+                  name="rol"
+                  value={form.rol}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                >
+                  <option value="empleado">Empleado</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="cliente">Cliente</option>
+                </select>
+              </div>
+            </div>
+            {/* Columna 3 */}
+            <div className="flex flex-col gap-4 w-full">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Número</label>
+                <input
+                  name="numero"
+                  value={form.numero}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Dirección</label>
+                <input
+                  name="direccion"
+                  value={form.direccion}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Identificación</label>
+                <input
+                  name="identificacion"
+                  value={form.identificacion}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Área</label>
+                <input
+                  name="area_nombre"
+                  value={form.area_nombre}
+                  readOnly
+                  className="w-full px-4 py-3 bg-[#eef5fa] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none cursor-not-allowed"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {usuario && form.rol === "cliente" && (
+        <div className="relative overflow-hidden border border-[#e6f0f8] rounded-3xl p-5 bg-white shadow-sm">
+          <div className="absolute inset-0 pointer-events-none opacity-60 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.08),_transparent_35%)]" />
+          <div className="relative flex flex-col gap-4">
+            <div>
+              <h3 className="text-lg font-extrabold text-[#0A2A47] tracking-tight">Empresas asignadas</h3>
+              <p className="text-xs text-[#5b6b79] mt-1">
+                Gestiona las empresas cliente que este usuario podrá consultar más adelante.
+              </p>
+            </div>
+
+            {!puedeConsultarEmpresasAsignadas ? (
+              <div className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-4 text-sm text-[#5b6b79]">
+                Guarda primero el usuario con rol cliente para habilitar la asignación de empresas.
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col md:flex-row gap-3">
+                  <select
+                    value={empresaSeleccionada}
+                    onChange={(e) => setEmpresaSeleccionada(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 disabled:opacity-60"
+                    disabled={asignandoEmpresa}
+                  >
+                    <option value="">Selecciona una empresa</option>
+                    {empresasDisponibles.map((empresa) => (
+                      <option key={empresa.id} value={empresa.id}>
+                        {empresa.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleAsignarEmpresa}
+                    disabled={!empresaSeleccionada || asignandoEmpresa}
+                    className="bg-[#071f35] text-white px-5 py-3 rounded-xl font-semibold shadow-sm hover:bg-[#123b63] disabled:opacity-60 disabled:cursor-not-allowed transition"
+                  >
+                    {asignandoEmpresa ? "Asignando..." : "Asignar"}
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {cargandoEmpresasAsignadas ? (
+                    <div className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-4 text-sm text-[#5b6b79]">
+                      Cargando empresas asignadas...
+                    </div>
+                  ) : empresasAsignadas.length === 0 ? (
+                    <div className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-4 text-sm text-[#5b6b79]">
+                      Este cliente todavía no tiene empresas asignadas.
+                    </div>
+                  ) : (
+                    empresasAsignadas.map((asignacion) => (
+                      <div
+                        key={asignacion.id}
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 hover:border-[#3BAE3D]/40 transition"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-[#0A2A47]">
+                            {asignacion.empresa?.nombre || "Empresa sin nombre"}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleQuitarEmpresa(asignacion.empresa_id)}
+                          disabled={quitandoEmpresa}
+                          className="border border-[#dbe8f2] text-[#0A2A47] px-3 py-2 rounded-xl font-semibold hover:bg-red-50 hover:text-red-500 hover:border-red-100 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {/* Botones */}
+      <div className="flex flex-col md:flex-row gap-3 mt-2">
+        <button
+          type="submit"
+          disabled={creando || editando || (usuario?.rol === "admin" && !modoCrear)}
+          className="flex-1 bg-[#071f35] text-white py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] disabled:opacity-60 disabled:cursor-not-allowed transition"
+        >
+          {modoCrear ? "Crear Usuario" : "Guardar Cambios"}
+        </button>
+        <button
+          type="button"
+          onClick={handleEliminar}
+          className="flex-1 border border-[#dbe8f2] text-[#0A2A47] py-3 rounded-2xl font-semibold hover:bg-red-50 hover:text-red-500 hover:border-red-100 disabled:opacity-60 disabled:cursor-not-allowed transition"
+          disabled={modoCrear || usuario?.rol === "admin"}
+        >
+          Eliminar
+        </button>
+      </div>
+    </form>
+    {previewOpen && (
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+        onClick={() => setPreviewOpen(false)}
+      >
+        <img
+          src={form.foto ? URL.createObjectURL(form.foto) : usuario?.foto}
+          alt="Vista previa"
+          className="max-w-[90%] max-h-[90%] object-contain rounded-3xl shadow-2xl border border-white/20"
+        />
+      </div>
+    )}
+  </div>
+);
 }

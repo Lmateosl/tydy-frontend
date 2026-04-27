@@ -31,14 +31,14 @@ export default function TablaUsuarios({
   if (!usuarios.length) return <p className="text-center">No hay usuarios para mostrar</p>;
 
   return (
-    <div className="bg-white rounded-xl w-full h-full max-h-[calc(100vh-200px)] overflow-auto border border-[#e6f0f8] shadow-sm">
-      <table className="w-full text-[#0A2A47]">
-        <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
+    <div className="bg-white/95 backdrop-blur-md rounded-2xl w-full h-full max-h-[calc(100vh-200px)] overflow-auto border border-[#e6f0f8] shadow-md">
+      <table className="w-full text-[#0A2A47] text-sm">
+        <thead className="bg-white/90 backdrop-blur sticky top-0 z-10 border-b border-[#e6f0f8]">
           <tr>
-            <th className="py-2 px-3">Foto</th>
+            <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Foto</th>
             {['nombre', 'email', 'rol', 'numero', 'direccion', 'identificacion'].map((campo) => (
-              <th key={campo} className="py-2 px-3 cursor-pointer" onClick={() => ordenarPor(campo)}>
-                <div className="flex items-center gap-1 justify-center">
+              <th key={campo} className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer select-none" onClick={() => ordenarPor(campo)}>
+                <div className="flex items-center gap-1 justify-center text-gray-600">
                   {campo.charAt(0).toUpperCase() + campo.slice(1)}
                   <ArrowUpDown size={14} />
                 </div>
@@ -50,25 +50,29 @@ export default function TablaUsuarios({
           {usuariosOrdenados.map((u) => (
             <tr
               key={u.id}
-              className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${usuarioSeleccionado?.id === u.id ? 'bg-[#d6e6f5] border-l-4 border-[#0A2A47]' : ''}`}
+              className={`cursor-pointer transition-all border-b border-[#edf3f8] hover:bg-[#f4f8fb] ${usuarioSeleccionado?.id === u.id ? 'bg-[#eaf3fb] border-l-4 border-[#071f35]' : ''}`}
               onClick={() => {
                 setUsuarioSeleccionado(u);
                 setModoCrear(false);
               }}
             >
-              <td className="py-2 px-3">
+              <td className="py-3 px-4">
                 <img
                   src={u.foto ? u.foto : defaultFoto}
                   alt="foto"
-                  className="h-10 w-10 rounded-full object-cover border border-[#e6f0f8]"
+                  className="h-10 w-10 rounded-xl object-cover border border-[#e6f0f8] shadow-sm"
                 />
               </td>
-              <td className="py-2 px-3 font-medium">{u.nombre}</td>
-              <td className="py-2 px-3">{u.email}</td>
-              <td className="py-2 px-3 capitalize">{u.rol}</td>
-              <td className="py-2 px-3">{u.numero || "-"}</td>
-              <td className="py-2 px-3">{u.direccion || "-"}</td>
-              <td className="py-2 px-3">{u.identificacion || "-"}</td>
+              <td className="py-3 px-4 font-semibold text-[#0A2A47]">{u.nombre}</td>
+              <td className="py-3 px-4">{u.email}</td>
+              <td className="py-3 px-4">
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f4f8fb] border border-[#e6f0f8] capitalize">
+                  {u.rol}
+                </span>
+              </td>
+              <td className="py-3 px-4">{u.numero || "-"}</td>
+              <td className="py-3 px-4">{u.direccion || "-"}</td>
+              <td className="py-3 px-4">{u.identificacion || "-"}</td>
             </tr>
           ))}
         </tbody>

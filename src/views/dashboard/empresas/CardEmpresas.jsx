@@ -87,46 +87,105 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
   };
 
   return (
-    <div className="bg-white border border-[#0A2A47] p-4 rounded-xl flex flex-col h-full">
-      <h2 className="text-xl font-bold text-[#0A2A47] mb-4 text-center">Empresas</h2>
-      <button onClick={() => { setModoCrear(true); setModalEditarAbierto(false); setEmpresaSeleccionada(null); setForm({ nombre: "", foto: null }); }} className="bg-[#0A2A47] text-white w-full py-1 mb-2 rounded font-semibold shadow-sm hover:bg-[#123b63]">
-        <Plus className="inline mr-1" size={16} /> Crear Empresa
-      </button>
-      <input
-        placeholder="Buscar empresa"
-        className="border border-[#0A2A47] bg-white rounded px-2 py-1 mb-4 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
-        value={filtro}
-        onChange={(e) => setFiltro(e.target.value)}
-      />
+    <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white shadow-xl shadow-[#0A2A47]/5">
+      <div className="relative overflow-hidden border-b border-[#e6f0f8] px-5 py-5 md:px-6">
+        <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.06),_transparent_38%)]" />
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-extrabold tracking-tight text-[#0A2A47]">Empresas</h2>
+                <Camera size={16} className="text-[#5b6b79]" />
+              </div>
+              <p className="mt-1 text-xs text-[#5b6b79]">
+                Clientes y organizaciones registradas.
+              </p>
+            </div>
+          </div>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-[#e6f0f8]">
-        <table className="w-full text-center text-[#0A2A47]">
-          <thead className="sticky top-0 bg-white text-[#0A2A47] border-b border-[#e6f0f8]">
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => { setModoCrear(true); setModalEditarAbierto(false); setEmpresaSeleccionada(null); setForm({ nombre: "", foto: null }); }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#071f35] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#071f35]/15 transition hover:bg-[#0A2A47]"
+            >
+              <Plus size={16} />
+              Crear Empresa
+            </button>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Camera size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" />
+                <input
+                  placeholder="Buscar empresa"
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setOrdenAsc(!ordenAsc)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47]"
+              >
+                Ordenar
+                {ordenAsc ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6 md:py-6">
+        <table className="w-full table-fixed text-left text-sm text-[#0A2A47]">
+          <colgroup>
+            <col className="w-auto" />
+            <col className="w-[92px]" />
+          </colgroup>
+          <thead className="sticky top-0 z-10 border-b border-[#e6f0f8] bg-white/95 backdrop-blur">
             <tr>
-              <th className="py-2 px-3">Foto</th>
-              <th className="py-2 px-3 cursor-pointer flex items-center justify-center" onClick={() => setOrdenAsc(!ordenAsc)}>Nombre {ordenAsc ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</th>
+              <th className="px-3 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">
+                Empresa
+              </th>
+              <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">
+                Editar
+              </th>
             </tr>
           </thead>
           <tbody>
             {empresasFiltradas.map((e) => (
               <tr
                 key={e.id}
-                className={`cursor-pointer transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${empresaSeleccionada?.id === e.id ? "bg-[#d6e6f5] border-l-4 border-[#0A2A47]" : ""}`}
+                className={`cursor-pointer border-b border-[#edf3f8] transition ${
+                  empresaSeleccionada?.id === e.id ? "bg-[#edf5fb]" : "hover:bg-white"
+                }`}
                 onClick={() => handleSelect(e)}
               >
-                <td className="py-2 px-3 flex justify-center">
-                  {e.imagen ? <img src={e.imagen} alt="Foto" className="h-8 w-8 rounded-full object-cover" /> : <div className="h-8 w-8 rounded-full border flex items-center justify-center"><Camera size={14} className="text-gray-400" /></div>}
+                <td className="px-3 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    {e.imagen ? (
+                      <img
+                        src={e.imagen}
+                        alt="Foto"
+                        className="h-9 w-9 rounded-xl object-cover border border-[#e6f0f8] shadow-sm"
+                      />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e6f0f8] bg-[#f8fbfd]">
+                        <Camera size={14} className="text-gray-400" />
+                      </div>
+                    )}
+                    <p className="truncate font-semibold text-[#0A2A47]">{e.nombre}</p>
+                  </div>
                 </td>
-                <td className="py-2 px-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <span>{e.nombre}</span>
+                <td className="px-3 py-3">
+                  <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={(event) => {
                         event.stopPropagation();
                         handleOpenEditar(e);
                       }}
-                      className="rounded-full p-1 text-[#0A2A47] hover:bg-[#d6e6f5]"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe8f2] bg-white text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
                       title="Editar empresa"
                     >
                       <Pencil size={14} />
@@ -140,10 +199,10 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
       </div>
 
       {(modoCrear || modalEditarAbierto) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white border border-[#0A2A47] shadow-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[18px] text-[#0A2A47]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md rounded-3xl bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#e6f0f8]">
+              <h3 className="font-extrabold text-2xl text-[#0A2A47] tracking-tight">
                 {modoCrear ? "Crear Empresa" : "Editar Empresa"}
               </h3>
               <button
@@ -153,17 +212,17 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
                   setModalEditarAbierto(false);
                   setForm({ nombre: "", foto: null });
                 }}
-                className="text-[#0A2A47] hover:bg-[#e6f0f8] rounded-full px-2 py-1 font-bold"
+                className="w-9 h-9 rounded-xl bg-[#f4f8fb] text-[#0A2A47] hover:bg-[#e6f0f8] font-bold transition"
               >
                 ×
               </button>
             </div>
 
-            <div className="flex flex-col items-center gap-2 mb-4 text-[#0A2A47] text-wrap w-full">
+            <div className="flex flex-col items-center gap-3 mb-5 text-[#0A2A47] text-wrap w-full rounded-3xl border border-[#e6f0f8] bg-[#f8fbfd] p-5">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative h-24 w-24 rounded-full border border-[#e6f0f8] overflow-hidden flex items-center justify-center hover:border-[#0A2A47] focus:outline-none focus:ring-2 focus:ring-[#0A2A47]"
+                className="group relative h-28 w-28 rounded-3xl border border-[#e6f0f8] bg-white overflow-hidden flex items-center justify-center shadow-sm hover:border-[#3BAE3D] focus:outline-none focus:ring-4 focus:ring-[#3BAE3D]/10 transition"
                 title="Seleccionar imagen"
               >
                 {form.foto ? (
@@ -171,9 +230,9 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
                 ) : empresaSeleccionada?.imagen ? (
                   <img src={empresaSeleccionada.imagen} alt="Foto" className="h-full w-full object-cover" />
                 ) : (
-                  <Camera className="text-gray-400 h-8 w-8" />
+                  <Camera className="text-gray-400 h-10 w-10" />
                 )}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#071f35]/70 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                   Cambiar
                 </div>
               </button>
@@ -184,26 +243,26 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
                 onChange={(e) => setForm({ ...form, foto: e.target.files[0] })}
                 className="hidden"
               />
-              <p className="text-xs text-[#0A2A47]">Haz click en la imagen para cambiarla</p>
+              <p className="text-xs text-gray-500">Haz click en la imagen para cambiarla</p>
             </div>
 
             <input
               placeholder="Nombre de la empresa"
-              className="border border-[#0A2A47] bg-white rounded-md px-2 py-2 mb-4 w-full text-[#0A2A47] placeholder:text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+              className="w-full px-4 py-3 mb-4 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
               value={form.nombre}
               onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             />
 
             {modoCrear ? (
-              <button onClick={handleCrear} className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]">
+              <button onClick={handleCrear} className="bg-[#071f35] text-white w-full py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition">
                 Crear
               </button>
             ) : (
               <div className="flex flex-col gap-2">
-                <button onClick={handleEditar} className="bg-[#0A2A47] text-white w-full py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]">
+                <button onClick={handleEditar} className="bg-[#071f35] text-white w-full py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition">
                   Actualizar
                 </button>
-                <button onClick={handleEliminar} className="border border-[#0A2A47] text-[#0A2A47] w-full py-2 rounded font-semibold hover:bg-[#e6f0f8]">
+                <button onClick={handleEliminar} className="border border-[#dbe8f2] text-[#0A2A47] w-full py-3 rounded-2xl font-semibold hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition">
                   Eliminar
                 </button>
               </div>

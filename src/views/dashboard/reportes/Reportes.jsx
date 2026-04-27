@@ -756,10 +756,24 @@ export default function Reportes() {
 
   return (
     <Layout>
-      <div className="bg-white p-4">
-        <h1 className="text-3xl font-extrabold text-[#0A2A47] mb-4">Reportes</h1>
+      <div className="p-4 md:p-6 bg-[#f4f8fb] min-h-full">
+        <div className="relative overflow-hidden mb-6 rounded-[28px] bg-white border border-[#e6f0f8] shadow-xl shadow-[#0A2A47]/5 p-5 md:p-6">
+          <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.08),_transparent_35%)]" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A2A47] tracking-tight">Reportes</h1>
+              <p className="mt-2 text-sm text-[#5b6b79] max-w-2xl">
+                Consolida verificación operativa, evidencia, geolocalización y trazabilidad por empleado, checklist y locación.
+              </p>
+            </div>
+            <div className="hidden lg:flex items-center gap-2 rounded-2xl bg-[#f4f8fb] border border-[#e6f0f8] px-4 py-3 text-sm font-semibold text-[#0A2A47]">
+              <ClipboardList size={18} className="text-[#3BAE3D]" />
+              Inteligencia operativa
+            </div>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
           <TarjetaResumen
             titulo="Reportes"
             valor={resumen.total}
@@ -793,11 +807,11 @@ export default function Reportes() {
           />
         </div>
 
-        <div className="bg-white border border-[#e6f0f8] rounded-xl p-4 mb-6 flex flex-wrap gap-3 shadow-sm">
+        <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 mb-6 flex flex-wrap gap-3 shadow-sm">
           <select
             value={usuarioId}
             onChange={e => setUsuarioId(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full sm:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 w-full sm:w-auto text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           >
             <option value="">Todos los usuarios</option>
             {usuarios.map(u => (
@@ -809,7 +823,7 @@ export default function Reportes() {
           <select
             value={finalizada}
             onChange={e => setFinalizada(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full sm:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 w-full sm:w-auto text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           >
             <option value="">Todas</option>
             <option value="true">Finalizadas</option>
@@ -818,7 +832,7 @@ export default function Reportes() {
           <select
             value={empresaFiltro}
             onChange={e => setEmpresaFiltro(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full sm:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 w-full sm:w-auto text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           >
             <option value="">Todas las empresas</option>
             {empresas.map((emp, i) => (
@@ -828,7 +842,7 @@ export default function Reportes() {
           <select
             value={estadoFiltro}
             onChange={e => setEstadoFiltro(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full sm:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 w-full sm:w-auto text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           >
             {estadosVerificacionOpciones.map((estado) => (
               <option key={estado.value || "all"} value={estado.value}>
@@ -840,28 +854,28 @@ export default function Reportes() {
             type="datetime-local"
             value={desde}
             onChange={e => setDesde(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full sm:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 w-full sm:w-auto text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           />
           <input
             type="datetime-local"
             value={hasta}
             onChange={e => setHasta(e.target.value)}
-            className="border border-[#0A2A47] px-3 py-2 rounded-md w-full sm:w-auto text-[#0A2A47] focus:outline-none focus:ring-1 focus:ring-[#0A2A47]"
+            className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 w-full sm:w-auto text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
           />
           <button
-            className="bg-[#0A2A47] text-white px-6 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
+            className="rounded-2xl bg-[#071f35] text-white px-6 py-3 font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition"
             onClick={descargarExcel}
           >
             Descargar Excel
           </button>
           <button
-            className="bg-[#0A2A47] text-white px-6 py-2 rounded font-semibold shadow-sm hover:bg-[#123b63]"
+            className="rounded-2xl bg-[#071f35] text-white px-6 py-3 font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition"
             onClick={exportarPDFReportes}
           >
             Exportar PDF
           </button>
           <button
-            className="border border-[#0A2A47] text-[#0A2A47] px-6 py-2 rounded font-semibold hover:bg-[#e6f0f8]"
+            className="rounded-2xl border border-[#dbe8f2] text-[#0A2A47] px-6 py-3 font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
             onClick={() => {
               setUsuarioId("");
               setFinalizada("");
@@ -877,7 +891,7 @@ export default function Reportes() {
 
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-xl font-bold text-[#0A2A47]">Historial de actividades verificadas</h2>
+            <h2 className="text-xl font-extrabold tracking-tight text-[#0A2A47]">Historial de actividades verificadas</h2>
             <p className="text-sm text-gray-500">Consulta, filtra y exporta la evidencia operativa registrada.</p>
           </div>
           <span className="text-sm font-semibold text-[#0A2A47]">
@@ -885,26 +899,26 @@ export default function Reportes() {
           </span>
         </div>
 
-        <div className="rounded-xl border border-[#e6f0f8] bg-white shadow-sm">
-          <div className="max-h-[50vh] overflow-x-auto overflow-y-auto rounded-xl">
+        <div className="rounded-3xl border border-[#e6f0f8] bg-white shadow-sm">
+          <div className="max-h-[50vh] overflow-x-auto overflow-y-auto rounded-3xl">
             <table className="min-w-full text-sm text-[#0A2A47]">
-              <thead className="bg-white text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
+              <thead className="bg-white/95 backdrop-blur text-[#0A2A47] border-b border-[#e6f0f8] sticky top-0 z-10">
                 <tr>
-                  <th className="py-2 px-3">Estado</th>
-                  <th className="py-2 px-3">Hora Inicio</th>
-                  <th className="py-2 px-3">Hora Fin</th>
-                  <th className="py-2 px-3">Lista</th>
-                  <th className="py-2 px-3">Actividades Lista</th>
-                  <th className="py-2 px-3">Finalizada</th>
-                  <th className="py-2 px-3">Comentario</th>
-                  <th className="py-2 px-3">Encargado</th>
-                  <th className="py-2 px-3">ID Encargado</th>
-                  <th className="py-2 px-3">Empresa</th>
-                  <th className="py-2 px-3">Locación</th>
-                  <th className="py-2 px-3">Área</th>
-                  <th className="py-2 px-3">Imagen</th>
-                  <th className="py-2 px-3">Verificación</th>
-                  <th className="py-2 px-3">Incidente</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Estado</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Hora Inicio</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Hora Fin</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Lista</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Actividades Lista</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Finalizada</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Comentario</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Encargado</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">ID Encargado</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Empresa</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Locación</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Área</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Imagen</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Verificación</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Incidente</th>
                 </tr>
               </thead>
               <tbody>
@@ -920,11 +934,11 @@ export default function Reportes() {
                         actividadRowRefs.current[a.id] = node;
                       }
                     }}
-                    className={`transition-colors border-b border-[#e6f0f8] hover:bg-[#e6f0f8] ${
+                    className={`transition-colors border-b border-[#edf3f8] hover:bg-[#fbfdff] ${
                       highlightedActividadId === a.id ? "bg-[#eef6ff] border-l-4 border-l-[#0A2A47]" : ""
                     }`}
                   >
-                  <td className="py-2 px-3 align-top">
+                  <td className="py-4 px-4 align-top">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${obtenerEstiloEstado(a.estado_verificacion)}`}
                     >
@@ -932,49 +946,49 @@ export default function Reportes() {
                       {formatearEstadoVerificacion(a.estado_verificacion)}
                     </span>
                   </td>
-                  <td className="py-2 px-3 align-top">{formatFecha(a.hora_inicio)}</td>
-                  <td className="py-2 px-3 align-top">{formatFecha(a.hora_fin)}</td>
-                  <td className="py-2 px-3 align-top">{a.lista?.nombre || "-"}</td>
-                  <td className="py-2 px-3 align-top">
+                  <td className="py-4 px-4 align-top">{formatFecha(a.hora_inicio)}</td>
+                  <td className="py-4 px-4 align-top">{formatFecha(a.hora_fin)}</td>
+                  <td className="py-4 px-4 align-top">{a.lista?.nombre || "-"}</td>
+                  <td className="py-4 px-4 align-top">
                     <ul className="list-disc list-inside space-y-1 text-left">
                       {a.lista?.actividades?.length ? a.lista.actividades.map((act, i) => (
                         <li key={i}>{act.nombre || "-"}</li>
                       )) : "-"}
                     </ul>
                   </td>
-                  <td className="py-2 px-3 align-top">{a.finalizada ? "Sí" : "No"}</td>
-                  <td className="py-2 px-3 align-top">{a.comentario || "-"}</td>
-                  <td className="py-2 px-3 align-top">{a.usuario?.nombre || "-"}</td>
-                  <td className="py-2 px-3 align-top">{a.usuario?.identificacion || "-"}</td>
-                  <td className="py-2 px-3 align-top">{a.usuario?.area?.locacion?.empresa?.nombre || "-"}</td>
-                  <td className="py-2 px-3 align-top">{a.usuario?.area?.locacion?.nombre || "-"}</td>
-                  <td className="py-2 px-3 align-top">{a.usuario?.area?.nombre || "-"}</td>
-                  <td className="py-2 px-3 align-top">
+                  <td className="py-4 px-4 align-top">{a.finalizada ? "Sí" : "No"}</td>
+                  <td className="py-4 px-4 align-top">{a.comentario || "-"}</td>
+                  <td className="py-4 px-4 align-top">{a.usuario?.nombre || "-"}</td>
+                  <td className="py-4 px-4 align-top">{a.usuario?.identificacion || "-"}</td>
+                  <td className="py-4 px-4 align-top">{a.usuario?.area?.locacion?.empresa?.nombre || "-"}</td>
+                  <td className="py-4 px-4 align-top">{a.usuario?.area?.locacion?.nombre || "-"}</td>
+                  <td className="py-4 px-4 align-top">{a.usuario?.area?.nombre || "-"}</td>
+                  <td className="py-4 px-4 align-top">
                     {a.imagen && a.imagen !== "string" ? (
                       <img
                         src={a.imagen}
                         alt="Evidencia"
-                        className="h-16 w-16 object-cover cursor-pointer rounded-md border border-[#e6f0f8] shadow-sm hover:opacity-80"
+                        className="h-16 w-16 object-cover cursor-pointer rounded-xl border border-[#e6f0f8] shadow-sm hover:opacity-80"
                         onClick={() => setImagenSeleccionada(a.imagen)}
                       />
                     ) : "-"}
                   </td>
-                  <td className="py-2 px-3 align-top">
+                  <td className="py-4 px-4 align-top">
                     <button
                       type="button"
                       onClick={() => setActividadVerificacion(a)}
-                      className="inline-flex items-center gap-1 rounded-md border border-[#0A2A47] px-2 py-1 text-xs font-semibold text-[#0A2A47] hover:bg-[#e6f0f8]"
+                      className="inline-flex items-center gap-1 rounded-xl border border-[#dbe8f2] bg-white px-3 py-2 text-xs font-semibold text-[#0A2A47] hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                     >
                       <ShieldCheck size={14} />
                       Ver
                     </button>
                   </td>
-                  <td className="py-2 px-3 align-top">
+                  <td className="py-4 px-4 align-top">
                     {incidenteAsociado ? (
                       <button
                         type="button"
                         onClick={() => navigate(`/incidentes?actividad=${a.id}`)}
-                        className="inline-flex items-center gap-1 rounded-md border border-[#0A2A47] px-2 py-1 text-xs font-semibold text-[#0A2A47] hover:bg-[#e6f0f8]"
+                        className="inline-flex items-center gap-1 rounded-xl border border-[#dbe8f2] bg-white px-3 py-2 text-xs font-semibold text-[#0A2A47] hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                       >
                         <AlertTriangle size={14} />
                         Ver incidente
@@ -993,23 +1007,23 @@ export default function Reportes() {
         </div>
         {imagenSeleccionada && (
           <div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+            className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center z-50 px-4"
             onClick={() => setImagenSeleccionada(null)}
           >
             <img
               src={imagenSeleccionada}
               alt="Vista ampliada"
-              className="max-h-[90%] max-w-[90%] object-contain rounded-xl border border-[#0A2A47] bg-white p-2 shadow-xl"
+              className="max-h-[90%] max-w-[90%] object-contain rounded-[28px] border border-[#e6f0f8] bg-white p-3 shadow-2xl"
             />
           </div>
         )}
         {actividadVerificacion && (
           <div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setActividadVerificacion(null)}
           >
             <div
-              className="bg-white rounded-xl border border-[#0A2A47] shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto"
+              className="bg-white rounded-[28px] border border-[#e6f0f8] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white border-b border-[#e6f0f8] p-4 flex items-center justify-between gap-4">
@@ -1094,7 +1108,7 @@ export default function Reportes() {
                       <img
                         src={actividadVerificacion.imagen}
                         alt="Evidencia"
-                        className="max-h-64 w-full object-contain rounded-md border border-[#e6f0f8] shadow-sm"
+                        className="max-h-64 w-full object-contain rounded-xl border border-[#e6f0f8] shadow-sm"
                       />
                     ) : (
                       <p className="text-sm text-[#0A2A47]">Sin imagen</p>
@@ -1105,7 +1119,7 @@ export default function Reportes() {
                 <button
                   type="button"
                   onClick={() => exportarPDFVerificacion(actividadVerificacion)}
-                  className="w-full rounded bg-[#0A2A47] py-2 text-white font-semibold shadow-sm hover:bg-[#123b63]"
+                  className="w-full rounded-2xl bg-[#071f35] py-3 text-white font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition"
                 >
                   Descargar PDF verificable
                 </button>
@@ -1113,7 +1127,7 @@ export default function Reportes() {
                 <button
                   type="button"
                   onClick={() => setActividadVerificacion(null)}
-                  className="w-full rounded border border-[#0A2A47] py-2 text-[#0A2A47] font-semibold hover:bg-[#e6f0f8]"
+                  className="w-full rounded-2xl border border-[#dbe8f2] py-3 text-[#0A2A47] font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                 >
                   Cerrar
                 </button>
