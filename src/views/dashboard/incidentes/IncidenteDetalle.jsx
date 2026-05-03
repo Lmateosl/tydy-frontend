@@ -395,23 +395,23 @@ export default function IncidenteDetalle({
           }`}
         >
           <div className="flex h-full flex-col">
-            <div className="border-b border-[#e6f0f8] bg-white px-4 py-4 md:px-6 md:py-5">
+            <div className="border-b border-[#e6f0f8] bg-white px-4 py-3 md:px-6 md:py-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b8a97]">Ticket de incidente</p>
-                  <h2 className="mt-2 text-lg font-extrabold tracking-tight text-[#0A2A47] md:text-lg">
+                  <h2 className="mt-1.5 text-base font-extrabold tracking-tight text-[#0A2A47] md:mt-2 md:text-lg">
                     {incidente.descripcion}
                   </h2>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 md:mt-3 md:gap-2">
                     <TipoBadge tipo={incidente.tipo} />
                     <EstadoBadge estado={incidente.estado} />
                     <PrioridadBadge prioridad={incidente.prioridad} />
                   </div>
-                  <div className="mt-4 rounded-[24px] border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-4">
+                  <div className="mt-3 rounded-[20px] border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-3 md:mt-4 md:rounded-[24px] md:px-4 md:py-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Encargado del ticket</p>
                     {encargadoActual ? (
-                      <div className="mt-2">
-                        <p className="text-lg font-extrabold text-[#0A2A47]">{encargadoActual.nombre}</p>
+                      <div className="mt-1.5 md:mt-2">
+                        <p className="text-base font-extrabold text-[#0A2A47] md:text-lg">{encargadoActual.nombre}</p>
                         <p className="text-sm text-[#5b6b79]">
                           {encargadoActual.rol ? `Rol: ${encargadoActual.rol}` : "Responsable asignado"}
                         </p>
@@ -428,7 +428,7 @@ export default function IncidenteDetalle({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-white"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-white md:h-11 md:w-11"
                   aria-label="Cerrar detalle"
                 >
                   ×

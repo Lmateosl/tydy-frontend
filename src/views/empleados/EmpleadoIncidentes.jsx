@@ -354,21 +354,21 @@ export default function EmpleadoIncidentes() {
   return (
     <Layout>
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-5 md:px-6">
-        <section className="relative overflow-hidden rounded-[28px] border border-[#e6f0f8] bg-white p-5 shadow-xl shadow-[#0A2A47]/5 md:p-6">
+        <section className="relative overflow-hidden rounded-[24px] border border-[#e6f0f8] bg-white p-4 shadow-xl shadow-[#0A2A47]/5 md:rounded-[28px] md:p-6">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.16),_transparent_38%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.1),_transparent_42%)]" />
-          <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#3BAE3D]">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#3BAE3D] md:mb-2 md:text-[11px] md:tracking-[0.24em]">
                 Seguimiento
               </p>
-              <h2 className="text-3xl font-extrabold tracking-tight text-[#0A2A47] md:text-4xl">
+              <h2 className="text-2xl font-extrabold tracking-tight text-[#0A2A47] md:text-4xl">
                 Mis incidentes
               </h2>
-              <p className="mt-2 text-sm text-[#5b6b79]">
+              <p className="mt-1.5 text-sm text-[#5b6b79] md:mt-2">
                 Revisa tus tickets relacionados, agrega contexto operativo y marca como resueltos los casos atendidos para revisión del supervisor.
               </p>
             </div>
-            <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-2 text-sm font-semibold text-[#0A2A47]">
+            <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-1.5 text-xs font-semibold text-[#0A2A47] md:px-4 md:py-2 md:text-sm">
               <ShieldAlert size={16} />
               {isLoading ? "Cargando..." : `${incidentesOrdenados.length} incidentes`}
             </div>
