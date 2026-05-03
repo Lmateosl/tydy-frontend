@@ -395,30 +395,34 @@ export default function IncidenteDetalle({
           }`}
         >
           <div className="flex h-full flex-col">
-            <div className="border-b border-[#e6f0f8] bg-white px-4 py-3 md:px-6 md:py-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b8a97]">Ticket de incidente</p>
-                  <h2 className="mt-1.5 text-base font-extrabold tracking-tight text-[#0A2A47] md:mt-2 md:text-lg">
+            <div className="border-b border-[#e6f0f8] bg-white px-4 py-2.5 md:px-6 md:py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7b8a97] md:text-xs md:tracking-[0.24em]">
+                    Ticket de incidente
+                  </p>
+                  <h2 className="mt-1 line-clamp-2 pr-2 text-sm font-extrabold tracking-tight text-[#0A2A47] md:mt-2 md:text-lg">
                     {incidente.descripcion}
                   </h2>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 md:mt-3 md:gap-2">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 md:mt-3 md:gap-2">
                     <TipoBadge tipo={incidente.tipo} />
                     <EstadoBadge estado={incidente.estado} />
                     <PrioridadBadge prioridad={incidente.prioridad} />
                   </div>
-                  <div className="mt-3 rounded-[20px] border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-3 md:mt-4 md:rounded-[24px] md:px-4 md:py-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Encargado del ticket</p>
+                  <div className="mt-2 rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-3 py-2.5 md:mt-4 md:rounded-[24px] md:px-4 md:py-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7b8a97] md:text-[11px] md:tracking-[0.18em]">
+                      Encargado del ticket
+                    </p>
                     {encargadoActual ? (
-                      <div className="mt-1.5 md:mt-2">
-                        <p className="text-base font-extrabold text-[#0A2A47] md:text-lg">{encargadoActual.nombre}</p>
-                        <p className="text-sm text-[#5b6b79]">
+                      <div className="mt-1 flex flex-col gap-0.5 md:mt-2">
+                        <p className="text-sm font-extrabold text-[#0A2A47] md:text-lg">{encargadoActual.nombre}</p>
+                        <p className="text-xs text-[#5b6b79] md:text-sm">
                           {encargadoActual.rol ? `Rol: ${encargadoActual.rol}` : "Responsable asignado"}
                         </p>
                       </div>
                     ) : (
-                      <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700">
-                        <AlertTriangle size={15} />
+                      <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 md:mt-2 md:px-3 md:py-1.5 md:text-sm">
+                        <AlertTriangle size={14} />
                         Sin asignar
                       </div>
                     )}
@@ -428,7 +432,7 @@ export default function IncidenteDetalle({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-white md:h-11 md:w-11"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-white md:h-11 md:w-11 md:rounded-2xl"
                   aria-label="Cerrar detalle"
                 >
                   ×

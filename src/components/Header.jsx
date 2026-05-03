@@ -10,6 +10,7 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
   const usuarioLogueado = useSelector((state) => state.usuarios.usuarioLogueado);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const dispatch = useDispatch();
+  const isEmpleado = usuarioLogueado?.rol === "empleado";
 
   const handleLogout = () => {
       setShowLogoutConfirm(false);
@@ -21,7 +22,9 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full h-[64px] flex items-center justify-between px-4 bg-[#071f35]/95 backdrop-blur-md text-white shadow-lg shadow-black/20 z-50 border-b border-white/10">
+      <header
+        className={`left-0 top-0 w-full text-white border-b border-white/10 ${isEmpleado ? "relative h-[56px] px-3 bg-[#071f35] shadow-md shadow-black/10" : "fixed h-[64px] px-4 bg-[#071f35]/95 backdrop-blur-md shadow-lg shadow-black/20 z-50"} flex items-center justify-between`}
+      >
         
         {/* Botón de abrir sidebar solo en móvil */}
         {usuarioLogueado?.rol !== "empleado" ?
@@ -33,7 +36,7 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
           </button>
           :
           <button
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-[#3BAE3D]/20 text-[#b7f7ba] border border-[#3BAE3D]/30 hover:bg-[#3BAE3D]/30 transition"
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-[#3BAE3D]/20 text-[#b7f7ba] border border-[#3BAE3D]/30 hover:bg-[#3BAE3D]/30 transition"
             onClick={() => setShowLogoutConfirm(true)}
           >
             {sidebarOpen ? '' : <LogOut size={20} />}
@@ -41,8 +44,8 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
         }
 
         {/* Logo */}
-        <div className="mx-auto md:mx-0 flex items-center gap-2 bg-white/10 border border-white/10 px-3 py-1.5 rounded-xl shadow-inner">
-          <img src={logo} alt="Logo" className="h-6 w-auto object-contain" />
+        <div className={`mx-auto md:mx-0 flex items-center gap-2 bg-white/10 border border-white/10 rounded-xl shadow-inner ${isEmpleado ? "px-2.5 py-1" : "px-3 py-1.5"}`}>
+          <img src={logo} alt="Logo" className={`${isEmpleado ? "h-5" : "h-6"} w-auto object-contain`} />
           <span className="hidden sm:block text-sm font-semibold tracking-wide">TYDY</span>
         </div>
 

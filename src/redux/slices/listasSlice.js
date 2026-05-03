@@ -1,13 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
+import {
+  getActividadAbiertaGuardada,
+  guardarActividadAbierta,
+  limpiarActividadAbierta,
+} from "../../utils/actividadAbiertaStorage";
 
-if (typeof window !== 'undefined') {
-  window.localStorage.removeItem('listaActiva');
-  window.localStorage.removeItem('historialId');
-}
+const actividadAbiertaGuardada = getActividadAbiertaGuardada();
 
 const initialState = {
-  listaActiva: null,
-  historialId: null,
+  listaActiva: actividadAbiertaGuardada?.listaActiva || null,
+  historialId: actividadAbiertaGuardada?.historialId || null,
 };
 
 const listasSlice = createSlice({
@@ -16,15 +18,29 @@ const listasSlice = createSlice({
   reducers: {
     setListaActiva: (state, action) => {
       state.listaActiva = action.payload;
+      if (state.listaActiva && state.historialId) {
+        guardarActividadAbierta({
+          listaActiva: state.listaActiva,
+          historialId: state.historialId,
+        });
+      }
     },
     borrarListaActiva: (state) => {
       state.listaActiva = null;
+      limpiarActividadAbierta();
     },
     setHistorialId: (state, action) => {
       state.historialId = action.payload;
+      if (state.listaActiva && state.historialId) {
+        guardarActividadAbierta({
+          listaActiva: state.listaActiva,
+          historialId: state.historialId,
+        });
+      }
     },
     borrarHistorialId: (state) => {
       state.historialId = null;
+      limpiarActividadAbierta();
     },
   },
 });

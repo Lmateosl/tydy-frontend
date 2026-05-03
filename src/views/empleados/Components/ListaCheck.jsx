@@ -5,6 +5,11 @@ import { toast } from "react-toastify";
 import { useState, useRef, useEffect } from "react";
 import { BrowserQRCodeReader } from "@zxing/browser";
 import { QrCode, Camera, CheckCircle2, X, ClipboardList, MessageSquare, ShieldCheck, Keyboard } from "lucide-react";
+import {
+  getActividadProgresoGuardado,
+  guardarActividadProgreso,
+  limpiarActividadProgreso,
+} from "../../../utils/actividadAbiertaStorage";
 
 const calcularDistancia = (lat1, lon1, lat2, lon2) => {
   const toRad = (valor) => (valor * Math.PI) / 180;
@@ -38,6 +43,7 @@ function ListaCheck() {
   const dispatch = useDispatch();
   const listaActiva = useSelector((state) => state.listas.listaActiva);
   const historialId = useSelector((state) => state.listas.historialId);
+  const currentUser = useSelector((state) => state.usuarios?.usuarioLogueado);
   const [comentario, setComentario] = useState("");
   const [codigoIngresado, setCodigoIngresado] = useState("");
   const [actividadesFinalizadas, setActividadesFinalizadas] = useState([]);
@@ -115,6 +121,43 @@ function ListaCheck() {
     };
   }, [imagenPreviewUrl]);
 
+  useEffect(() => {
+    if (!currentUser?.id || !historialId) {
+      setActividadesFinalizadas([]);
+      setComentario("");
+      setCodigoIngresado("");
+      return;
+    }
+
+    const progresoGuardado = getActividadProgresoGuardado(currentUser.id, historialId);
+    if (!progresoGuardado) {
+      setActividadesFinalizadas([]);
+      setComentario("");
+      setCodigoIngresado("");
+      return;
+    }
+
+    setActividadesFinalizadas(Array.isArray(progresoGuardado.actividadesFinalizadas) ? progresoGuardado.actividadesFinalizadas : []);
+    setComentario(progresoGuardado.comentario || "");
+    setCodigoIngresado(progresoGuardado.codigoIngresado || "");
+  }, [currentUser?.id, historialId]);
+
+  useEffect(() => {
+    if (!currentUser?.id || !historialId || !listaActiva) return;
+
+    guardarActividadProgreso({
+      userId: currentUser.id,
+      historialId,
+      progreso: {
+        listaId: listaActiva.id,
+        listaNombre: listaActiva.nombre,
+        actividadesFinalizadas,
+        comentario,
+        codigoIngresado,
+      },
+    });
+  }, [actividadesFinalizadas, comentario, codigoIngresado, currentUser?.id, historialId, listaActiva]);
+
   const finalizarProceso = async (metodoFin = "manual") => {
     if (actividadesFinalizadas.length !== listaActiva.actividades.length) {
       toast.error("Debes marcar todas las actividades como finalizadas.");
@@ -160,6 +203,7 @@ function ListaCheck() {
       setSubiendo(true);
       await finalizarActividad({ actividad_id: historialId, datos: formData }).unwrap();
       toast.success("Lista finalizada correctamente.");
+      limpiarActividadProgreso(currentUser?.id, historialId);
       dispatch(borrarListaActiva());
       dispatch(borrarHistorialId());
     } catch (error) {
