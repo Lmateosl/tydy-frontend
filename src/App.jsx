@@ -10,6 +10,7 @@ import Cuenta from "./views/dashboard/cuenta/Cuenta";
 import Main from "./views/empleados/Main";
 import CeuntaEmp from "./views/empleados/CuentaEmp";
 import Lugar from "./views/empleados/Lugar";
+import EmpleadoIncidentes from "./views/empleados/EmpleadoIncidentes";
 import Reportes from "./views/dashboard/reportes/Reportes";
 import FeedbackQR from "./views/dashboard/listas/FeedbackQR";
 import Feedback from "./views/empleados/Feedback";
@@ -70,6 +71,7 @@ function App() {
           <>
             <Route path="/main" element={<Main />} />
             <Route path="/lugar" element={<Lugar />} />
+            <Route path="/mis-incidentes" element={<EmpleadoIncidentes />} />
             <Route path="/cuenta-empleado" element={<CeuntaEmp />} />
           </>
         )}

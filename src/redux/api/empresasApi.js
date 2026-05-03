@@ -29,7 +29,12 @@ export const empresasApi = apiSlice.injectEndpoints({
       }),
     }),
     obtenerLocaciones: builder.query({
-      query: () => "/locaciones/",
+      query: (params = {}) => {
+        const query = [];
+        if (params.supervisor_id) query.push(`supervisor_id=${encodeURIComponent(params.supervisor_id)}`);
+        const qs = query.length ? `?${query.join("&")}` : "";
+        return `/locaciones/${qs}`;
+      },
     }),
     crearLocacion: builder.mutation({
       query: (nuevaLocacion) => ({
@@ -52,6 +57,26 @@ export const empresasApi = apiSlice.injectEndpoints({
       query: (locacion_id) => ({
         url: `/locaciones/${locacion_id}`,
         method: "DELETE",
+      }),
+    }),
+    asignarSupervisorLocacion: builder.mutation({
+      query: ({ locacion_id, supervisor_id }) => ({
+        url: `/locaciones/${locacion_id}/supervisor`,
+        method: "PUT",
+        body: { supervisor_id },
+      }),
+    }),
+    quitarSupervisorLocacion: builder.mutation({
+      query: (locacion_id) => ({
+        url: `/locaciones/${locacion_id}/supervisor`,
+        method: "DELETE",
+      }),
+    }),
+    aplicarSupervisorEmpresa: builder.mutation({
+      query: ({ empresa_id, supervisor_id }) => ({
+        url: `/empresas/${empresa_id}/supervisor`,
+        method: "PUT",
+        body: { supervisor_id },
       }),
     }),
     obtenerLocacionesPorEmpresa: builder.query({
@@ -115,6 +140,9 @@ export const {
   useObtenerLocacionQuery,
   useEditarLocacionMutation,
   useEliminarLocacionMutation,
+  useAsignarSupervisorLocacionMutation,
+  useQuitarSupervisorLocacionMutation,
+  useAplicarSupervisorEmpresaMutation,
   useObtenerLocacionesPorEmpresaQuery,
   useObtenerAreasUsuarioQuery,
   useCrearAreaMutation,

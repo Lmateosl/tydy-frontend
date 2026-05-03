@@ -9,15 +9,19 @@ import {
   Plus,
   Radar,
   Search,
+  ShieldCheck,
   Trash2,
 } from "lucide-react";
 import {
+  useAsignarSupervisorLocacionMutation,
   useCrearLocacionMutation,
   useEditarLocacionMutation,
   useEliminarLocacionMutation,
+  useQuitarSupervisorLocacionMutation,
   useLazyBuscarCoordenadasQuery,
   useLazyBuscarDireccionPorCoordenadasQuery,
 } from "../../../redux/api/empresasApi";
+import { useObtenerUsuariosQuery } from "../../../redux/api/userApi";
 import LocationPickerMap from "./LocationPickerMap";
 
 const LOCATIONIQ_LOGO_URL = "https://res.cloudinary.com/mr-builder/image/upload/v1777177394/62cba99749e8c69abccdde05_locationiq-logo_ld8imk.png";
@@ -40,6 +44,7 @@ export default function CardLocaciones({
     latitud: "",
     longitud: "",
     radio_verificacion_metros: 1000,
+    supervisor_id: "",
   });
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalSugerenciasAbierto, setModalSugerenciasAbierto] = useState(false);
@@ -49,9 +54,25 @@ export default function CardLocaciones({
   const [crearLocacion] = useCrearLocacionMutation();
   const [editarLocacion] = useEditarLocacionMutation();
   const [eliminarLocacion] = useEliminarLocacionMutation();
+  const [asignarSupervisorLocacion] = useAsignarSupervisorLocacionMutation();
+  const [quitarSupervisorLocacion] = useQuitarSupervisorLocacionMutation();
   const [buscarCoordenadas, { isFetching: buscandoDireccionTexto }] = useLazyBuscarCoordenadasQuery();
   const [buscarDireccionPorCoordenadas, { isFetching: buscandoDireccionMapa }] =
     useLazyBuscarDireccionPorCoordenadasQuery();
+  const { data: usuarios = [] } = useObtenerUsuariosQuery();
+
+  const supervisores = useMemo(
+    () => usuarios.filter((usuario) => usuario.rol === "supervisor"),
+    [usuarios]
+  );
+
+  const supervisoresMap = useMemo(
+    () => supervisores.reduce((acc, supervisor) => {
+      acc[supervisor.id] = supervisor;
+      return acc;
+    }, {}),
+    [supervisores]
+  );
 
   const locacionesFiltradas = useMemo(() => {
     const filtradas = locaciones.filter((l) =>
@@ -70,6 +91,7 @@ export default function CardLocaciones({
       latitud: "",
       longitud: "",
       radio_verificacion_metros: 1000,
+      supervisor_id: "",
     });
   };
 
@@ -88,6 +110,7 @@ export default function CardLocaciones({
       latitud: locacion.latitud,
       longitud: locacion.longitud,
       radio_verificacion_metros: locacion.radio_verificacion_metros || 1000,
+      supervisor_id: locacion.supervisor_id || "",
     });
     setModoCrear(false);
     setModalFormularioAbierto(true);
@@ -109,23 +132,45 @@ export default function CardLocaciones({
       return;
     }
     try {
+      let locacionGuardada = null;
+
       if (modoCrear) {
-        await crearLocacion({
+        locacionGuardada = await crearLocacion({
           ...form,
           radio_verificacion_metros: Number(form.radio_verificacion_metros),
           empresa_id: empresaSeleccionada.id,
+          supervisor_id: undefined,
         }).unwrap();
+
+        if (form.supervisor_id) {
+          await asignarSupervisorLocacion({
+            locacion_id: locacionGuardada.id,
+            supervisor_id: form.supervisor_id,
+          }).unwrap();
+        }
+
         toast.success("Locación creada");
         refetch();
         refreshTotales();
       } else {
-        await editarLocacion({
+        locacionGuardada = await editarLocacion({
           locacion_id: locacionSeleccionada.id,
           datos: {
             ...form,
             radio_verificacion_metros: Number(form.radio_verificacion_metros),
+            supervisor_id: undefined,
           },
         }).unwrap();
+
+        if (form.supervisor_id) {
+          await asignarSupervisorLocacion({
+            locacion_id: locacionGuardada.id,
+            supervisor_id: form.supervisor_id,
+          }).unwrap();
+        } else if (locacionSeleccionada?.supervisor_id) {
+          await quitarSupervisorLocacion(locacionSeleccionada.id).unwrap();
+        }
+
         toast.success("Locación actualizada");
         refetch();
       }
@@ -312,6 +357,18 @@ export default function CardLocaciones({
                       <p className="mt-0.5 text-xs text-[#7b8a97]" title={l.direccion}>
                         {l.direccion?.length > 8 ? `${l.direccion.slice(0, 8)}...` : l.direccion}
                       </p>
+                      <div className="mt-2">
+                        {l.supervisor_id ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                            <ShieldCheck size={12} />
+                            {supervisoresMap[l.supervisor_id]?.nombre || "Supervisor asignado"}
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                            Sin supervisor
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="px-3 py-3">
@@ -352,7 +409,7 @@ export default function CardLocaciones({
 
       {modalFormularioAbierto && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
-          <div className="w-full max-w-xl rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl">
+          <div className="w-full max-w-[45rem] rounded-[28px] border border-[#e6f0f8] bg-white shadow-2xl">
             <div className="border-b border-[#e6f0f8] px-5 py-5 md:px-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -376,7 +433,7 @@ export default function CardLocaciones({
               </div>
             </div>
 
-            <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
+            <div className="grid grid-cols-1 gap-5 px-5 py-5 md:grid-cols-2 md:px-6 md:py-5">
               <div>
                 <label className="mb-2 block text-sm font-semibold text-[#0A2A47]">Nombre de la locación</label>
                 <input
@@ -388,7 +445,7 @@ export default function CardLocaciones({
                 />
               </div>
 
-              <div className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] p-4">
+              <div className="rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] p-4 md:col-span-2">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-[#0A2A47]">Ubicación verificada</p>
@@ -432,7 +489,26 @@ export default function CardLocaciones({
                 />
               </div>
 
-              <div className="flex flex-col gap-3 pt-2">
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#0A2A47]">
+                  <ShieldCheck size={16} />
+                  Supervisor principal
+                </label>
+                <select
+                  className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                  value={form.supervisor_id}
+                  onChange={(e) => setForm({ ...form, supervisor_id: e.target.value })}
+                >
+                  <option value="">Sin supervisor</option>
+                  {supervisores.map((supervisor) => (
+                    <option key={supervisor.id} value={supervisor.id}>
+                      {supervisor.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-1 md:col-span-2 md:flex-row">
                 <button
                   onClick={handleSubmit}
                   className="w-full rounded-2xl bg-[#3BAE3D] px-4 py-3 font-semibold text-white shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]"

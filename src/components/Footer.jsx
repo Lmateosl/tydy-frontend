@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { MapPin, Home, User } from "lucide-react";
+import { MapPin, Home, User, TriangleAlert } from "lucide-react";
 
 export default function Footer() {
   const location = useLocation();
@@ -29,6 +29,12 @@ export default function Footer() {
           <Home size={22} className={isActive("/main") ? "text-[#3BAE3D]" : ""} />
           <span className="text-[11px] font-medium">Inicio</span>
           {isActive("/main") && <span className="w-1.5 h-1.5 rounded-full bg-[#3BAE3D]" />}
+        </button>
+
+        <button className={getButtonClass("/mis-incidentes")} onClick={() => navigate("/mis-incidentes")}>
+          <TriangleAlert size={22} className={isActive("/mis-incidentes") ? "text-[#3BAE3D]" : ""} />
+          <span className="text-[11px] font-medium">Incidentes</span>
+          {isActive("/mis-incidentes") && <span className="w-1.5 h-1.5 rounded-full bg-[#3BAE3D]" />}
         </button>
 
         <button className={getButtonClass("/cuenta-empleado")} onClick={() => navigate("/cuenta-empleado")}>

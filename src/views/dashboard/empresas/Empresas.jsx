@@ -110,6 +110,7 @@ export default function Empresas() {
                 setLocacionSeleccionada(null);
               }}
               refetch={refetch}
+              refreshLocaciones={refreshLoc}
               refreshTotales={refreshTotales}
             />
           </div>

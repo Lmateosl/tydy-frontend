@@ -157,11 +157,11 @@ export default function ListasActividades() {
               </div>
             </div>
 
-            <div className="overflow-auto rounded-3xl border border-[#e6f0f8] bg-white shadow-sm">        
-                <table className="w-full text-left text-sm text-[#0A2A47]">
+            <div className="mx-auto w-full max-w-[1200px]">
+                <div className="overflow-x-auto rounded-3xl border border-[#e6f0f8] bg-white shadow-sm">
+                <table className="min-w-[920px] w-full text-left text-sm text-[#0A2A47]">
                     <thead className="sticky top-0 z-10 bg-white/95 backdrop-blur">
                         <tr className="border-b border-[#e6f0f8]">
-                            <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">QR</th>
                             <th onClick={() => setOrdenAsc(!ordenAsc)} className="cursor-pointer px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Nombre</th>
                             <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Inicio</th>
                             <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Finalización</th>
@@ -173,19 +173,6 @@ export default function ListasActividades() {
                     <tbody className="text-[#0A2A47]">
                     {listasFiltradas.map((l) => (
                         <tr key={l.id} className="border-b border-[#edf3f8] transition hover:bg-[#fbfdff]">
-                            <td className="px-4 py-4 align-top">
-                              {l.qrin ? (
-                                <button
-                                  className="inline-flex rounded-xl border border-[#dbe8f2] bg-white p-1.5 transition hover:border-[#0A2A47]"
-                                  onClick={() => window.open(l.qrin)}
-                                  title="Abrir QR"
-                                >
-                                  <img src={l.qrin} alt="QR" className="h-8 w-8 rounded border border-[#e6f0f8]" />
-                                </button>
-                              ) : (
-                                <span className="text-[#7b8a97]">-</span>
-                              )}
-                            </td>
                             <td className="px-4 py-4 align-top">
                               <div className="min-w-[180px]">
                                 <p className="font-semibold text-[#0A2A47]">{l.nombre}</p>
@@ -206,6 +193,16 @@ export default function ListasActividades() {
                                     </span>
                                   )}
                                 </div>
+                                {l.qrin && (
+                                  <button
+                                    className="inline-flex items-center gap-2 rounded-xl border border-[#dbe8f2] bg-white px-3 py-2 text-xs font-medium text-[#0A2A47] transition hover:border-[#0A2A47]"
+                                    onClick={() => window.open(l.qrin)}
+                                    title="Abrir QR de inicio"
+                                  >
+                                    <img src={l.qrin} alt="QR inicio" className="h-7 w-7 rounded border border-[#e6f0f8]" />
+                                    Ver QR
+                                  </button>
+                                )}
                               </div>
                             </td>
                             <td className="px-4 py-4 align-top">
@@ -255,6 +252,7 @@ export default function ListasActividades() {
                     ))}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {modalOpen && (

@@ -1,23 +1,33 @@
 import { useState, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
-import { Plus, ArrowDown, ArrowUp, Camera, Pencil } from "lucide-react";
+import { Plus, ArrowDown, ArrowUp, Camera, Pencil, ShieldCheck } from "lucide-react";
 import {
+  useAplicarSupervisorEmpresaMutation,
   useCrearEmpresaMutation,
   useEditarEmpresaMutation,
   useEliminarEmpresaMutation
 } from '../../../redux/api/empresasApi'
+import { useObtenerUsuariosQuery } from "../../../redux/api/userApi";
 
-export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresaSeleccionada, refetch, refreshTotales }) {
+export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresaSeleccionada, refetch, refreshLocaciones, refreshTotales }) {
   const [filtro, setFiltro] = useState("");
   const [modoCrear, setModoCrear] = useState(false);
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
   const [ordenAsc, setOrdenAsc] = useState(true);
   const [form, setForm] = useState({ nombre: "", foto: null });
+  const [supervisorEmpresaId, setSupervisorEmpresaId] = useState("");
   const fileInputRef = useRef(null);
 
   const [crearEmpresa] = useCrearEmpresaMutation();
   const [editarEmpresa] = useEditarEmpresaMutation();
   const [eliminarEmpresa] = useEliminarEmpresaMutation();
+  const [aplicarSupervisorEmpresa] = useAplicarSupervisorEmpresaMutation();
+  const { data: usuarios = [] } = useObtenerUsuariosQuery();
+
+  const supervisores = useMemo(
+    () => usuarios.filter((usuario) => usuario.rol === "supervisor"),
+    [usuarios]
+  );
 
   const empresasFiltradas = useMemo(() => {
     let filtradas = empresas.filter((e) => e.nombre.toLowerCase().includes(filtro.toLowerCase()));
@@ -83,6 +93,30 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
       refreshTotales();
     } catch {
       toast.error("Error al eliminar empresa");
+    }
+  };
+
+  const handleAplicarSupervisorEmpresa = async () => {
+    if (!empresaSeleccionada?.id) {
+      toast.error("No hay empresa seleccionada.");
+      return;
+    }
+    if (!supervisorEmpresaId) {
+      toast.error("Selecciona un supervisor.");
+      return;
+    }
+
+    try {
+      const resultado = await aplicarSupervisorEmpresa({
+        empresa_id: empresaSeleccionada.id,
+        supervisor_id: supervisorEmpresaId,
+      }).unwrap();
+      toast.success(`Supervisor aplicado en ${resultado.locaciones_actualizadas} locaciones`);
+      refetch();
+      refreshLocaciones?.();
+      refreshTotales();
+    } catch {
+      toast.error("No se pudo aplicar el supervisor a la empresa");
     }
   };
 
@@ -200,7 +234,7 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
 
       {(modoCrear || modalEditarAbierto) && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md rounded-3xl bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
+          <div className="w-full max-w-[40rem] rounded-3xl bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
             <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#e6f0f8]">
               <h3 className="font-extrabold text-2xl text-[#0A2A47] tracking-tight">
                 {modoCrear ? "Crear Empresa" : "Editar Empresa"}
@@ -218,58 +252,109 @@ export default function CardEmpresas({ empresas, setEmpresaSeleccionada, empresa
               </button>
             </div>
 
-            <div className="flex flex-col items-center gap-3 mb-5 text-[#0A2A47] text-wrap w-full rounded-3xl border border-[#e6f0f8] bg-[#f8fbfd] p-5">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="group relative h-28 w-28 rounded-3xl border border-[#e6f0f8] bg-white overflow-hidden flex items-center justify-center shadow-sm hover:border-[#3BAE3D] focus:outline-none focus:ring-4 focus:ring-[#3BAE3D]/10 transition"
-                title="Seleccionar imagen"
-              >
-                {form.foto ? (
-                  <img src={URL.createObjectURL(form.foto)} alt="Foto" className="h-full w-full object-cover" />
-                ) : empresaSeleccionada?.imagen ? (
-                  <img src={empresaSeleccionada.imagen} alt="Foto" className="h-full w-full object-cover" />
-                ) : (
-                  <Camera className="text-gray-400 h-10 w-10" />
-                )}
-                <div className="absolute inset-0 flex items-center justify-center bg-[#071f35]/70 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                  Cambiar
-                </div>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={(e) => setForm({ ...form, foto: e.target.files[0] })}
-                className="hidden"
-              />
-              <p className="text-xs text-gray-500">Haz click en la imagen para cambiarla</p>
-            </div>
-
-            <input
-              placeholder="Nombre de la empresa"
-              className="w-full px-4 py-3 mb-4 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-            />
-
-            {modoCrear ? (
-              <button onClick={handleCrear} className="bg-[#071f35] text-white w-full py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition">
-                Crear
-              </button>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <button onClick={handleEditar} className="bg-[#071f35] text-white w-full py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition">
-                  Actualizar
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+              <div className="flex flex-col items-center gap-3 text-[#0A2A47] text-wrap w-full rounded-3xl border border-[#e6f0f8] bg-[#f8fbfd] p-5">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="group relative h-28 w-28 rounded-3xl border border-[#e6f0f8] bg-white overflow-hidden flex items-center justify-center shadow-sm hover:border-[#3BAE3D] focus:outline-none focus:ring-4 focus:ring-[#3BAE3D]/10 transition"
+                  title="Seleccionar imagen"
+                >
+                  {form.foto ? (
+                    <img src={URL.createObjectURL(form.foto)} alt="Foto" className="h-full w-full object-cover" />
+                  ) : empresaSeleccionada?.imagen ? (
+                    <img src={empresaSeleccionada.imagen} alt="Foto" className="h-full w-full object-cover" />
+                  ) : (
+                    <Camera className="text-gray-400 h-10 w-10" />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#071f35]/70 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                    Cambiar
+                  </div>
                 </button>
-                <button onClick={handleEliminar} className="border border-[#dbe8f2] text-[#0A2A47] w-full py-3 rounded-2xl font-semibold hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition">
-                  Eliminar
-                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setForm({ ...form, foto: e.target.files[0] })}
+                  className="hidden"
+                />
+                <p className="text-center text-xs text-gray-500">Haz click en la imagen para cambiarla</p>
               </div>
-            )}
+
+              <div className="flex flex-col gap-4">
+                <input
+                  placeholder="Nombre de la empresa"
+                  className="w-full px-4 py-3 bg-[#f8fbfd] text-[#0A2A47] border border-[#dbe8f2] rounded-xl outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10 placeholder:text-gray-400"
+                  value={form.nombre}
+                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                />
+
+                {modoCrear ? (
+                  <button onClick={handleCrear} className="bg-[#071f35] text-white w-full py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition">
+                    Crear
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="rounded-3xl border border-[#e6f0f8] bg-[#f8fbfd] p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl border border-[#dbe8f2] bg-white text-[#0A2A47]">
+                          <ShieldCheck size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-bold text-[#0A2A47]">
+                            Supervisor principal para locaciones
+                          </h4>
+                          <p className="mt-1 text-xs leading-5 text-[#5b6b79]">
+                            Aplica el supervisor seleccionado a todas las locaciones de esta empresa.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <label className="mb-2 block text-sm font-semibold text-[#0A2A47]">
+                          Supervisor principal
+                        </label>
+                        <select
+                          className="w-full rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                          value={supervisorEmpresaId}
+                          onChange={(e) => setSupervisorEmpresaId(e.target.value)}
+                        >
+                          <option value="">Selecciona un supervisor</option>
+                          {supervisores.map((supervisor) => (
+                            <option key={supervisor.id} value={supervisor.id}>
+                              {supervisor.nombre}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        Reemplazará el supervisor principal de todas las locaciones de esta empresa.
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAplicarSupervisorEmpresa}
+                        className="mt-4 w-full rounded-2xl border border-[#dbe8f2] bg-white px-4 py-3 font-semibold text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#fdfefe]"
+                      >
+                        Aplicar supervisor a todas las locaciones
+                      </button>
+                    </div>
+
+                    <button onClick={handleEditar} className="bg-[#071f35] text-white w-full py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition">
+                      Actualizar
+                    </button>
+                    <button onClick={handleEliminar} className="border border-[#dbe8f2] text-[#0A2A47] w-full py-3 rounded-2xl font-semibold hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition">
+                      Eliminar
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -43,7 +43,7 @@ export const listasApi = apiSlice.injectEndpoints({
       query: (payload) => ({
         url: "/listas_actividades/feedback/list",
         method: "POST",
-        body: payload, // { empresa_id, contexto? }
+        body: payload, // { empresa_id, locacion_id?, contexto? }
       }),
     }),
     obtenerFeedbackQr: builder.query({
@@ -55,7 +55,7 @@ export const listasApi = apiSlice.injectEndpoints({
       query: ({ feedback_id, datos }) => ({
         url: `/listas_actividades/feedback/${feedback_id}`,
         method: "PUT",
-        body: datos, // { empresa_id?, contexto? }
+        body: datos, // { empresa_id?, locacion_id?, contexto? }
       }),
     }),
     eliminarFeedbackQr: builder.mutation({
@@ -75,10 +75,23 @@ export const listasApi = apiSlice.injectEndpoints({
       // POST /listas_actividades/feedback-user (multipart/form-data)
       query: (data) => {
         const formData = new FormData();
-        formData.append("empresa", data.empresa);
-        formData.append("direccion", data.direccion);
+        if (data.empresa !== undefined && data.empresa !== null && data.empresa !== "") {
+          formData.append("empresa", data.empresa);
+        }
+        if (data.direccion !== undefined && data.direccion !== null && data.direccion !== "") {
+          formData.append("direccion", data.direccion);
+        }
         formData.append("calificacion", String(data.calificacion));
         formData.append("company_id", data.company_id);
+        if (data.empresa_id !== undefined && data.empresa_id !== null && data.empresa_id !== "") {
+          formData.append("empresa_id", data.empresa_id);
+        }
+        if (data.contexto !== undefined && data.contexto !== null && data.contexto !== "") {
+          formData.append("contexto", data.contexto);
+        }
+        if (data.locacion_id !== undefined && data.locacion_id !== null && data.locacion_id !== "") {
+          formData.append("locacion_id", data.locacion_id);
+        }
 
         if (data.nombre !== undefined && data.nombre !== null && data.nombre !== "") {
           formData.append("nombre", data.nombre);
@@ -88,11 +101,6 @@ export const listasApi = apiSlice.injectEndpoints({
         }
         if (data.foto) {
           formData.append("foto", data.foto); // debe ser un File/Blob
-        }
-
-        // Debug: ver qué campos se están enviando
-        for (const [key, value] of formData.entries()) {
-          console.log("FORMDATA FEEDBACK USER:", key, value);
         }
 
         return {

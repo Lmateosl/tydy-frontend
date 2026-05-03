@@ -19,6 +19,7 @@ const Feedback = () => {
   const contextoQueryRaw = searchParams.get("contexto") || "";
   const companyIdQuery = searchParams.get("company_id") || "";
   const empresaNombreQueryRaw = searchParams.get("empresa") || "";
+  const locacionIdQuery = searchParams.get("locacion_id") || "";
   const modoModerno = Boolean(empresaIdQuery);
 
   const contextoQuery = useMemo(
@@ -93,6 +94,9 @@ const Feedback = () => {
         if (contextoQuery) {
           payload.contexto = contextoQuery;
           payload.direccion = contextoQuery;
+        }
+        if (locacionIdQuery) {
+          payload.locacion_id = locacionIdQuery;
         }
         if (empresaNombreQuery) {
           payload.empresa = empresaNombreQuery;

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import Layout from "../../../components/Layout";
 import { useObtenerUsuariosQuery } from "../../../redux/api/userApi";
 import { useObtenerMiCompaniaQuery } from "../../../redux/api/userApi";
+import { useObtenerEmpresasQuery, useObtenerLocacionesQuery } from "../../../redux/api/empresasApi";
 import { Download, Plus, Users, Shield, UserCheck, User, UserCircle } from "lucide-react";
 import TablaUsuarios from "./TablaUsuarios";
 import FormularioUsuario from "./FormularioUsuario";
@@ -11,19 +12,73 @@ import autoTable from "jspdf-autotable";
 export default function Usuarios() {
   const { data: usuarios = [], isLoading, isError, refetch } = useObtenerUsuariosQuery();
   const { data: compania } = useObtenerMiCompaniaQuery();
+  const { data: empresas = [] } = useObtenerEmpresasQuery();
+  const { data: locaciones = [] } = useObtenerLocacionesQuery();
   const [filtro, setFiltro] = useState("");
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [modoCrear, setModoCrear] = useState(false);
   const [modalFormularioAbierto, setModalFormularioAbierto] = useState(false);
 
+  const empresasMap = useMemo(
+    () =>
+      empresas.reduce((acc, empresa) => {
+        acc[empresa.id] = empresa;
+        return acc;
+      }, {}),
+    [empresas]
+  );
+
+  const usuariosEnriquecidos = useMemo(() => {
+    return usuarios.map((usuario) => {
+      if (usuario.rol !== "supervisor") {
+        return {
+          ...usuario,
+          cobertura_supervision: "No aplica",
+          supervision_locaciones: [],
+          supervision_empresas: [],
+        };
+      }
+
+      const locacionesAsignadas = locaciones.filter(
+        (locacion) => locacion.supervisor_id === usuario.id
+      );
+
+      if (!locacionesAsignadas.length) {
+        return {
+          ...usuario,
+          cobertura_supervision: "Sin locaciones asignadas",
+          supervision_locaciones: [],
+          supervision_empresas: [],
+        };
+      }
+
+      const nombresLocaciones = locacionesAsignadas.map((locacion) => locacion.nombre);
+      const nombresEmpresas = [
+        ...new Set(
+          locacionesAsignadas
+            .map((locacion) => empresasMap[locacion.empresa_id]?.nombre)
+            .filter(Boolean)
+        ),
+      ];
+
+      return {
+        ...usuario,
+        cobertura_supervision: `${nombresLocaciones.length} locación${nombresLocaciones.length === 1 ? "" : "es"}`,
+        supervision_locaciones: nombresLocaciones,
+        supervision_empresas: nombresEmpresas,
+      };
+    });
+  }, [usuarios, locaciones, empresasMap]);
+
   const usuariosFiltrados = useMemo(() => {
-    return usuarios.filter(
+    return usuariosEnriquecidos.filter(
       (u) =>
         u.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
         (u.identificacion || "").toLowerCase().includes(filtro.toLowerCase()) ||
-        u.email.toLowerCase().includes(filtro.toLowerCase())
+        u.email.toLowerCase().includes(filtro.toLowerCase()) ||
+        (u.cobertura_supervision || "").toLowerCase().includes(filtro.toLowerCase())
     );
-  }, [filtro, usuarios]);
+  }, [filtro, usuariosEnriquecidos]);
 
   const abrirCrearUsuario = () => {
     setUsuarioSeleccionado(null);
@@ -213,28 +268,28 @@ export default function Usuarios() {
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
           <TarjetaResumen
             titulo="Total usuarios"
-            valor={usuarios.length}
+            valor={usuariosEnriquecidos.length}
             icono={<Users size={20} />}
             principal
           />
           <TarjetaResumen
             titulo="Administradores"
-            valor={usuarios.filter(u => u.rol === 'admin').length}
+            valor={usuariosEnriquecidos.filter(u => u.rol === 'admin').length}
             icono={<Shield size={16} />}
           />
           <TarjetaResumen
             titulo="Supervisores"
-            valor={usuarios.filter(u => u.rol === 'supervisor').length}
+            valor={usuariosEnriquecidos.filter(u => u.rol === 'supervisor').length}
             icono={<UserCheck size={16} />}
           />
           <TarjetaResumen
             titulo="Empleados"
-            valor={usuarios.filter(u => u.rol === 'empleado').length}
+            valor={usuariosEnriquecidos.filter(u => u.rol === 'empleado').length}
             icono={<User size={16} />}
           />
           <TarjetaResumen
             titulo="Clientes"
-            valor={usuarios.filter(u => u.rol === 'cliente').length}
+            valor={usuariosEnriquecidos.filter(u => u.rol === 'cliente').length}
             icono={<UserCircle size={16} />}
           />
         </div>

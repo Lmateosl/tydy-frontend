@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Eye, ImageIcon, MapPin, MessageSquareText, Pencil, Plus, ScanSearch, Search, ShieldAlert, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Eye, ImageIcon, MapPin, MessageSquareText, Plus, ScanSearch, Search, ShieldAlert, XCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import Layout from "../../../components/Layout";
+import IncidenteDetalle from "./IncidenteDetalle";
 import {
   useCerrarIncidenteMutation,
   useCrearIncidenteMutation,
-  useEditarIncidenteMutation,
   useEliminarIncidenteMutation,
   useObtenerIncidentesQuery,
   useResolverIncidenteMutation,
@@ -18,6 +19,7 @@ import {
   useObtenerLocacionesQuery,
 } from "../../../redux/api/empresasApi";
 import { useObtenerUsuariosQuery } from "../../../redux/api/userApi";
+import { formatBackendDateTime, getBusinessPeriodRange } from "../../../utils/dateTime";
 
 const TIPOS_INCIDENTE = [
   { value: "manual", label: "Manual" },
@@ -58,6 +60,14 @@ const RESOLVER_INICIAL = {
   evidencia_resolucion: "",
   foto_resolucion: null,
 };
+
+const PERIODOS_INCIDENTES = [
+  { value: "hoy", label: "Hoy" },
+  { value: "7dias", label: "7 días" },
+  { value: "1mes", label: "1 mes" },
+  { value: "6meses", label: "6 meses" },
+  { value: "1anio", label: "1 año" },
+];
 
 function TarjetaResumen({ titulo, valor, icono, principal = false }) {
   if (principal) {
@@ -228,14 +238,38 @@ function getIncidentSourceMeta(incidente) {
 export default function Incidentes() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { data: incidentes = [], isLoading, isFetching, isError } = useObtenerIncidentesQuery();
+  const currentUser = useSelector((state) => state.usuarios?.usuarioLogueado);
+  const currentRole = (currentUser?.rol || "").toLowerCase();
+  const isAdmin = currentRole === "admin";
+  const isSupervisor = currentRole === "supervisor";
+  const isEmpleado = currentRole === "empleado";
+  const canCreate = isAdmin || isSupervisor;
+  const canEdit = isAdmin || isSupervisor;
+  const canResolve = isAdmin || isSupervisor;
+  const canClose = isAdmin || isSupervisor;
+  const canDelete = isAdmin;
+
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("1mes");
+
+  const rangoPeriodo = useMemo(() => {
+    const { desde, hasta } = getBusinessPeriodRange(periodoSeleccionado);
+    return {
+      desde,
+      hasta,
+      params: {
+        desde: formatBackendDateTime(desde),
+        hasta: formatBackendDateTime(hasta),
+      },
+    };
+  }, [periodoSeleccionado]);
+
+  const { data: incidentes = [], isLoading, isFetching, isError } = useObtenerIncidentesQuery(rangoPeriodo.params);
   const { data: empresas = [] } = useObtenerEmpresasQuery();
   const { data: locaciones = [] } = useObtenerLocacionesQuery();
   const { data: areas = [] } = useObtenerAreasUsuarioQuery();
   const { data: usuarios = [] } = useObtenerUsuariosQuery();
 
   const [crearIncidente, { isLoading: creandoIncidente }] = useCrearIncidenteMutation();
-  const [editarIncidente, { isLoading: editandoIncidente }] = useEditarIncidenteMutation();
   const [resolverIncidente, { isLoading: resolviendoIncidente }] = useResolverIncidenteMutation();
   const [cerrarIncidente, { isLoading: cerrandoIncidente }] = useCerrarIncidenteMutation();
   const [eliminarIncidente, { isLoading: eliminandoIncidente }] = useEliminarIncidenteMutation();
@@ -243,14 +277,18 @@ export default function Incidentes() {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroPrioridad, setFiltroPrioridad] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroLocacion, setFiltroLocacion] = useState("");
+  const [filtroArea, setFiltroArea] = useState("");
+  const [filtroSupervisor, setFiltroSupervisor] = useState("");
   const [busqueda, setBusqueda] = useState("");
 
   const [modalFormularioOpen, setModalFormularioOpen] = useState(false);
   const [modalResolverOpen, setModalResolverOpen] = useState(false);
   const [confirmacion, setConfirmacion] = useState(null);
-  const [incidenteEditando, setIncidenteEditando] = useState(null);
   const [incidenteResolviendo, setIncidenteResolviendo] = useState(null);
   const [incidenteViendoResolucion, setIncidenteViendoResolucion] = useState(null);
+  const [incidenteDetalleId, setIncidenteDetalleId] = useState(null);
+  const [detalleOpen, setDetalleOpen] = useState(false);
   const [highlightedIncidenteId, setHighlightedIncidenteId] = useState(null);
   const [modalVerResolucionOpen, setModalVerResolucionOpen] = useState(false);
   const [fotoResolucionPreview, setFotoResolucionPreview] = useState(null);
@@ -302,7 +340,7 @@ export default function Incidentes() {
   );
 
   const supervisores = useMemo(
-    () => usuarios.filter((usuario) => usuario.rol === "admin" || usuario.rol === "supervisor"),
+    () => usuarios.filter((usuario) => usuario.rol === "supervisor"),
     [usuarios]
   );
 
@@ -311,24 +349,57 @@ export default function Incidentes() {
     [usuarios]
   );
 
+  const supervisorLocacionesIds = useMemo(
+    () => new Set(locaciones.map((locacion) => locacion.id)),
+    [locaciones]
+  );
+
+  const empresasDisponibles = useMemo(() => {
+    if (!isSupervisor) return empresas;
+    const empresaIds = new Set(locaciones.map((locacion) => locacion.empresa_id).filter(Boolean));
+    return empresas.filter((empresa) => empresaIds.has(empresa.id));
+  }, [empresas, isSupervisor, locaciones]);
+
   const locacionesFiltradas = useMemo(() => {
     if (!form.empresa_id) return locaciones;
     return locaciones.filter((locacion) => locacion.empresa_id === form.empresa_id);
   }, [form.empresa_id, locaciones]);
 
+  const areasDisponibles = useMemo(() => {
+    if (!isSupervisor) return areas;
+    return areas.filter((area) => supervisorLocacionesIds.has(area.locacion_id));
+  }, [areas, isSupervisor, supervisorLocacionesIds]);
+
   const areasFiltradas = useMemo(() => {
-    if (!form.locacion_id) return areas;
-    return areas.filter((area) => area.locacion_id === form.locacion_id);
-  }, [form.locacion_id, areas]);
+    if (!form.locacion_id) return areasDisponibles;
+    return areasDisponibles.filter((area) => area.locacion_id === form.locacion_id);
+  }, [areasDisponibles, form.locacion_id]);
+
+  const locacionesFiltroDisponibles = useMemo(() => {
+    if (!filtroArea) return locaciones;
+    const area = areasMap[filtroArea];
+    if (!area?.locacion_id) return locaciones;
+    return locaciones.filter((locacion) => locacion.id === area.locacion_id);
+  }, [areasMap, filtroArea, locaciones]);
+
+  const areasFiltroDisponibles = useMemo(() => {
+    if (!filtroLocacion) return areasDisponibles;
+    return areasDisponibles.filter((area) => area.locacion_id === filtroLocacion);
+  }, [areasDisponibles, filtroLocacion]);
 
   const incidentesFiltrados = useMemo(() => {
     return incidentes
       .filter((incidente) => (filtroEstado ? incidente.estado === filtroEstado : true))
       .filter((incidente) => (filtroPrioridad ? incidente.prioridad === filtroPrioridad : true))
       .filter((incidente) => (filtroTipo ? incidente.tipo === filtroTipo : true))
+      .filter((incidente) => (filtroLocacion ? incidente.locacion_id === filtroLocacion : true))
+      .filter((incidente) => (filtroArea ? incidente.area_id === filtroArea : true))
+      .filter((incidente) => (filtroSupervisor ? incidente.supervisor_id === filtroSupervisor : true))
       .filter((incidente) => {
         if (!busqueda.trim()) return true;
         const texto = busqueda.trim().toLowerCase();
+        const locacionNombre = locacionesMap[incidente.locacion_id]?.nombre || "";
+        const areaNombre = areasMap[incidente.area_id]?.nombre || "";
         const empresaNombre = empresasMap[incidente.empresa_id]?.nombre || "";
         const empleadoNombre = usuariosMap[incidente.empleado_id]?.nombre || "";
         const supervisorNombre = usuariosMap[incidente.supervisor_id]?.nombre || "";
@@ -340,6 +411,8 @@ export default function Incidentes() {
           incidente.estado,
           incidente.prioridad,
           empresaNombre,
+          locacionNombre,
+          areaNombre,
           empleadoNombre,
           supervisorNombre,
           asignadoNombre,
@@ -347,8 +420,12 @@ export default function Incidentes() {
           .filter(Boolean)
           .some((valor) => valor.toLowerCase().includes(texto));
       })
-      .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en));
-  }, [busqueda, empresasMap, filtroEstado, filtroPrioridad, filtroTipo, incidentes, usuariosMap]);
+      .sort((a, b) => {
+        const fechaB = new Date(b.ultimo_evento_en || b.creado_en || 0);
+        const fechaA = new Date(a.ultimo_evento_en || a.creado_en || 0);
+        return fechaB - fechaA;
+      });
+  }, [areasMap, busqueda, empresasMap, filtroArea, filtroEstado, filtroLocacion, filtroPrioridad, filtroSupervisor, filtroTipo, incidentes, locacionesMap, usuariosMap]);
 
   const resumen = useMemo(() => {
     return {
@@ -358,6 +435,12 @@ export default function Incidentes() {
       resueltos: incidentes.filter((item) => item.estado === "resuelto" || item.estado === "cerrado").length,
     };
   }, [incidentes]);
+
+  const incidenteDetalle = useMemo(
+    () => incidentes.find((incidente) => incidente.id === incidenteDetalleId) || null,
+    [incidenteDetalleId, incidentes]
+  );
+  const incidenteDetalleSourceMeta = incidenteDetalle ? getIncidentSourceMeta(incidenteDetalle) : null;
 
   useEffect(() => {
     return () => {
@@ -369,6 +452,13 @@ export default function Incidentes() {
       }
     };
   }, [fotoResolucionPreview]);
+
+  useEffect(() => {
+    if (detalleOpen && incidenteDetalleId && !incidenteDetalle) {
+      setDetalleOpen(false);
+      setIncidenteDetalleId(null);
+    }
+  }, [detalleOpen, incidenteDetalle, incidenteDetalleId]);
 
   useEffect(() => {
     const deepLinkValue = feedbackDeepLinkId || actividadDeepLinkId;
@@ -385,6 +475,8 @@ export default function Incidentes() {
       deepLinkMissingRef.current = null;
 
       setHighlightedIncidenteId(incidenteObjetivo.id);
+      setIncidenteDetalleId(incidenteObjetivo.id);
+      setDetalleOpen(true);
 
       requestAnimationFrame(() => {
         incidenteRowRefs.current[incidenteObjetivo.id]?.scrollIntoView({
@@ -412,35 +504,27 @@ export default function Incidentes() {
   }, [actividadDeepLinkId, feedbackDeepLinkId, incidentesFiltrados, isLoading]);
 
   const abrirCrear = () => {
-    setIncidenteEditando(null);
+    if (!canCreate) return;
     setForm(FORM_INICIAL);
     setModalFormularioOpen(true);
   };
 
-  const abrirEditar = (incidente) => {
-    setIncidenteEditando(incidente);
-    setForm({
-      tipo: incidente.tipo || "manual",
-      prioridad: incidente.prioridad || "media",
-      descripcion: incidente.descripcion || "",
-      empresa_id: incidente.empresa_id || "",
-      locacion_id: incidente.locacion_id || "",
-      area_id: incidente.area_id || "",
-      empleado_id: incidente.empleado_id || "",
-      supervisor_id: incidente.supervisor_id || "",
-      asignado_a_id: incidente.asignado_a_id || "",
-      evidencia_inicial: incidente.evidencia_inicial || "",
-    });
-    setModalFormularioOpen(true);
+  const abrirDetalle = (incidente) => {
+    setIncidenteDetalleId(incidente.id);
+    setDetalleOpen(true);
+  };
+
+  const cerrarDetalle = () => {
+    setDetalleOpen(false);
   };
 
   const cerrarFormulario = () => {
     setModalFormularioOpen(false);
-    setIncidenteEditando(null);
     setForm(FORM_INICIAL);
   };
 
   const abrirResolver = (incidente) => {
+    if (!canResolve) return;
     setIncidenteResolviendo(incidente);
     setResolverForm({
       evidencia_resolucion: incidente.evidencia_resolucion || "",
@@ -506,6 +590,7 @@ export default function Incidentes() {
   };
 
   const handleGuardarIncidente = async () => {
+    if (!canCreate) return;
     if (!form.descripcion.trim()) {
       toast.error("La descripción es obligatoria");
       return;
@@ -513,17 +598,8 @@ export default function Incidentes() {
 
     try {
       const payload = limpiarPayload(form);
-
-      if (incidenteEditando) {
-        await editarIncidente({
-          incidente_id: incidenteEditando.id,
-          datos: payload,
-        }).unwrap();
-        toast.success("Incidente actualizado");
-      } else {
-        await crearIncidente(payload).unwrap();
-        toast.success("Incidente creado");
-      }
+      await crearIncidente(payload).unwrap();
+      toast.success("Incidente creado");
 
       cerrarFormulario();
     } catch (error) {
@@ -532,7 +608,7 @@ export default function Incidentes() {
   };
 
   const handleResolverIncidente = async () => {
-    if (!incidenteResolviendo) return;
+    if (!canResolve || !incidenteResolviendo) return;
 
     try {
       await resolverIncidente({
@@ -550,6 +626,7 @@ export default function Incidentes() {
   };
 
   const confirmarCerrar = (incidente) => {
+    if (!canClose) return;
     setConfirmacion({
       titulo: "Cerrar incidente",
       descripcion: "Esta acción marcará el incidente como cerrado.",
@@ -568,6 +645,7 @@ export default function Incidentes() {
   };
 
   const confirmarEliminar = (incidente) => {
+    if (!canDelete) return;
     setConfirmacion({
       titulo: "Eliminar incidente",
       descripcion: "Esta acción eliminará el incidente de forma permanente.",
@@ -586,30 +664,55 @@ export default function Incidentes() {
   };
 
   const ejecutandoConfirmacion = cerrandoIncidente || eliminandoIncidente;
+  const supervisorSinLocaciones = isSupervisor && locaciones.length === 0;
+  const emptyStateTitle = incidentes.length === 0
+    ? isAdmin
+      ? "Todavía no hay incidentes"
+      : isSupervisor
+        ? "No hay incidentes en tu alcance"
+        : "No tienes incidentes relacionados"
+    : "No hay resultados para esos filtros";
+  const emptyStateDescription = incidentes.length === 0
+    ? isAdmin
+      ? "Crea el primer incidente manual para empezar a gestionar desvíos operativos."
+      : isSupervisor
+        ? supervisorSinLocaciones
+          ? "Aún no tienes locaciones asignadas. Cuando se te asigne una, aquí verás los incidentes de tu alcance."
+          : "Todavía no hay incidentes visibles dentro de tus locaciones o asignaciones."
+        : "Aquí aparecerán los incidentes creados por ti o asignados a tu usuario."
+    : "Prueba cambiando estado, prioridad, tipo, locación, área o el texto de búsqueda.";
 
   return (
     <Layout>
       <div className="p-4 md:p-6 bg-[#f4f8fb] min-h-full">
         <div className="relative overflow-hidden mb-6 rounded-[28px] bg-white border border-[#e6f0f8] shadow-xl shadow-[#0A2A47]/5 p-5 md:p-6">
           <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_top_right,_rgba(59,174,61,0.12),_transparent_32%),radial-gradient(circle_at_bottom_left,_rgba(10,42,71,0.08),_transparent_35%)]" />
-          <div className="relative flex items-center justify-between gap-3 flex-wrap">
+          <div className="relative flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h1 className="text-3xl md:text-4xl font-extrabold text-[#0A2A47] tracking-tight">Incidentes</h1>
               <p className="mt-2 text-sm text-[#5b6b79] max-w-2xl">
                 Centraliza desvíos operativos, asignación, resolución y trazabilidad desde una sola vista.
               </p>
             </div>
-          </div>
-        </div>
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              {canCreate ? (
+                <button
+                  onClick={abrirCrear}
+                  disabled={isSupervisor && supervisorSinLocaciones}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[#3BAE3D] text-white px-4 py-3 font-semibold shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631] disabled:opacity-50 disabled:hover:bg-[#3BAE3D]"
+                >
+                  <Plus size={16} />
+                  Crear incidente
+                </button>
+              ) : null}
 
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <button
-            onClick={abrirCrear}
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#3BAE3D] text-white px-4 py-3 font-semibold shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]"
-          >
-            <Plus size={16} />
-            Crear incidente
-          </button>
+              {isSupervisor && supervisorSinLocaciones ? (
+                <p className="max-w-sm text-sm text-[#5b6b79] lg:text-right">
+                  No tienes locaciones asignadas por ahora, así que no podrás crear incidentes manuales todavía.
+                </p>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -619,56 +722,136 @@ export default function Incidentes() {
           <TarjetaResumen titulo="Resueltos / cerrados" valor={isLoading || isFetching ? "..." : resumen.resueltos} icono={<CheckCircle2 size={16} />} />
         </div>
 
-        <div className="bg-white border border-[#e6f0f8] rounded-2xl p-4 mb-4 flex flex-col md:flex-row gap-3 items-center shadow-sm">
-          <div className="relative w-full md:w-[32%]">
+        <div className="bg-white border border-[#e6f0f8] rounded-2xl p-3 mb-3 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+            <div className="relative md:col-span-4">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7b8a97]" size={18} />
             <input
               type="text"
               placeholder="Buscar por descripción o contexto"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] py-3 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+              className="w-full rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] py-2.5 pl-10 pr-4 text-sm text-[#0A2A47] outline-none transition placeholder:text-[#8a99a8] focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
             />
+            </div>
+
+            <select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className="w-full md:col-span-3 rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] px-3.5 py-2.5 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+            >
+              <option value="">Todos los estados</option>
+              {ESTADOS_INCIDENTE.map((estado) => (
+                <option key={estado.value} value={estado.value}>
+                  {estado.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filtroPrioridad}
+              onChange={(e) => setFiltroPrioridad(e.target.value)}
+              className="w-full md:col-span-2 rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] px-3.5 py-2.5 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+            >
+              <option value="">Prioridades</option>
+              {PRIORIDADES_INCIDENTE.map((prioridad) => (
+                <option key={prioridad.value} value={prioridad.value}>
+                  {prioridad.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+              className="w-full md:col-span-3 rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] px-3.5 py-2.5 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+            >
+              <option value="">Todos los tipos</option>
+              {TIPOS_INCIDENTE.map((tipo) => (
+                <option key={tipo.value} value={tipo.value}>
+                  {tipo.label}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
 
-          <select
-            value={filtroEstado}
-            onChange={(e) => setFiltroEstado(e.target.value)}
-            className="w-full md:w-[22%] rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
-          >
-            <option value="">Todos los estados</option>
-            {ESTADOS_INCIDENTE.map((estado) => (
-              <option key={estado.value} value={estado.value}>
-                {estado.label}
-              </option>
-            ))}
-          </select>
+        <div className="bg-white border border-[#e6f0f8] rounded-2xl p-3 mb-3 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+            <select
+              value={filtroLocacion}
+              onChange={(e) => {
+                setFiltroLocacion(e.target.value);
+                setFiltroArea("");
+              }}
+              className="w-full md:col-span-4 rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] px-3.5 py-2.5 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+            >
+              <option value="">Todas las locaciones</option>
+              {locacionesFiltroDisponibles.map((locacion) => (
+                <option key={locacion.id} value={locacion.id}>
+                  {locacion.nombre}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={filtroPrioridad}
-            onChange={(e) => setFiltroPrioridad(e.target.value)}
-            className="w-full md:w-[22%] rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
-          >
-            <option value="">Todas las prioridades</option>
-            {PRIORIDADES_INCIDENTE.map((prioridad) => (
-              <option key={prioridad.value} value={prioridad.value}>
-                {prioridad.label}
-              </option>
-            ))}
-          </select>
+            <select
+              value={filtroArea}
+              onChange={(e) => setFiltroArea(e.target.value)}
+              className="w-full md:col-span-4 rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] px-3.5 py-2.5 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+            >
+              <option value="">Todas las áreas</option>
+              {areasFiltroDisponibles.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.nombre}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value)}
-            className="w-full md:w-[24%] rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
-          >
-            <option value="">Todos los tipos</option>
-            {TIPOS_INCIDENTE.map((tipo) => (
-              <option key={tipo.value} value={tipo.value}>
-                {tipo.label}
-              </option>
-            ))}
-          </select>
+            {isAdmin ? (
+              <select
+                value={filtroSupervisor}
+                onChange={(e) => setFiltroSupervisor(e.target.value)}
+                className="w-full md:col-span-4 rounded-xl border border-[#dbe8f2] bg-[#f8fbfd] px-3.5 py-2.5 text-sm text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+              >
+                <option value="">Todos los supervisores</option>
+                {supervisores.map((usuario) => (
+                  <option key={usuario.id} value={usuario.id}>
+                    {usuario.nombre}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-[#e6f0f8] bg-white p-3 shadow-sm">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[#0A2A47]">Período por última modificación</p>
+              <p className="mt-1 text-xs text-[#7b8a97]">
+                Este filtro usa la fecha del último movimiento del incidente, no la fecha original de creación.
+              </p>
+            </div>
+            <div className="inline-flex flex-wrap gap-1 rounded-xl bg-[#f4f8fb] border border-[#e6f0f8] p-1">
+              {PERIODOS_INCIDENTES.map((periodo) => {
+                const activo = periodoSeleccionado === periodo.value;
+                return (
+                  <button
+                    key={periodo.value}
+                    type="button"
+                    onClick={() => setPeriodoSeleccionado(periodo.value)}
+                    className={`px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      activo
+                        ? "bg-[#071f35] text-white shadow-md shadow-[#071f35]/15"
+                        : "text-[#0A2A47] hover:bg-white hover:shadow-sm"
+                    }`}
+                  >
+                    {periodo.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {isError ? (
@@ -683,12 +866,8 @@ export default function Incidentes() {
           />
         ) : incidentesFiltrados.length === 0 ? (
           <EmptyState
-            title={incidentes.length === 0 ? "Todavía no hay incidentes" : "No hay resultados para esos filtros"}
-            description={
-              incidentes.length === 0
-                ? "Crea el primer incidente manual para empezar a gestionar desvíos operativos."
-                : "Prueba cambiando estado, prioridad, tipo o el texto de búsqueda."
-            }
+            title={emptyStateTitle}
+            description={emptyStateDescription}
           />
         ) : (
           <div className="max-h-[60vh] overflow-auto rounded-3xl border border-[#e6f0f8] bg-white shadow-sm">
@@ -698,13 +877,9 @@ export default function Incidentes() {
                   <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Tipo</th>
                   <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Prioridad</th>
                   <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Estado</th>
-                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Descripción</th>
-                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Empleado</th>
-                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Supervisor</th>
-                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Asignado a</th>
-                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Origen</th>
+                  <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Descripción / origen</th>
                   <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Creado</th>
-                  <th className="px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Acciones</th>
+                  <th className="px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8a97]">Ver</th>
                 </tr>
               </thead>
               <tbody className="text-sm text-[#0A2A47]">
@@ -747,66 +922,20 @@ export default function Incidentes() {
                         {" · "}
                         {areasMap[incidente.area_id]?.nombre || "Sin área"}
                       </p>
-                    </td>
-                    <td className="py-4 px-4 whitespace-nowrap">{usuariosMap[incidente.empleado_id]?.nombre || "-"}</td>
-                    <td className="py-4 px-4 whitespace-nowrap">{usuariosMap[incidente.supervisor_id]?.nombre || "-"}</td>
-                    <td className="py-4 px-4 whitespace-nowrap">{usuariosMap[incidente.asignado_a_id]?.nombre || "-"}</td>
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        {sourceMeta.url ? (
-                          <button
-                            onClick={() => navigate(sourceMeta.url)}
-                            className="text-[#0A2A47] font-semibold hover:text-[#123b63] hover:underline text-left"
-                          >
-                            {sourceMeta.label}
-                          </button>
-                        ) : (
-                          <span className="text-gray-500 font-medium">{sourceMeta.label}</span>
-                        )}
-                        <span className="text-[11px] text-gray-500">{sourceMeta.hint}</span>
+                      <div className="mt-2 inline-flex items-center rounded-full border border-[#dbe8f2] bg-[#f8fbfd] px-2.5 py-1 text-[11px] font-medium text-[#5b6b79]">
+                        {sourceMeta.hint}
                       </div>
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap">{formatFecha(incidente.creado_en)}</td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center justify-end gap-2 flex-wrap">
+                      <div className="flex items-center justify-end">
                         <button
-                          onClick={() => abrirEditar(incidente)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe8f2] bg-white text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
-                          title="Editar"
+                          onClick={() => abrirDetalle(incidente)}
+                          className="inline-flex items-center gap-2 rounded-xl border border-[#dbe8f2] bg-white px-3 py-2 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
+                          title="Ver detalle"
                         >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={() => abrirResolver(incidente)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100"
-                          title="Resolver"
-                          disabled={incidente.estado === "cerrado"}
-                        >
-                          <CheckCircle2 size={16} />
-                        </button>
-                        {(incidente.estado === "resuelto" || incidente.estado === "cerrado") && (
-                          <button
-                            onClick={() => abrirVerResolucion(incidente)}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
-                            title="Ver resolución"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => confirmarCerrar(incidente)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600 transition hover:bg-amber-100 disabled:opacity-40"
-                          title="Cerrar"
-                          disabled={incidente.estado !== "resuelto"}
-                        >
-                          <ShieldAlert size={16} />
-                        </button>
-                        <button
-                          onClick={() => confirmarEliminar(incidente)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#f0d4d4] bg-[#fff7f7] text-red-500 transition hover:bg-red-50 hover:text-red-700"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={16} />
+                          <Eye size={16} />
+                          Ver
                         </button>
                       </div>
                     </td>
@@ -819,12 +948,44 @@ export default function Incidentes() {
           </div>
         )}
 
+        <IncidenteDetalle
+          open={detalleOpen}
+          incidente={incidenteDetalle}
+          onClose={cerrarDetalle}
+          canEdit={canEdit}
+          canResolve={canResolve}
+          canClose={canClose}
+          canDelete={canDelete}
+          empresasMap={empresasMap}
+          locacionesMap={locacionesMap}
+          areasMap={areasMap}
+          usuariosMap={usuariosMap}
+          asignables={asignables}
+          sourceMeta={incidenteDetalleSourceMeta}
+          onNavigateToSource={() => {
+            if (incidenteDetalleSourceMeta?.url) {
+              navigate(incidenteDetalleSourceMeta.url);
+            }
+          }}
+          onResolver={abrirResolver}
+          onCerrar={confirmarCerrar}
+          onEliminar={confirmarEliminar}
+          onVerResolucion={abrirVerResolucion}
+          formatFecha={formatFecha}
+          TipoBadge={TipoBadge}
+          PrioridadBadge={PrioridadBadge}
+          EstadoBadge={EstadoBadge}
+          tiposIncidente={TIPOS_INCIDENTE}
+          estadosIncidente={ESTADOS_INCIDENTE}
+          prioridadesIncidente={PRIORIDADES_INCIDENTE}
+        />
+
         {modalFormularioOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm px-4">
             <div className="w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-[28px] bg-white border border-[#e6f0f8] shadow-2xl p-5 md:p-6">
               <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#e6f0f8]">
                 <h2 className="text-2xl font-extrabold tracking-tight text-[#0A2A47]">
-                  {incidenteEditando ? "Editar incidente" : "Crear incidente"}
+                  Crear incidente
                 </h2>
                 <button
                   type="button"
@@ -885,7 +1046,7 @@ export default function Incidentes() {
                     className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                   >
                     <option value="">Sin empresa</option>
-                    {empresas.map((empresa) => (
+                    {empresasDisponibles.map((empresa) => (
                       <option key={empresa.id} value={empresa.id}>
                         {empresa.nombre}
                       </option>
@@ -942,22 +1103,6 @@ export default function Incidentes() {
                 </div>
 
                 <div>
-                  <FieldLabel>Supervisor</FieldLabel>
-                  <select
-                    value={form.supervisor_id}
-                    onChange={(e) => setForm((prev) => ({ ...prev, supervisor_id: e.target.value }))}
-                    className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
-                  >
-                    <option value="">Sin supervisor</option>
-                    {supervisores.map((usuario) => (
-                      <option key={usuario.id} value={usuario.id}>
-                        {usuario.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
                   <FieldLabel>Asignado a</FieldLabel>
                   <select
                     value={form.asignado_a_id}
@@ -989,14 +1134,12 @@ export default function Incidentes() {
                 <button
                   type="button"
                   onClick={handleGuardarIncidente}
-                  disabled={creandoIncidente || editandoIncidente}
+                  disabled={creandoIncidente}
                   className="bg-[#071f35] text-white px-4 py-3 rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition disabled:opacity-60"
                 >
-                  {creandoIncidente || editandoIncidente
+                  {creandoIncidente
                     ? "Guardando..."
-                    : incidenteEditando
-                      ? "Actualizar incidente"
-                      : "Crear incidente"}
+                    : "Crear incidente"}
                 </button>
                 <button
                   type="button"

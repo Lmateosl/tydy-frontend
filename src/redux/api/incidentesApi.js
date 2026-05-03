@@ -14,6 +14,8 @@ const buildQueryString = (params = {}) => {
   if (params.asignado_a_id) query.push(`asignado_a_id=${encodeURIComponent(params.asignado_a_id)}`);
   if (params.actividad_usuario_id) query.push(`actividad_usuario_id=${encodeURIComponent(params.actividad_usuario_id)}`);
   if (params.feedback_id) query.push(`feedback_id=${encodeURIComponent(params.feedback_id)}`);
+  if (params.desde) query.push(`desde=${encodeURIComponent(params.desde)}`);
+  if (params.hasta) query.push(`hasta=${encodeURIComponent(params.hasta)}`);
 
   return query.length ? `?${query.join("&")}` : "";
 };
@@ -31,6 +33,37 @@ export const incidentesApi = apiSlice.injectEndpoints({
     obtenerIncidente: builder.query({
       query: (incidente_id) => `/incidentes/${incidente_id}`,
       providesTags: (result, error, incidente_id) => [{ type: "Incidentes", id: incidente_id }],
+    }),
+
+    obtenerTimelineIncidente: builder.query({
+      query: ({ incidente_id, limit = 20, offset = 0 }) =>
+        `/incidentes/${incidente_id}/timeline?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`,
+      providesTags: (result, error, { incidente_id }) => [
+        { type: "IncidenteTimeline", id: incidente_id },
+      ],
+    }),
+
+    comentarIncidente: builder.mutation({
+      query: ({ incidente_id, datos }) => {
+        const formData = new FormData();
+        if (datos?.mensaje !== undefined && datos?.mensaje !== null && `${datos.mensaje}`.trim() !== "") {
+          formData.append("mensaje", datos.mensaje);
+        }
+        if (datos?.foto instanceof File) {
+          formData.append("foto", datos.foto);
+        }
+
+        return {
+          url: `/incidentes/${incidente_id}/comentarios`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: (result, error, { incidente_id }) => [
+        { type: "IncidenteTimeline", id: incidente_id },
+        { type: "Incidentes", id: incidente_id },
+        "Incidentes",
+      ],
     }),
 
     crearIncidente: builder.mutation({
@@ -51,6 +84,7 @@ export const incidentesApi = apiSlice.injectEndpoints({
       invalidatesTags: (result, error, { incidente_id }) => [
         "Incidentes",
         { type: "Incidentes", id: incidente_id },
+        { type: "IncidenteTimeline", id: incidente_id },
       ],
     }),
 
@@ -91,6 +125,20 @@ export const incidentesApi = apiSlice.injectEndpoints({
       invalidatesTags: (result, error, { incidente_id }) => [
         "Incidentes",
         { type: "Incidentes", id: incidente_id },
+        { type: "IncidenteTimeline", id: incidente_id },
+      ],
+    }),
+
+    marcarIncidenteEnProceso: builder.mutation({
+      query: (incidente_id) => ({
+        url: `/incidentes/${incidente_id}/en-proceso`,
+        method: "POST",
+        body: {},
+      }),
+      invalidatesTags: (result, error, incidente_id) => [
+        "Incidentes",
+        { type: "Incidentes", id: incidente_id },
+        { type: "IncidenteTimeline", id: incidente_id },
       ],
     }),
 
@@ -103,6 +151,7 @@ export const incidentesApi = apiSlice.injectEndpoints({
       invalidatesTags: (result, error, incidente_id) => [
         "Incidentes",
         { type: "Incidentes", id: incidente_id },
+        { type: "IncidenteTimeline", id: incidente_id },
       ],
     }),
   }),
@@ -111,9 +160,12 @@ export const incidentesApi = apiSlice.injectEndpoints({
 export const {
   useObtenerIncidentesQuery,
   useObtenerIncidenteQuery,
+  useObtenerTimelineIncidenteQuery,
+  useComentarIncidenteMutation,
   useCrearIncidenteMutation,
   useEditarIncidenteMutation,
   useEliminarIncidenteMutation,
   useResolverIncidenteMutation,
+  useMarcarIncidenteEnProcesoMutation,
   useCerrarIncidenteMutation,
 } = incidentesApi;
