@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useObtenerUsuariosQuery } from "../../../redux/api/userApi";
 import Layout from "../../../components/Layout";
 import { useObtenerActividadesUsuarioQuery } from "../../../redux/api/historialApi";
@@ -268,7 +268,6 @@ function DetallePrecision({ label, value }) {
 }
 
 export default function Reportes() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [usuarioId, setUsuarioId] = useState("");
   const [finalizada, setFinalizada] = useState("");
@@ -987,7 +986,7 @@ export default function Reportes() {
                     {incidenteAsociado ? (
                       <button
                         type="button"
-                        onClick={() => navigate(`/incidentes?actividad=${a.id}`)}
+                        onClick={() => window.location.assign(`/incidentes?actividad=${a.id}`)}
                         className="inline-flex items-center gap-1 rounded-xl border border-[#dbe8f2] bg-white px-3 py-2 text-xs font-semibold text-[#0A2A47] hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                       >
                         <AlertTriangle size={14} />

@@ -20,6 +20,7 @@ const Feedback = () => {
   const companyIdQuery = searchParams.get("company_id") || "";
   const empresaNombreQueryRaw = searchParams.get("empresa") || "";
   const locacionIdQuery = searchParams.get("locacion_id") || "";
+  const areaIdQuery = searchParams.get("area_id") || "";
   const modoModerno = Boolean(empresaIdQuery);
 
   const contextoQuery = useMemo(
@@ -97,6 +98,9 @@ const Feedback = () => {
         }
         if (locacionIdQuery) {
           payload.locacion_id = locacionIdQuery;
+        }
+        if (areaIdQuery) {
+          payload.area_id = areaIdQuery;
         }
         if (empresaNombreQuery) {
           payload.empresa = empresaNombreQuery;

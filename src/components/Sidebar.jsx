@@ -1,5 +1,5 @@
 import logo from '../assets/imgs/Logo_fondo_azul.png';
-import { X, Home, Users, Building2, List as ListIcon, ClipboardList, FileBarChart2, LogOut, Menu, User2Icon, QrCodeIcon, CheckCheckIcon, TriangleAlert } from "lucide-react";
+import { X, Home, Users, Building2, List as ListIcon, ClipboardList, FileBarChart2, LogOut, Megaphone, Menu, User2Icon, QrCodeIcon, CheckCheckIcon, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,9 +7,11 @@ import { logout } from '../redux/slices/authSlice';
 import { logoutUsuario } from '../redux/slices/usuariosSlice';
 import { borrarHistorialId, borrarListaActiva } from '../redux/slices/listasSlice';
 import NotificacionesBell from './NotificacionesBell';
+import EnviarAlertaModal from './EnviarAlertaModal';
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showEnviarAlerta, setShowEnviarAlerta] = useState(false);
   const usuario = useSelector((state) => state.usuarios.usuarioLogueado);
   const navigate = useNavigate();
   const location = useLocation();
@@ -79,12 +81,25 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
   const userInitial = usuario?.nombre?.trim()?.charAt(0)?.toUpperCase() || "T";
   const userRoleLabel = usuario?.rol ? usuario.rol.charAt(0).toUpperCase() + usuario.rol.slice(1) : "Usuario";
+  const canSendAlertas = ["admin", "supervisor"].includes((usuario?.rol || "").toLowerCase());
+
+  const navigateSidebar = (path, { closeMobile = false } = {}) => {
+    if (closeMobile) {
+      setSidebarOpen(false);
+    }
+
+    if (location.pathname === path) {
+      return;
+    }
+
+    window.location.assign(path);
+  };
 
   return (
     <>
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex md:flex-col md:w-64 bg-[#071f35] h-full justify-between rounded-r-[28px] border-r border-white/10 shadow-2xl shadow-[#071f35]/25 overflow-hidden">
-        <div>
+      <aside className="hidden md:flex md:flex-col md:w-64 bg-[#071f35] h-full rounded-r-[28px] border-r border-white/10 shadow-2xl shadow-[#071f35]/25 overflow-visible relative z-20">
+        <div className="flex min-h-0 flex-1 flex-col">
           <div className="relative px-5 pt-6 pb-5">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,174,61,0.18),_transparent_36%)]" />
             <div className="relative flex items-center gap-3">
@@ -107,22 +122,24 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 <p className="text-sm font-semibold text-white truncate">{usuario?.nombre || "TYDY User"}</p>
                 <p className="text-xs text-white/50">{userRoleLabel}</p>
               </div>
-              {usuario?.rol !== "cliente" && <NotificacionesBell />}
+              {usuario?.rol !== "cliente" && <NotificacionesBell placement="right-start" />}
             </div>
           </div>
 
-          <nav className="flex flex-col gap-1.5 px-3">
-            {navItems.map((item) => {
-              const active = isActivePath(item.path);
-              return (
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+            <nav className="flex flex-col gap-1.5">
+              {navItems.map((item) => {
+                const active = isActivePath(item.path);
+                return (
                 <button
                   key={item.label}
+                  type="button"
                   className={`group relative flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 transition-all duration-200 ${
                     active
                       ? "bg-white text-[#0A2A47] shadow-lg shadow-black/10"
                       : "text-white/75 hover:text-white hover:bg-white/10"
                   }`}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => navigateSidebar(item.path)}
                 >
                   <span className={`${active ? "text-[#3BAE3D]" : "text-white/70 group-hover:text-[#3BAE3D]"}`}>
                     {item.icon}
@@ -133,21 +150,34 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
               );
             })}
           </nav>
+          </div>
         </div>
 
-        <div className="p-4 border-t border-white/10 bg-white/[0.03]">
+        <div className="shrink-0 p-4 border-t border-white/10 bg-white/[0.03]">
+          {canSendAlertas && (
+            <button
+              type="button"
+              className="mb-2 w-full flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 text-white/85 bg-[#3BAE3D]/18 border border-[#3BAE3D]/25 hover:bg-[#3BAE3D]/28 transition"
+              onClick={() => setShowEnviarAlerta(true)}
+            >
+              <Megaphone size={21} />
+              <span className="text-sm font-semibold">Enviar alerta</span>
+            </button>
+          )}
           <button
+            type="button"
             className={`w-full flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 mb-2 transition ${
               isActivePath('/cuenta')
                 ? "bg-white text-[#0A2A47]"
                 : "text-white/75 hover:text-white hover:bg-white/10"
             }`}
-            onClick={() => navigate('/cuenta')}
+            onClick={() => navigateSidebar('/cuenta')}
           >
             <User2Icon size={21} />
             <span className="text-sm font-semibold">Cuenta</span>
           </button>
           <button
+            type="button"
             className="w-full flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 text-white/75 hover:text-white hover:bg-red-500/15 transition"
             onClick={() => setShowLogoutConfirm(true)}
           >
@@ -161,11 +191,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div className="fixed inset-0" onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-72 bg-[#071f35] h-full flex flex-col justify-between z-50 rounded-r-[28px] border-r border-white/10 shadow-2xl overflow-hidden">
-            <button className="absolute top-4 right-4 text-white" onClick={() => setSidebarOpen(false)}>
+          <div className="relative w-72 bg-[#071f35] h-full flex flex-col z-50 rounded-r-[28px] border-r border-white/10 shadow-2xl overflow-visible">
+            <button type="button" className="absolute top-4 right-4 text-white" onClick={() => setSidebarOpen(false)}>
               <X size={24} />
             </button>
-            <div>
+            <div className="flex min-h-0 flex-1 flex-col">
               <div className="relative p-5 pt-7 flex items-center gap-3">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,174,61,0.18),_transparent_38%)]" />
                 <div className="relative bg-white/10 border border-white/10 rounded-2xl px-3 py-2">
@@ -176,20 +206,21 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   <p className="text-xs text-white/55">Control operativo</p>
                 </div>
               </div>
-              <nav className="flex flex-col gap-4 p-4">
-                {navItems.map((item) => {
-                  const active = isActivePath(item.path);
-                  return (
+              <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                <nav className="flex flex-col gap-4">
+                  {navItems.map((item) => {
+                    const active = isActivePath(item.path);
+                    return (
                     <button
                       key={item.label}
+                      type="button"
                       className={`relative flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 transition ${
-                        active
-                          ? "bg-white text-[#0A2A47]"
-                          : "text-white/75 hover:text-white hover:bg-white/10"
+                          active
+                            ? "bg-white text-[#0A2A47]"
+                            : "text-white/75 hover:text-white hover:bg-white/10"
                       }`}
                       onClick={() => {
-                        navigate(item.path);
-                        setSidebarOpen(false);
+                        navigateSidebar(item.path, { closeMobile: true });
                       }}
                     >
                       <span className={active ? "text-[#3BAE3D]" : "text-white/70"}>{item.icon}</span>
@@ -200,15 +231,31 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 })}
               </nav>
             </div>
-            <div className="p-4">
+            </div>
+            <div className="shrink-0 p-4">
+              {canSendAlertas && (
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 mb-2 text-white/85 bg-[#3BAE3D]/18 border border-[#3BAE3D]/25 hover:bg-[#3BAE3D]/28 transition"
+                  onClick={() => {
+                    setShowEnviarAlerta(true);
+                    setSidebarOpen(false);
+                  }}
+                >
+                  <Megaphone size={22} />
+                  <span className="text-sm font-semibold">Enviar alerta</span>
+                </button>
+              )}
               <button
+                type="button"
                 className="w-full flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 mb-2 text-white/75 hover:text-white hover:bg-white/10 transition"
-                onClick={() => navigate('/cuenta')}
+                onClick={() => navigateSidebar('/cuenta', { closeMobile: true })}
               >
                 <User2Icon size={22} />
                 <span className="text-sm font-semibold">Cuenta</span>
               </button>
               <button
+                type="button"
                 className="w-full flex items-center gap-3 text-left rounded-2xl px-3.5 py-3 text-white/75 hover:text-white hover:bg-red-500/15 transition"
                 onClick={() => setShowLogoutConfirm(true)}
               >
@@ -219,6 +266,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
           </div>
         </div>
       )}
+
+      <EnviarAlertaModal
+        isOpen={showEnviarAlerta}
+        onClose={() => setShowEnviarAlerta(false)}
+      />
 
       {/* Dialogo de confirmación */}
       {showLogoutConfirm && (
@@ -232,16 +284,18 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
               Saldrás de tu cuenta y tendrás que iniciar sesión nuevamente para continuar.
             </p>
             <div className="flex justify-center gap-3">
-              <button
-                className="px-4 py-2 rounded-xl border border-[#dbe8f2] text-[#0A2A47] hover:bg-[#0A2A47] hover:text-white transition"
-                onClick={() => setShowLogoutConfirm(false)}
-              >
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-xl border border-[#dbe8f2] text-[#0A2A47] hover:bg-[#0A2A47] hover:text-white transition"
+                  onClick={() => setShowLogoutConfirm(false)}
+                >
                 Cancelar
               </button>
-              <button
-                className="px-4 py-2 rounded-xl bg-[#0A2A47] text-white hover:bg-red-500 transition"
-                onClick={handleLogout}
-              >
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-xl bg-[#0A2A47] text-white hover:bg-red-500 transition"
+                  onClick={handleLogout}
+                >
                 Cerrar sesión
               </button>
             </div>

@@ -6,7 +6,11 @@ import {
   useEliminarFeedbackQrMutation,
   useActualizarFeedbackQrMutation,
 } from "../../../redux/api/listasApi";
-import { useObtenerEmpresasQuery, useObtenerLocacionesQuery } from "../../../redux/api/empresasApi";
+import {
+  useObtenerEmpresasQuery,
+  useObtenerLocacionesQuery,
+  useObtenerAreasUsuarioQuery,
+} from "../../../redux/api/empresasApi";
 import { List, Plus, Search, Trash2, Pencil, Maximize2 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -14,6 +18,7 @@ const FeedbackQR = () => {
   const { data: feedbacks = [], isLoading, isFetching, refetch } = useObtenerFeedbackQrQuery();
   const { data: empresas = [] } = useObtenerEmpresasQuery();
   const { data: locaciones = [] } = useObtenerLocacionesQuery();
+  const { data: areas = [] } = useObtenerAreasUsuarioQuery();
   const [crearFeedbackList] = useCrearFeedbackListMutation();
   const [eliminarFeedbackQr] = useEliminarFeedbackQrMutation();
   const [actualizarFeedbackQr] = useActualizarFeedbackQrMutation();
@@ -25,6 +30,7 @@ const FeedbackQR = () => {
   const [form, setForm] = useState({
     empresa_id: "",
     locacion_id: "",
+    area_id: "",
     contexto: "",
   });
 
@@ -45,17 +51,30 @@ const FeedbackQR = () => {
     [locaciones]
   );
 
+  const areasMap = useMemo(
+    () => areas.reduce((acc, area) => {
+      acc[area.id] = area;
+      return acc;
+    }, {}),
+    [areas]
+  );
+
   const locacionesFiltradas = useMemo(() => {
     if (!form.empresa_id) return locaciones;
     return locaciones.filter((locacion) => locacion.empresa_id === form.empresa_id);
   }, [form.empresa_id, locaciones]);
+
+  const areasFiltradas = useMemo(() => {
+    if (!form.locacion_id) return [];
+    return areas.filter((area) => area.locacion_id === form.locacion_id);
+  }, [areas, form.locacion_id]);
 
   const totalFeedbacks = feedbacks.length;
 
   const handleCrearClick = () => {
     setModoEditar(false);
     setFeedbackSeleccionado(null);
-    setForm({ empresa_id: "", locacion_id: "", contexto: "" });
+    setForm({ empresa_id: "", locacion_id: "", area_id: "", contexto: "" });
     setModalOpen(true);
   };
 
@@ -65,6 +84,7 @@ const FeedbackQR = () => {
     setForm({
       empresa_id: feedback.empresa_id || "",
       locacion_id: feedback.locacion_id || "",
+      area_id: feedback.area_id || "",
       contexto: feedback.contexto || feedback.direccion || "",
     });
     setModalOpen(true);
@@ -83,6 +103,7 @@ const FeedbackQR = () => {
           datos: {
             empresa_id: form.empresa_id,
             locacion_id: form.locacion_id || null,
+            area_id: form.area_id || null,
             contexto: form.contexto || null,
           },
         }).unwrap();
@@ -90,6 +111,7 @@ const FeedbackQR = () => {
         await crearFeedbackList({
           empresa_id: form.empresa_id,
           locacion_id: form.locacion_id || null,
+          area_id: form.area_id || null,
           contexto: form.contexto || null,
         }).unwrap();
       }
@@ -102,7 +124,7 @@ const FeedbackQR = () => {
 
       setModalOpen(false);
       setFeedbackSeleccionado(null);
-      setForm({ empresa_id: "", locacion_id: "", contexto: "" });
+      setForm({ empresa_id: "", locacion_id: "", area_id: "", contexto: "" });
       refetch();
     } catch (error) {
       console.error("Error guardando feedback QR:", error);
@@ -221,6 +243,11 @@ const FeedbackQR = () => {
                   </td>
                   <td className="px-4 py-4 align-top">
                     <p className="text-[#5b6b79]">{locacionesMap[f.locacion_id]?.nombre || "Sin locación"}</p>
+                    {f.area_id ? (
+                      <p className="mt-1 text-xs text-[#7b8a97]">
+                        Área: {areasMap[f.area_id]?.nombre || "Área asignada"}
+                      </p>
+                    ) : null}
                   </td>
                   <td className="px-4 py-4 align-top">
                     <p className="max-w-md text-[#5b6b79]">{f.contexto || f.direccion || "-"}</p>
@@ -271,7 +298,12 @@ const FeedbackQR = () => {
                 className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 mb-4 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                 value={form.empresa_id}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, empresa_id: e.target.value, locacion_id: "" }))
+                  setForm((prev) => ({
+                    ...prev,
+                    empresa_id: e.target.value,
+                    locacion_id: "",
+                    area_id: "",
+                  }))
                 }
               >
                 <option value="">Selecciona una empresa</option>
@@ -289,13 +321,36 @@ const FeedbackQR = () => {
                 className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 mb-4 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
                 value={form.locacion_id}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, locacion_id: e.target.value }))
+                  setForm((prev) => ({
+                    ...prev,
+                    locacion_id: e.target.value,
+                    area_id: "",
+                  }))
                 }
               >
                 <option value="">Sin locación</option>
                 {locacionesFiltradas.map((locacion) => (
                   <option key={locacion.id} value={locacion.id}>
                     {locacion.nombre}
+                  </option>
+                ))}
+              </select>
+
+              <label className="block mb-2 text-sm font-semibold text-[#0A2A47]">
+                Área
+              </label>
+              <select
+                className="w-full rounded-2xl border border-[#dbe8f2] bg-[#f8fbfd] px-4 py-3 mb-4 text-[#0A2A47] outline-none transition focus:border-[#3BAE3D] focus:ring-4 focus:ring-[#3BAE3D]/10"
+                value={form.area_id}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, area_id: e.target.value }))
+                }
+                disabled={!form.locacion_id}
+              >
+                <option value="">{form.locacion_id ? "Sin área" : "Selecciona primero una locación"}</option>
+                {areasFiltradas.map((area) => (
+                  <option key={area.id} value={area.id}>
+                    {area.nombre}
                   </option>
                 ))}
               </select>
@@ -324,7 +379,7 @@ const FeedbackQR = () => {
                   onClick={() => {
                     setModalOpen(false);
                     setFeedbackSeleccionado(null);
-                    setForm({ empresa_id: "", locacion_id: "", contexto: "" });
+                    setForm({ empresa_id: "", locacion_id: "", area_id: "", contexto: "" });
                   }}
                   className="border border-[#dbe8f2] text-[#0A2A47] flex-1 py-3 rounded-2xl font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                 >

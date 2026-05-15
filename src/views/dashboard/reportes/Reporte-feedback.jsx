@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Layout from "../../../components/Layout";
 import { useObtenerFeedbackUserQuery } from "../../../redux/api/listasApi";
 import { useObtenerIncidentesQuery } from "../../../redux/api/incidentesApi";
@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 import { parseBusinessDateInput } from "../../../utils/dateTime";
 
 const ReporteFeedback = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const {
     data: feedbacks = [],
@@ -339,7 +338,7 @@ const ReporteFeedback = () => {
                     {incidenteAsociado ? (
                       <button
                         type="button"
-                        onClick={() => navigate(`/incidentes?feedback=${f.id}`)}
+                        onClick={() => window.location.assign(`/incidentes?feedback=${f.id}`)}
                         className="text-[#0A2A47] font-semibold hover:text-[#123b63] hover:underline"
                       >
                         Ver incidente

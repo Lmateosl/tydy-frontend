@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, CheckCheck, CircleAlert, Loader2, MessageSquareMore, ShieldAlert, TriangleAlert, XCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Bell, CheckCheck, CircleAlert, Loader2, Megaphone, MessageSquareMore, ShieldAlert, TriangleAlert, XCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 
@@ -64,6 +63,7 @@ function getVisualConfig(item) {
     incidente_comentado: { label: "Comentario", Icon: MessageSquareMore },
     incidente_resuelto: { label: "Resuelto", Icon: CheckCheck },
     incidente_cerrado: { label: "Cerrado", Icon: XCircle },
+    alerta_manual: { label: "Alerta", Icon: Megaphone },
   };
 
   const severity = severityStyles[item?.severity] || severityStyles.info;
@@ -80,6 +80,10 @@ function getVisualConfig(item) {
 function resolveNavigationTarget(item, role) {
   const normalizedRole = (role || "").toLowerCase();
   const incidenteId = item?.source_type === "incidente" ? item?.source_id : null;
+
+  if (item?.evento === "alerta_manual") {
+    return null;
+  }
 
   if (incidenteId) {
     if (normalizedRole === "empleado") {
@@ -101,10 +105,10 @@ function resolveNavigationTarget(item, role) {
   return normalizedRole === "empleado" ? "/mis-incidentes" : "/incidentes";
 }
 
-export default function NotificacionesBell({ mobile = false }) {
+export default function NotificacionesBell({ mobile = false, placement = "bottom-end" }) {
   const [open, setOpen] = useState(false);
+  const [alertaDetalle, setAlertaDetalle] = useState(null);
   const containerRef = useRef(null);
-  const navigate = useNavigate();
   const usuario = useSelector((state) => state.usuarios.usuarioLogueado);
   const role = (usuario?.rol || "").toLowerCase();
   const shouldShow = ["admin", "supervisor", "empleado"].includes(role);
@@ -150,6 +154,19 @@ export default function NotificacionesBell({ mobile = false }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  useEffect(() => {
+    if (!alertaDetalle) return;
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setAlertaDetalle(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [alertaDetalle]);
+
   if (!shouldShow) return null;
 
   const buttonClass = mobile
@@ -157,8 +174,10 @@ export default function NotificacionesBell({ mobile = false }) {
     : "relative flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white transition hover:bg-white/16";
 
   const dropdownClass = mobile
-    ? "absolute right-0 top-[calc(100%+10px)] z-[120] w-[min(92vw,360px)]"
-    : "absolute right-0 top-[calc(100%+12px)] z-[120] w-[360px]";
+    ? "absolute right-0 top-[calc(100%+10px)] z-[220] w-[min(92vw,360px)]"
+    : placement === "right-start"
+      ? "absolute left-[calc(100%+14px)] top-0 z-[220] w-[360px]"
+      : "absolute right-0 top-[calc(100%+12px)] z-[220] w-[360px]";
 
   const handleMarcarTodas = async () => {
     try {
@@ -177,111 +196,179 @@ export default function NotificacionesBell({ mobile = false }) {
       toast.error(error?.data?.detail || "No se pudo marcar la notificación");
     } finally {
       setOpen(false);
-      navigate(resolveNavigationTarget(item, role));
+      if (item?.evento === "alerta_manual") {
+        setAlertaDetalle(item);
+      } else {
+        const target = resolveNavigationTarget(item, role);
+        if (target) {
+          window.location.assign(target);
+        }
+      }
     }
   };
 
   return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className={buttonClass}
-        aria-label="Abrir notificaciones"
-      >
-        <Bell size={mobile ? 18 : 20} />
-        {unreadCount > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 inline-flex min-w-[20px] items-center justify-center rounded-full bg-[#ff5a5f] px-1.5 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-black/20">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
-        )}
-      </button>
+    <>
+      <div ref={containerRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className={buttonClass}
+          aria-label="Abrir notificaciones"
+        >
+          <Bell size={mobile ? 18 : 20} />
+          {unreadCount > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 inline-flex min-w-[20px] items-center justify-center rounded-full bg-[#ff5a5f] px-1.5 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-black/20">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </button>
 
-      {open && (
-        <div className={dropdownClass}>
-          <div className="overflow-hidden rounded-[26px] border border-[#dbe8f2] bg-white shadow-2xl shadow-[#071f35]/20">
-            <div className="border-b border-[#e8eff5] bg-[linear-gradient(135deg,#071f35_0%,#123b63_100%)] px-4 py-4 text-white">
-              <div className="flex items-start justify-between gap-3">
+        {open && (
+          <div className={dropdownClass}>
+            <div className="overflow-hidden rounded-[26px] border border-[#dbe8f2] bg-white shadow-2xl shadow-[#071f35]/20">
+              <div className="border-b border-[#e8eff5] bg-[linear-gradient(135deg,#071f35_0%,#123b63_100%)] px-4 py-4 text-white">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold tracking-tight">Notificaciones</p>
+                    <p className="mt-1 text-xs text-white/70">
+                      {unreadError ? "No se pudo cargar el contador" : unreadCount > 0 ? `${unreadCount} sin leer` : "Todo al día"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleMarcarTodas}
+                    disabled={marcandoTodas || unreadCount === 0}
+                    className="rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {marcandoTodas ? "Marcando..." : "Marcar todas"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="max-h-[420px] overflow-y-auto bg-[#fbfdff]">
+                {isLoadingNotificaciones || (isFetchingNotificaciones && items.length === 0) ? (
+                  <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-[#5b6b79]">
+                    <Loader2 size={16} className="animate-spin" />
+                    Cargando notificaciones...
+                  </div>
+                ) : notificacionesError ? (
+                  <div className="px-4 py-10 text-center text-sm text-[#5b6b79]">
+                    No pudimos cargar las notificaciones.
+                  </div>
+                ) : items.length === 0 ? (
+                  <div className="px-4 py-12 text-center">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4f9] text-[#0A2A47]">
+                      <Bell size={20} />
+                    </div>
+                    <p className="mt-4 text-sm font-semibold text-[#0A2A47]">No tienes notificaciones</p>
+                    <p className="mt-1 text-sm text-[#5b6b79]">Aquí aparecerán los avisos operativos importantes.</p>
+                  </div>
+                ) : (
+                  <div className="p-2">
+                    {items.map((item) => {
+                      const visual = getVisualConfig(item);
+                      const Icon = visual.Icon;
+
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleItemClick(item)}
+                          disabled={marcandoIndividual}
+                          className={`mb-2 flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition last:mb-0 ${
+                            item.read_at
+                              ? "border-transparent bg-white hover:border-[#dbe8f2] hover:bg-[#f8fbfe]"
+                              : "border-[#dbe8f2] bg-[#f4f8fb] hover:bg-[#eef5fb]"
+                          }`}
+                        >
+                          <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${visual.wrapper}`}>
+                            <Icon size={16} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-[#0A2A47]">{item.titulo}</p>
+                                <p className="mt-1 text-xs text-[#5b6b79]">{truncarTexto(item.mensaje, 110)}</p>
+                              </div>
+                              {!item.read_at && <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${visual.dot}`} />}
+                            </div>
+                            <div className="mt-2 flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7b8a97]">
+                                {visual.label}
+                              </span>
+                              <span className="text-xs text-[#7b8a97]">{formatFecha(item.delivered_at || item.created_at)}</span>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {alertaDetalle && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#071f35]/55 backdrop-blur-sm px-4 py-6">
+          <div className="absolute inset-0" onClick={() => setAlertaDetalle(null)} />
+          <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-[30px] border border-[#dbe8f2] bg-white shadow-2xl shadow-[#071f35]/25">
+            <div className="border-b border-[#e8eff5] bg-[linear-gradient(135deg,#071f35_0%,#123b63_100%)] px-6 py-5 text-white">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-bold tracking-tight">Notificaciones</p>
-                  <p className="mt-1 text-xs text-white/70">
-                    {unreadError ? "No se pudo cargar el contador" : unreadCount > 0 ? `${unreadCount} sin leer` : "Todo al día"}
+                  <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-semibold">
+                    <Megaphone size={16} />
+                    Alerta interna
+                  </div>
+                  <h3 className="mt-4 text-2xl font-bold tracking-tight">{alertaDetalle.titulo}</h3>
+                  <p className="mt-2 text-sm text-white/75">
+                    {formatFecha(alertaDetalle.delivered_at || alertaDetalle.created_at)}
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={handleMarcarTodas}
-                  disabled={marcandoTodas || unreadCount === 0}
-                  className="rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => setAlertaDetalle(null)}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white transition hover:bg-white/20"
+                  aria-label="Cerrar detalle"
                 >
-                  {marcandoTodas ? "Marcando..." : "Marcar todas"}
+                  <XCircle size={18} />
                 </button>
               </div>
             </div>
 
-            <div className="max-h-[420px] overflow-y-auto bg-[#fbfdff]">
-              {isLoadingNotificaciones || (isFetchingNotificaciones && items.length === 0) ? (
-                <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-[#5b6b79]">
-                  <Loader2 size={16} className="animate-spin" />
-                  Cargando notificaciones...
+            <div className="bg-[#fbfdff] px-6 py-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className={`inline-flex rounded-2xl border px-3 py-2 text-sm font-semibold ${getVisualConfig(alertaDetalle).wrapper}`}>
+                  {getVisualConfig(alertaDetalle).label}
                 </div>
-              ) : notificacionesError ? (
-                <div className="px-4 py-10 text-center text-sm text-[#5b6b79]">
-                  No pudimos cargar las notificaciones.
+                <div className="text-sm text-[#5b6b79]">
+                  {alertaDetalle.actor?.nombre ? `Enviada por ${alertaDetalle.actor.nombre}` : "Aviso operativo interno"}
                 </div>
-              ) : items.length === 0 ? (
-                <div className="px-4 py-12 text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4f9] text-[#0A2A47]">
-                    <Bell size={20} />
-                  </div>
-                  <p className="mt-4 text-sm font-semibold text-[#0A2A47]">No tienes notificaciones</p>
-                  <p className="mt-1 text-sm text-[#5b6b79]">Aquí aparecerán los avisos operativos importantes.</p>
-                </div>
-              ) : (
-                <div className="p-2">
-                  {items.map((item) => {
-                    const visual = getVisualConfig(item);
-                    const Icon = visual.Icon;
+              </div>
 
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleItemClick(item)}
-                        disabled={marcandoIndividual}
-                        className={`mb-2 flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition last:mb-0 ${
-                          item.read_at
-                            ? "border-transparent bg-white hover:border-[#dbe8f2] hover:bg-[#f8fbfe]"
-                            : "border-[#dbe8f2] bg-[#f4f8fb] hover:bg-[#eef5fb]"
-                        }`}
-                      >
-                        <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${visual.wrapper}`}>
-                          <Icon size={16} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-[#0A2A47]">{item.titulo}</p>
-                              <p className="mt-1 text-xs text-[#5b6b79]">{truncarTexto(item.mensaje, 110)}</p>
-                            </div>
-                            {!item.read_at && <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${visual.dot}`} />}
-                          </div>
-                          <div className="mt-2 flex items-center justify-between gap-2">
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7b8a97]">
-                              {visual.label}
-                            </span>
-                            <span className="text-xs text-[#7b8a97]">{formatFecha(item.delivered_at || item.created_at)}</span>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="rounded-3xl border border-[#e6f0f8] bg-white px-5 py-5 shadow-sm">
+                <p className="whitespace-pre-wrap break-words text-sm leading-7 text-[#0A2A47]">
+                  {alertaDetalle.mensaje}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-[#e6f0f8] bg-white px-6 py-4">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setAlertaDetalle(null)}
+                  className="rounded-2xl border border-[#dbe8f2] px-5 py-3 text-sm font-semibold text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

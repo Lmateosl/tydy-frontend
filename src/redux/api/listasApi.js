@@ -43,7 +43,7 @@ export const listasApi = apiSlice.injectEndpoints({
       query: (payload) => ({
         url: "/listas_actividades/feedback/list",
         method: "POST",
-        body: payload, // { empresa_id, locacion_id?, contexto? }
+        body: payload, // { empresa_id, locacion_id?, area_id?, contexto? }
       }),
     }),
     obtenerFeedbackQr: builder.query({
@@ -55,7 +55,7 @@ export const listasApi = apiSlice.injectEndpoints({
       query: ({ feedback_id, datos }) => ({
         url: `/listas_actividades/feedback/${feedback_id}`,
         method: "PUT",
-        body: datos, // { empresa_id?, locacion_id?, contexto? }
+        body: datos, // { empresa_id?, locacion_id?, area_id?, contexto? }
       }),
     }),
     eliminarFeedbackQr: builder.mutation({
@@ -91,6 +91,9 @@ export const listasApi = apiSlice.injectEndpoints({
         }
         if (data.locacion_id !== undefined && data.locacion_id !== null && data.locacion_id !== "") {
           formData.append("locacion_id", data.locacion_id);
+        }
+        if (data.area_id !== undefined && data.area_id !== null && data.area_id !== "") {
+          formData.append("area_id", data.area_id);
         }
 
         if (data.nombre !== undefined && data.nombre !== null && data.nombre !== "") {
@@ -128,6 +131,12 @@ export const listasApi = apiSlice.injectEndpoints({
         }
         if (data.comentario !== undefined && data.comentario !== null) {
           formData.append("comentario", data.comentario);
+        }
+        if (data.locacion_id !== undefined && data.locacion_id !== null && data.locacion_id !== "") {
+          formData.append("locacion_id", data.locacion_id);
+        }
+        if (data.area_id !== undefined && data.area_id !== null && data.area_id !== "") {
+          formData.append("area_id", data.area_id);
         }
         if (data.foto) {
           formData.append("foto", data.foto);

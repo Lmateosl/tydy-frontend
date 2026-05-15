@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Eye, ImageIcon, MapPin, MessageSquareText, Plus, ScanSearch, Search, ShieldAlert, XCircle } from "lucide-react";
 import { toast } from "react-toastify";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import Layout from "../../../components/Layout";
@@ -236,7 +236,6 @@ function getIncidentSourceMeta(incidente) {
 }
 
 export default function Incidentes() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const currentUser = useSelector((state) => state.usuarios?.usuarioLogueado);
   const currentRole = (currentUser?.rol || "").toLowerCase();
@@ -966,7 +965,7 @@ export default function Incidentes() {
           sourceMeta={incidenteDetalleSourceMeta}
           onNavigateToSource={() => {
             if (incidenteDetalleSourceMeta?.url) {
-              navigate(incidenteDetalleSourceMeta.url);
+              window.location.assign(incidenteDetalleSourceMeta.url);
             }
           }}
           onResolver={abrirResolver}
