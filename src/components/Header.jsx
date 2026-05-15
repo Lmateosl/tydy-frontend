@@ -5,12 +5,14 @@ import { useState } from "react";
 import { logoutUsuario } from "../redux/slices/usuariosSlice";
 import { logout } from "../redux/slices/authSlice";
 import { borrarHistorialId, borrarListaActiva } from "../redux/slices/listasSlice";
+import NotificacionesBell from "./NotificacionesBell";
 
 export default function Header({ setSidebarOpen, sidebarOpen }) {
   const usuarioLogueado = useSelector((state) => state.usuarios.usuarioLogueado);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const dispatch = useDispatch();
   const isEmpleado = usuarioLogueado?.rol === "empleado";
+  const canSeeNotifications = ["admin", "supervisor", "empleado"].includes((usuarioLogueado?.rol || "").toLowerCase());
 
   const handleLogout = () => {
       setShowLogoutConfirm(false);
@@ -49,7 +51,9 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
           <span className="hidden sm:block text-sm font-semibold tracking-wide">TYDY</span>
         </div>
 
-        <div className="w-6 md:hidden" /> {/* Espacio para que el logo quede centrado */}
+        <div className="flex w-10 items-center justify-end md:hidden">
+          {canSeeNotifications ? <NotificacionesBell mobile /> : <div className="w-6" />}
+        </div>
       </header>
 
       {/* Modal para deslogear en cuenta empleado */}

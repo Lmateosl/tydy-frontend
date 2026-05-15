@@ -301,6 +301,7 @@ export default function Incidentes() {
   const highlightTimeoutRef = useRef(null);
   const feedbackDeepLinkId = searchParams.get("feedback");
   const actividadDeepLinkId = searchParams.get("actividad");
+  const incidenteDeepLinkId = searchParams.get("incidente_id");
 
   const empresasMap = useMemo(
     () => empresas.reduce((acc, empresa) => {
@@ -461,10 +462,11 @@ export default function Incidentes() {
   }, [detalleOpen, incidenteDetalle, incidenteDetalleId]);
 
   useEffect(() => {
-    const deepLinkValue = feedbackDeepLinkId || actividadDeepLinkId;
+    const deepLinkValue = incidenteDeepLinkId || feedbackDeepLinkId || actividadDeepLinkId;
     if (!deepLinkValue || isLoading) return;
 
     const incidenteObjetivo = incidentesFiltrados.find((incidente) => {
+      if (incidenteDeepLinkId) return incidente.id === incidenteDeepLinkId;
       if (feedbackDeepLinkId) return incidente.feedback_id === feedbackDeepLinkId;
       return incidente.actividad_usuario_id === actividadDeepLinkId;
     });
@@ -501,7 +503,7 @@ export default function Incidentes() {
       deepLinkMissingRef.current = deepLinkValue;
       toast.info("El incidente enlazado no está visible con los registros cargados.");
     }
-  }, [actividadDeepLinkId, feedbackDeepLinkId, incidentesFiltrados, isLoading]);
+  }, [actividadDeepLinkId, feedbackDeepLinkId, incidenteDeepLinkId, incidentesFiltrados, isLoading]);
 
   const abrirCrear = () => {
     if (!canCreate) return;

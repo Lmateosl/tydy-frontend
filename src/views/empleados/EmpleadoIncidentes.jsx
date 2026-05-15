@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Eye, ImageIcon, MessageSquareText, ShieldAlert } from "lucide-react";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 
 import Layout from "../../components/Layout";
 import IncidenteDetalle from "../dashboard/incidentes/IncidenteDetalle";
@@ -171,6 +172,7 @@ function getIncidentSourceMeta(incidente) {
 
 export default function EmpleadoIncidentes() {
   const currentUser = useSelector((state) => state.usuarios?.usuarioLogueado);
+  const [searchParams] = useSearchParams();
   const [incidenteDetalleId, setIncidenteDetalleId] = useState(null);
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [modalResolverOpen, setModalResolverOpen] = useState(false);
@@ -189,6 +191,7 @@ export default function EmpleadoIncidentes() {
   });
   const [resolverIncidente, { isLoading: resolviendoIncidente }] = useResolverIncidenteMutation();
   const [marcarIncidenteEnProceso] = useMarcarIncidenteEnProcesoMutation();
+  const incidenteDeepLinkId = searchParams.get("incidente_id");
 
   const incidentesOrdenados = useMemo(
     () => [...incidentes].sort((a, b) => {
@@ -269,6 +272,15 @@ export default function EmpleadoIncidentes() {
       setIncidenteDetalleId(null);
     }
   }, [detalleOpen, incidenteDetalle, incidenteDetalleId]);
+
+  useEffect(() => {
+    if (!incidenteDeepLinkId || isLoading) return;
+    const incidenteObjetivo = incidentesOrdenados.find((incidente) => incidente.id === incidenteDeepLinkId);
+    if (!incidenteObjetivo) return;
+
+    setIncidenteDetalleId(incidenteObjetivo.id);
+    setDetalleOpen(true);
+  }, [incidenteDeepLinkId, incidentesOrdenados, isLoading]);
 
   const abrirDetalle = (incidente) => {
     setIncidenteDetalleId(incidente.id);

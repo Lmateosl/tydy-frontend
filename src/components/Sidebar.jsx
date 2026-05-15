@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import { logoutUsuario } from '../redux/slices/usuariosSlice';
 import { borrarHistorialId, borrarListaActiva } from '../redux/slices/listasSlice';
+import NotificacionesBell from './NotificacionesBell';
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -99,13 +100,14 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
           <div className="px-4 mb-4">
             <div className="bg-white/7 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#3BAE3D]/20 text-[#b7f7ba] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-[#3BAE3D]/20 text-[#b7f7ba] flex items-center justify-center font-bold">
                 {userInitial}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-white truncate">{usuario?.nombre || "TYDY User"}</p>
                 <p className="text-xs text-white/50">{userRoleLabel}</p>
               </div>
+              {usuario?.rol !== "cliente" && <NotificacionesBell />}
             </div>
           </div>
 
