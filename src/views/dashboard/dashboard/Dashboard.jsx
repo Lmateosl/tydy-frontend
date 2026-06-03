@@ -1,6 +1,16 @@
 import { useMemo, useState } from "react";
 import Chart from "react-apexcharts";
+import { useSelector } from "react-redux";
 import Layout from "../../../components/Layout";
+import AIReportsPanel from "../../../components/ai/AIReportsPanel";
+import GenerateAIReportModal from "../../../components/ai/GenerateAIReportModal";
+import {
+  useGenerarAIReportMutation,
+  useObtenerAIReportDetalleQuery,
+  useObtenerAIReportsQuery,
+  useObtenerAISettingsQuery,
+  useObtenerAIUsageCurrentQuery,
+} from "../../../redux/api/aiReportsApi";
 import {
   useObtenerActividadesUsuarioQuery,
   useObtenerRiesgosOperativosQuery,
@@ -17,6 +27,7 @@ import {
   ClipboardList,
   Clock3,
   MapPin,
+  Sparkles,
   Star,
   Users,
 } from "lucide-react";
@@ -65,8 +76,85 @@ function TarjetaResumen({ titulo, valor, icono, principal = false }) {
   );
 }
 
+const clampPercentage = (used, limit) => {
+  if (!limit || limit <= 0) return 0;
+  return Math.max(0, Math.min(100, (Number(used || 0) / Number(limit)) * 100));
+};
+
+const getAvailabilityRatio = (remaining, limit) => {
+  if (!limit || limit <= 0) return 0;
+  return Math.max(0, Number(remaining || 0) / Number(limit));
+};
+
+const getUsageTone = (remaining, limit) => {
+  const ratio = getAvailabilityRatio(remaining, limit);
+  if (ratio <= 0.1) {
+    return {
+      accent: "text-[#b23030]",
+      badge: "bg-[#fde9e9] text-[#b23030] border-[#f4c2c2]",
+      bar: "bg-[#d64545]",
+      track: "bg-[#fde9e9]",
+    };
+  }
+  if (ratio <= 0.25) {
+    return {
+      accent: "text-[#8a6500]",
+      badge: "bg-[#fff6db] text-[#8a6500] border-[#f4df9d]",
+      bar: "bg-[#e0a100]",
+      track: "bg-[#fff6db]",
+    };
+  }
+  return {
+    accent: "text-[#237a2b]",
+    badge: "bg-[#e7f8ea] text-[#237a2b] border-[#bfe7c4]",
+    bar: "bg-[#3BAE3D]",
+    track: "bg-[#e7f8ea]",
+  };
+};
+
+const formatCompactNumber = (value) =>
+  new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Number(value || 0));
+
+const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
+
+function UsageMetricCard({
+  title,
+  usedLabel,
+  remainingLabel,
+  helper,
+  progress,
+  tone,
+}) {
+  return (
+    <div className="rounded-[24px] border border-[#e6f0f8] bg-[#f8fbfd] px-4 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{title}</p>
+          <p className="mt-2 text-2xl font-extrabold text-[#0A2A47]">{usedLabel}</p>
+          <p className={`mt-1 text-sm font-semibold ${tone.accent}`}>{remainingLabel}</p>
+        </div>
+        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] ${tone.badge}`}>
+          Live
+        </span>
+      </div>
+      <div className="mt-4">
+        <div className={`h-2.5 w-full overflow-hidden rounded-full ${tone.track}`}>
+          <div className={`h-full rounded-full transition-all ${tone.bar}`} style={{ width: `${progress}%` }} />
+        </div>
+        <p className="mt-2 text-xs text-gray-500">{helper}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
+  const usuario = useSelector((state) => state.usuarios?.usuarioLogueado);
+  const isAdmin = usuario?.rol === "admin";
   const [periodoDashboard, setPeriodoDashboard] = useState("hoy");
+  const [showGenerateReportModal, setShowGenerateReportModal] = useState(false);
 
   const rangoDashboard = useMemo(() => {
     const { desde, hasta } = getBusinessPeriodRange(periodoDashboard);
@@ -115,6 +203,31 @@ export default function Dashboard() {
     refetchOnFocus: true,
     refetchOnReconnect: true,
   });
+  const {
+    data: aiSettings,
+    isLoading: isLoadingAISettings,
+  } = useObtenerAISettingsQuery(undefined, {
+    skip: !isAdmin,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
+  const {
+    data: aiUsageCurrent,
+    isLoading: isLoadingAIUsage,
+  } = useObtenerAIUsageCurrentQuery(undefined, {
+    skip: !isAdmin,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
+  const { data: aiReportsData } = useObtenerAIReportsQuery(
+    { limit: 20, offset: 0 },
+    {
+      skip: !isAdmin,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    }
+  );
+  const [generarAIReport, { isLoading: isGeneratingAIReport }] = useGenerarAIReportMutation();
 
   const cargando = isLoading || isFetching;
   const valor = (campo) => (cargando ? "..." : resumen?.[campo] ?? 0);
@@ -163,6 +276,40 @@ export default function Dashboard() {
     azulClaro: "#DCEBFA",
     rojo: "#D64545",
     amarillo: "#E0A100",
+  };
+
+  const aiStatusLabel = aiSettings?.ai_enabled ? "Habilitado" : "Deshabilitado";
+  const aiPlanName = aiSettings?.plan_name || "Sin plan";
+  const aiUsage = aiUsageCurrent?.usage;
+  const aiRemaining = aiUsageCurrent?.remaining;
+  const aiReports = aiReportsData?.items || [];
+  const lastReport = aiReports[0] || null;
+  const hasReports = aiReports.length > 0;
+  const hasPendingReports = aiReports.some((report) => ["queued", "processing"].includes(report.status));
+  const {
+    data: lastReportDetail,
+  } = useObtenerAIReportDetalleQuery(lastReport?.id, {
+    skip: !isAdmin || !lastReport?.id,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
+  const reportsProgress = clampPercentage(aiUsage?.reports_generated_count, aiSettings?.reports_monthly_limit);
+  const tokensProgress = clampPercentage(aiUsage?.total_tokens, aiSettings?.monthly_token_limit);
+  const costProgress = clampPercentage(aiUsage?.total_cost_usd, aiSettings?.monthly_cost_limit_usd);
+  const reportsTone = getUsageTone(aiRemaining?.reports_remaining, aiSettings?.reports_monthly_limit);
+  const tokensTone = getUsageTone(aiRemaining?.tokens_remaining, aiSettings?.monthly_token_limit);
+  const costTone = getUsageTone(aiRemaining?.cost_remaining_usd, aiSettings?.monthly_cost_limit_usd);
+  const showUsageWarning =
+    getAvailabilityRatio(aiRemaining?.reports_remaining, aiSettings?.reports_monthly_limit) <= 0.1 ||
+    getAvailabilityRatio(aiRemaining?.tokens_remaining, aiSettings?.monthly_token_limit) <= 0.1 ||
+    getAvailabilityRatio(aiRemaining?.cost_remaining_usd, aiSettings?.monthly_cost_limit_usd) <= 0.1;
+
+  const handleGenerateAIReport = async (payload) => {
+    try {
+      await generarAIReport(payload).unwrap();
+    } catch (error) {
+      throw error;
+    }
   };
 
   const actividadesPorDia = useMemo(() => {
@@ -298,6 +445,175 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {isAdmin ? (
+          <div className="mb-6 space-y-6">
+            <section className="rounded-[28px] bg-white border border-[#e6f0f8] shadow-xl shadow-[#0A2A47]/5 p-5 md:p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#e9f6ea] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#237a2b]">
+                      <Sparkles size={12} />
+                      AI
+                    </span>
+                    <span className="inline-flex rounded-full bg-[#eef4fa] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#0A2A47]">
+                      Admin only
+                    </span>
+                  </div>
+                  <h2 className="mt-3 text-3xl font-extrabold text-[#0A2A47] tracking-tight">
+                    AI Operations Reports
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-500 max-w-2xl">
+                    Genera resúmenes inteligentes sobre actividades, incidentes y feedback usando datos verificados de TYDY.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowGenerateReportModal(true)}
+                  disabled={!aiSettings?.ai_enabled || isGeneratingAIReport}
+                  className="inline-flex items-center justify-center rounded-2xl bg-[#071f35] text-white px-5 py-3 text-sm font-semibold shadow-lg shadow-[#071f35]/15 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingAIReport ? "Generando..." : "Generar reporte AI"}
+                </button>
+              </div>
+
+              {showUsageWarning && aiSettings?.ai_enabled ? (
+                <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-red-800">
+                  <p className="font-semibold">AI quota is almost exhausted.</p>
+                  <p className="mt-1 text-sm">
+                    Queda menos del 10% de al menos uno de los límites mensuales de AI para esta compañía.
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="rounded-2xl border border-[#e6f0f8] bg-[#f8fbfd] px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Estado AI</p>
+                  <p className="mt-2 text-2xl font-extrabold text-[#0A2A47]">
+                    {isLoadingAISettings ? "..." : aiStatusLabel}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">{aiPlanName}</p>
+                  <p className="mt-4 text-xs text-gray-500">
+                    Fuente: company_ai_settings y usage mensual verificado de TYDY.
+                  </p>
+                </div>
+
+                <UsageMetricCard
+                  title="Reportes AI"
+                  usedLabel={
+                    isLoadingAIUsage ? "..." : `${aiUsage?.reports_generated_count ?? 0} / ${aiSettings?.reports_monthly_limit ?? 0}`
+                  }
+                  remainingLabel={
+                    isLoadingAIUsage ? "..." : `${aiRemaining?.reports_remaining ?? 0} reports remaining`
+                  }
+                  helper="Uso mensual del paquete de reportes AI."
+                  progress={reportsProgress}
+                  tone={reportsTone}
+                />
+
+                <UsageMetricCard
+                  title="Tokens"
+                  usedLabel={
+                    isLoadingAIUsage
+                      ? "..."
+                      : `${formatCompactNumber(aiUsage?.total_tokens)} / ${formatCompactNumber(aiSettings?.monthly_token_limit)}`
+                  }
+                  remainingLabel={
+                    isLoadingAIUsage ? "..." : `${formatCompactNumber(aiRemaining?.tokens_remaining)} tokens remaining`
+                  }
+                  helper="Capacidad total de procesamiento AI disponible este mes."
+                  progress={tokensProgress}
+                  tone={tokensTone}
+                />
+
+                <UsageMetricCard
+                  title="Costo estimado"
+                  usedLabel={
+                    isLoadingAIUsage
+                      ? "..."
+                      : `${formatCurrency(aiUsage?.total_cost_usd)} / ${formatCurrency(aiSettings?.monthly_cost_limit_usd)}`
+                  }
+                  remainingLabel={
+                    isLoadingAIUsage ? "..." : `${formatCurrency(aiRemaining?.cost_remaining_usd)} budget remaining`
+                  }
+                  helper="Costo acumulado del mes basado en el consumo reportado por TYDY."
+                  progress={costProgress}
+                  tone={costTone}
+                />
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <div className="rounded-[24px] border border-[#e6f0f8] bg-white px-5 py-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Remaining This Month</p>
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-4 py-4">
+                      <p className="text-sm text-gray-500">Reports</p>
+                      <p className="mt-2 text-2xl font-extrabold text-[#0A2A47]">
+                        {isLoadingAIUsage ? "..." : aiRemaining?.reports_remaining ?? 0}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-4 py-4">
+                      <p className="text-sm text-gray-500">Tokens</p>
+                      <p className="mt-2 text-2xl font-extrabold text-[#0A2A47]">
+                        {isLoadingAIUsage ? "..." : formatCompactNumber(aiRemaining?.tokens_remaining)}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-4 py-4">
+                      <p className="text-sm text-gray-500">Budget</p>
+                      <p className="mt-2 text-2xl font-extrabold text-[#0A2A47]">
+                        {isLoadingAIUsage ? "..." : formatCurrency(aiRemaining?.cost_remaining_usd)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] border border-[#e6f0f8] bg-white px-5 py-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Last Report</p>
+                  {hasReports ? (
+                    <div className="mt-4 space-y-3">
+                      <div>
+                        <p className="text-lg font-bold text-[#0A2A47]">
+                          {lastReportDetail?.report_json?.title || "Reporte AI generado"}
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {formatearFecha(lastReport?.created_at)}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-4 py-3">
+                          <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">Modelo</p>
+                          <p className="mt-1 text-sm font-semibold text-[#0A2A47]">{lastReport?.model || "No disponible"}</p>
+                        </div>
+                        <div className="rounded-2xl border border-[#edf3f8] bg-[#fbfdff] px-4 py-3">
+                          <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">Costo estimado</p>
+                          <p className="mt-1 text-sm font-semibold text-[#0A2A47]">No disponible en V1</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-2xl border border-dashed border-[#dbe8f2] bg-[#f8fbfd] px-4 py-5 text-sm text-gray-500">
+                      Sin reportes generados
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {!aiSettings?.ai_enabled && !isLoadingAISettings ? (
+                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-800">
+                  <p className="font-semibold">AI Reports no está habilitado para esta compañía.</p>
+                  <p className="mt-1 text-sm">
+                    Esta función requiere activación comercial para poder generar resúmenes AI.
+                  </p>
+                </div>
+              ) : null}
+            </section>
+
+            <AIReportsPanel
+              onGenerateFirstReport={() => setShowGenerateReportModal(true)}
+              onGenerateAgain={() => setShowGenerateReportModal(true)}
+            />
+          </div>
+        ) : null}
 
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
           <TarjetaResumen
@@ -695,6 +1011,15 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {isAdmin ? (
+        <GenerateAIReportModal
+          isOpen={showGenerateReportModal}
+          onClose={() => setShowGenerateReportModal(false)}
+          onSubmit={handleGenerateAIReport}
+          isSubmitting={isGeneratingAIReport}
+        />
+      ) : null}
     </Layout>
   );
 }

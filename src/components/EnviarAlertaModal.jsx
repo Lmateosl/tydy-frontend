@@ -58,6 +58,14 @@ const INITIAL_FORM = {
   user_ids: [],
 };
 
+function sameUsersById(current, next) {
+  if (current === next) return true;
+  if (current.length !== next.length) return false;
+  const currentIds = current.map((usuario) => usuario?.id).sort();
+  const nextIds = next.map((usuario) => usuario?.id).sort();
+  return currentIds.every((id, index) => id === nextIds[index]);
+}
+
 function FieldLabel({ children }) {
   return <label className="mb-2 block text-sm font-semibold text-[#0A2A47]">{children}</label>;
 }
@@ -100,6 +108,10 @@ export default function EnviarAlertaModal({ isOpen, onClose }) {
       skip: !shouldLoadSupervisorLocacionUsers,
     });
   const [triggerObtenerUsuariosArea] = useLazyObtenerUsuariosAreaQuery();
+  const supervisorAreaIdsKey = useMemo(
+    () => areasSupervisorLocacion.map((area) => area?.id).filter(Boolean).sort().join("|"),
+    [areasSupervisorLocacion],
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -121,7 +133,7 @@ export default function EnviarAlertaModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (!shouldLoadSupervisorLocacionUsers) {
-      setUsuariosSupervisorLocacion([]);
+      setUsuariosSupervisorLocacion((prev) => (prev.length ? [] : prev));
       return;
     }
 
@@ -129,7 +141,7 @@ export default function EnviarAlertaModal({ isOpen, onClose }) {
 
     const cargarUsuarios = async () => {
       if (!areasSupervisorLocacion.length) {
-        setUsuariosSupervisorLocacion([]);
+        setUsuariosSupervisorLocacion((prev) => (prev.length ? [] : prev));
         return;
       }
 
@@ -153,10 +165,13 @@ export default function EnviarAlertaModal({ isOpen, onClose }) {
           usuariosUnicos.set(usuario.id, usuario);
         });
 
-        setUsuariosSupervisorLocacion(Array.from(usuariosUnicos.values()));
+        const siguientesUsuarios = Array.from(usuariosUnicos.values());
+        setUsuariosSupervisorLocacion((prev) =>
+          sameUsersById(prev, siguientesUsuarios) ? prev : siguientesUsuarios
+        );
       } catch {
         if (!cancelled) {
-          setUsuariosSupervisorLocacion([]);
+          setUsuariosSupervisorLocacion((prev) => (prev.length ? [] : prev));
         }
       }
     };
@@ -167,8 +182,8 @@ export default function EnviarAlertaModal({ isOpen, onClose }) {
       cancelled = true;
     };
   }, [
-    areasSupervisorLocacion,
     form.locacion_id,
+    supervisorAreaIdsKey,
     shouldLoadSupervisorLocacionUsers,
     triggerObtenerUsuariosArea,
   ]);
@@ -458,7 +473,7 @@ export default function EnviarAlertaModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="max-h-[82vh] overflow-y-auto bg-[#fbfdff]">
+        <form onSubmit={handleSubmit} className="max-h-[72vh] overflow-y-auto bg-[#fbfdff]">
           <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.35fr_0.95fr]">
             <div className="space-y-5">
               <div className="rounded-3xl border border-[#e6f0f8] bg-white p-5 shadow-sm">
