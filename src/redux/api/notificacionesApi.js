@@ -4,7 +4,7 @@ export const notificacionesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     obtenerNotificaciones: builder.query({
       query: ({ limit = 20, offset = 0, solo_no_leidas = false } = {}) =>
-        `/notificaciones?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}&solo_no_leidas=${encodeURIComponent(solo_no_leidas)}`,
+        `/notificaciones/?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}&solo_no_leidas=${encodeURIComponent(solo_no_leidas)}`,
       providesTags: (result) => [
         "Notificaciones",
         ...(result?.items || []).map((item) => ({ type: "Notificaciones", id: item.id })),
