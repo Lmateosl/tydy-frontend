@@ -2,8 +2,18 @@ import { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { useObtenerListasQuery, useCrearListaMutation, useEditarListaMutation, useEliminarListaMutation } from "../../../redux/api/listasApi";
 import { useObtenerActividadesQuery, useObtenerCategoriasQuery } from "../../../redux/api/actividadesApi";
-import { Search, Plus, List, ScanLine, ScanBarcode, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, Plus, List, ScanLine, ScanBarcode, Trash2, ArrowUp, ArrowDown, Copy } from "lucide-react";
 import Layout from "../../../components/Layout";
+
+const FORM_INICIAL = {
+  nombre: "",
+  qrin: true,
+  code: false,
+  qrout: true,
+  codeout: false,
+  actividad_ids: [],
+  imagen: false,
+};
 
 export default function ListasActividades() {
   const { data: listas = [], refetch } = useObtenerListasQuery();
@@ -16,13 +26,15 @@ export default function ListasActividades() {
   const [filtro, setFiltro] = useState("");
   const [ordenAsc, setOrdenAsc] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modoEditar, setModoEditar] = useState(false);
+  const [modoFormulario, setModoFormulario] = useState("crear");
   const [listaSeleccionada, setListaSeleccionada] = useState(null);
-  const [form, setForm] = useState({ nombre: "", qrin: true, code: false, qrout: false, codeout: false, actividad_ids: [], imagen: false });
+  const [form, setForm] = useState(FORM_INICIAL);
   const [modalStep, setModalStep] = useState(1);
   const [actividadFiltro, setActividadFiltro] = useState("");
   const [listaAEliminar, setListaAEliminar] = useState(null);
   const [actividadFiltroCategoria, setActividadFiltroCategoria] = useState("");
+  const modoEditar = modoFormulario === "editar";
+  const modoClonar = modoFormulario === "clonar";
 
   const listasFiltradas = useMemo(() => {
     return listas
@@ -32,6 +44,36 @@ export default function ListasActividades() {
 
   const totalQR = listas.filter((l) => l.qrin || l.qrout).length;
   const totalCodigos = listas.filter((l) => l.code || l.codeout).length;
+
+  const resetModalState = () => {
+    setModalOpen(false);
+    setModalStep(1);
+    setActividadFiltro("");
+    setActividadFiltroCategoria("");
+    setListaSeleccionada(null);
+    setModoFormulario("crear");
+    setForm(FORM_INICIAL);
+  };
+
+  const construirFormDesdeLista = (lista) => ({
+    nombre: `${lista.nombre} copia`,
+    qrin: Boolean(lista.qrin),
+    code: Boolean(lista.code),
+    qrout: Boolean(lista.qrout),
+    codeout: Boolean(lista.codeout),
+    actividad_ids: (lista.actividades || []).map((actividad) => actividad.id),
+    imagen: Boolean(lista.imagen),
+  });
+
+  const abrirModalClonar = (lista) => {
+    setModoFormulario("clonar");
+    setListaSeleccionada(lista);
+    setForm(construirFormDesdeLista(lista));
+    setModalStep(1);
+    setActividadFiltro("");
+    setActividadFiltroCategoria("");
+    setModalOpen(true);
+  };
 
   const handleSubmit = async () => {
     if (!form.nombre) return toast.error("El nombre es obligatorio");
@@ -43,13 +85,10 @@ export default function ListasActividades() {
         }
       } else {
         await crearLista(form).unwrap();
-        toast.success("Lista creada");
+        toast.success(modoClonar ? "Lista clonada" : "Lista creada");
       }
       refetch();
-      setModalOpen(false);
-      setForm({ nombre: "", qrin: true, code: false, qrout: true, codeout: false, actividad_ids: [], imagen: false });
-      setModalStep(1);
-      setActividadFiltro("");
+      resetModalState();
     } catch (error) {
       toast.error(error?.data?.detail || "Error al guardar lista");
     }
@@ -145,10 +184,12 @@ export default function ListasActividades() {
                 <button 
                     onClick={() => { 
                         setModalOpen(true); 
-                        setModoEditar(false); 
-                        setForm({ nombre: "", qrin: true, code: false, qrout: true, codeout: false, actividad_ids: [], imagen: false }); 
+                        setModoFormulario("crear");
+                        setListaSeleccionada(null);
+                        setForm(FORM_INICIAL); 
                         setModalStep(1);
                         setActividadFiltro("");
+                        setActividadFiltroCategoria("");
                     }} 
                     className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#3BAE3D] text-white px-4 py-3 font-semibold shadow-lg shadow-[#3BAE3D]/20 transition hover:bg-[#2f9631]">
                     <Plus size={16} /> 
@@ -244,7 +285,14 @@ export default function ListasActividades() {
                               </span>
                             </td>
                             <td className="px-4 py-4 align-top">
-                                <div className="flex justify-end">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={() => abrirModalClonar(l)}
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dbe8f2] bg-white text-[#0A2A47] transition hover:border-[#0A2A47] hover:bg-[#f8fbfd]"
+                                    title="Clonar lista"
+                                  >
+                                    <Copy size={16} />
+                                  </button>
                                   <button onClick={() => setListaAEliminar(l)} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#f0d4d4] bg-[#fff7f7] text-red-500 transition hover:bg-red-50 hover:text-red-700"><Trash2 size={16} /></button>
                                 </div>
                             </td>
@@ -258,7 +306,9 @@ export default function ListasActividades() {
             {modalOpen && (
                 <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center z-50 text-[#0A2A47] px-4">
                     <div className="bg-white p-5 md:p-6 rounded-[28px] w-full max-w-md border border-[#e6f0f8] shadow-2xl">
-                        <h3 className="font-extrabold mb-5 text-2xl tracking-tight text-[#0A2A47]">{modoEditar ? "Editar Lista" : "Crear Lista"}</h3>
+                        <h3 className="font-extrabold mb-5 text-2xl tracking-tight text-[#0A2A47]">
+                          {modoEditar ? "Editar Lista" : modoClonar ? "Clonar Lista" : "Crear Lista"}
+                        </h3>
                         {modalStep === 1 ? (
                           <>
                             <label className="block mb-2 text-sm font-semibold text-[#0A2A47]">Nombre <span className="text-red-500">*</span></label>
@@ -292,9 +342,7 @@ export default function ListasActividades() {
                               </button>
                               <button
                                 onClick={() => {
-                                  setModalOpen(false);
-                                  setModalStep(1);
-                                  setActividadFiltro("");
+                                  resetModalState();
                                 }}
                                 className="border border-[#dbe8f2] text-[#0A2A47] flex-1 py-3 rounded-2xl font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition"
                               >
@@ -368,7 +416,7 @@ export default function ListasActividades() {
                                 onClick={handleSubmit}
                                 className="bg-[#071f35] text-white flex-1 py-3 w-full rounded-2xl font-semibold shadow-lg shadow-[#071f35]/10 hover:bg-[#123b63] transition"
                               >
-                                {modoEditar ? "Actualizar" : "Crear Lista"}
+                                {modoEditar ? "Actualizar" : modoClonar ? "Clonar Lista" : "Crear Lista"}
                               </button>
                               <button
                                 onClick={() => setModalStep(1)}
@@ -378,9 +426,7 @@ export default function ListasActividades() {
                               </button>
                               <button
                                 onClick={() => {
-                                  setModalOpen(false);
-                                  setModalStep(1);
-                                  setActividadFiltro("");
+                                  resetModalState();
                                 }}
                                 className="border border-[#dbe8f2] text-[#0A2A47] flex-1 py-3 rounded-2xl font-semibold hover:border-[#0A2A47] hover:bg-[#f8fbfd] transition w-full"
                               >
